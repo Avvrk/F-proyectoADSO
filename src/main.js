@@ -7,6 +7,7 @@ import App from './App.vue'
 
 // Import icon libraries
 import '@quasar/extras/material-icons/material-icons.css'
+import '@quasar/extras/material-icons-outlined/material-icons-outlined.css'
 
 // Import Quasar css
 import 'quasar/src/css/index.sass'
