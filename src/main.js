@@ -1,29 +1,26 @@
-import { createApp } from 'vue'
-import { router } from './routes/routes.js'
-import { Quasar, Notify } from 'quasar'
-import { createPinia } from 'pinia'
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
-import App from "./App.vue"
-import './style.css'
+import { createApp } from "vue";
+import { Quasar, Notify } from "quasar";
+import { createPinia } from "pinia";
+import piniaPluginPersist from "pinia-plugin-persist";
+import { router } from "./router/router.js";
+import App from "./App.vue";
+import "./style.css";
 
-// Import icon libraries
-import '@quasar/extras/material-icons/material-icons.css'
+import "@quasar/extras/material-icons/material-icons.css";
+import '@quasar/extras/material-icons-outlined/material-icons-outlined.css'
+import "quasar/src/css/index.sass";
 
-// Import Quasar css
-import 'quasar/src/css/index.sass'
+const pinia = createPinia();
+pinia.use(piniaPluginPersist);
 
-const app = createApp(App)
-const pinia = createPinia()
-
-pinia.use(piniaPluginPersistedstate)
-
-app.use(router)
-app.use(pinia)
+const app = createApp(App);
 
 app.use(Quasar, {
-    plugins: {
-      Notify
-    }, // import Quasar plugins and add here
-  })
+  plugins: {
+    Notify,
+  },
+});
 
-app.mount('#app')
+app.use(pinia);
+app.use(router);
+app.mount("#app");
