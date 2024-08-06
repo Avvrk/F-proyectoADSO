@@ -13,7 +13,7 @@
     "@quasar/vite-plugin": "^1.7.0",
     "axios": "^1.7.2",
     "pinia": "^2.1.7",
-    "pinia-plugin-persist": "^1.0.0",
+    "pinia-plugin-persistedstate": "^3.2.1",
     "quasar": "^2.16.5",
     "vue": "^3.4.29",
     "vue-router": "^4.4.0"
