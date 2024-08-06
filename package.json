@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.16.12",
+    "@quasar/vite-plugin": "^1.7.0",
     "axios": "^1.7.2",
     "pinia": "^2.1.7",
     "pinia-plugin-persist": "^1.0.0",
