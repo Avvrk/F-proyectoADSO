@@ -1,10 +1,11 @@
 import { createApp } from 'vue'
 import { router } from './routes/routes.js'
 import { Quasar, Notify } from 'quasar'
-import './style.css'
-import App from "./App.vue"
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import App from "./App.vue"
+import './style.css'
+
 // Import icon libraries
 import '@quasar/extras/material-icons/material-icons.css'
 

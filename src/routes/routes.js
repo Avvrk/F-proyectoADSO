@@ -1,123 +1,189 @@
 import { Notify } from "quasar";
-import { useStoreUsuarios } from "../stores/Usuarios.js";
 
+import Home from "../components/home.vue";
 import Login from "../components/Login.vue";
 import barraLateral from "../components/barraLateral.vue";
-import Clientes from "../components/Clientes.vue";
-import Ingresos from "../components/Ingresos.vue";
-import Mantenimientos from "../components/Mantenimientos.vue";
-import Maquinas from "../components/Maquinas.vue";
-import Pagos from "../components/Pagos.vue";
-import Planes from "../components/Planes.vue";
-import Productos from "../components/Productos.vue";
-import Sedes from "../components/Sedes.vue";
-import Usuarios from "../components/Usuarios.vue";
-import Ventas from "../components/Ventas.vue";
+import Admin from "../components/admin.vue";
+import Analisis_de_suelo from "../components/analisis_suelo.vue";
+import Climas from "../components/climas.vue";
+import Comprador from "../components/comprador.vue";
+import Control_de_Plagas from "../components/control_plagas.vue";
+import Cultivos from "../components/cultivos.vue";
+import Elaboracion_de_Sustrato from "../components/elaboracion_sustrato.vue";
+import Empleados from "../components/empleados.vue";
+import Factura from "../components/factura.vue";
+import Fertilizacion from "../components/fertilizacion.vue";
+import Fincas from "../components/fincas.vue";
+import Gastos from "../components/gastos.vue";
+import Insumos from "../components/insumos.vue";
+import Inventario from "../components/inventario.vue";
+import Mantenimiento from "../components/mantenimiento.vue";
+import Maquinaria_de_herramientas from "../components/maquinaria_herramientas.vue";
+import Nomina from "../components/nomina.vue";
+import Parcelas from "../components/parcelas.vue";
+import Preparacion_de_suelos from "../components/preparacion_suelo.vue";
+import Procesos from "../components/procesos.vue";
+import Produccion from "../components/produccion.vue";
+import Proveedores from "../components/proveedores.vue";
+import Riego from "../components/riego.vue";
+import Semillas from "../components/semillas.vue";
+import Siembra from "../components/siembra.vue";
 
 import { createRouter, createWebHashHistory } from "vue-router";
+import BarraLateral from "../components/barraLateral.vue";
 
 export const notifyErrorRequest = (msg, position = "top") => {
-	Notify.create({
-		color: "negative",
-		message: msg,
-		icon: "error",
-		position: position,
-		timeout: 4500,
-	});
+    Notify.create({
+        color: "negative",
+        message: msg,
+        icon: "error",
+        position: position,
+        timeout: 4500,
+    });
 };
 
 export const notifySuccessRequest = (msg, position = "top") => {
-	Notify.create({
-		color: "positive",
-		message: msg,
-		icon: "check",
-		position: position,
-		timeout: 3500,
-	});
+    Notify.create({
+        color: "positive",
+        message: msg,
+        icon: "check",
+        position: position,
+        timeout: 3500,
+    });
 };
 
 export const notifyWarningRequest = (msg, position = "top") => {
-	Notify.create({
-		color: "warning",
-		message: msg,
-		icon: "warning",
-		textColor: "black",
-		position: position,
-		timeout: 18000,
-	});
+    Notify.create({
+        color: "warning",
+        message: msg,
+        icon: "warning",
+        textColor: "black",
+        position: position,
+        timeout: 18000,
+    });
 };
 
 const auth = (to, from, next) => {
-	if (checkAuth()) {
-		const useUsuario = useStoreUsuarios();
-		const rol = useUsuario.user.rol
-		console.log("Rol:", rol);
-		if (!to.meta.rol.includes(rol)) {
-			return next({ name: 'login' })
-		}
-		next()
-	} else {
-		return next({ name: 'login' })
-	}
-}
-
-const checkAuth = async () => {
-	const useUsuario = useStoreUsuarios();
-	const token = useUsuario.token;
-	if (!token) return false;
-	return true;
+    if (checkAuth()) {
+        const useUsuario = useStoreUsuarios();
+        const rol = useUsuario.user.rol;
+        if (!to.meta.rol.includes(rol)) {
+            return next({ name: "login" });
+        }
+        next();
+    } else {
+        console.log("Rol:", rol);
+        return next({ name: "login" });
+    }
 };
 
-// const routes = [
-// 	{ path: "/", component: Login, name: "login" },
-// 	// { path: "/barraLateral", component: barraLateral, },
-// 	{ path: "/Clientes", component: Clientes, },
-// 	{ path: "/Ingresos", component: Ingresos, },
-// 	{ path: "/Mantenimientos", component: Mantenimientos, },
-// 	{ path: "/Maquinas", component: Maquinas, },
-// 	{ path: "/Pagos", component: Pagos, },
-// 	{ path: "/Planes", component: Planes, },
-// 	{ path: "/Productos", component: Productos, },
-// 	{ path: "/Sedes", component: Sedes, },
-// 	{ path: "/Usuarios", component: Usuarios, },
-// 	{ path: "/Ventas", component: Ventas, },
-// ];
-
-// const routes = [
-// 	{ path: "/", component: Login, name: "login" },
-// 	{ path: "/Clientes", component: Clientes, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista", "Instructor"] } },
-// 	{ path: "/Ingresos", component: Ingresos, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
-// 	{ path: "/Mantenimientos", component: Mantenimientos, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
-// 	{ path: "/Maquinas", component: Maquinas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
-// 	{ path: "/Pagos", component: Pagos, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
-// 	{ path: "/Planes", component: Planes, beforeEnter: auth, meta: { rol: ["Administrador"] } },
-// 	{ path: "/Productos", component: Productos, beforeEnter: auth, meta: { rol: ["Administrador"] } },
-// 	{ path: "/Sedes", component: Sedes, beforeEnter: auth, meta: { rol: ["Administrador"] } },
-// 	{ path: "/Usuarios", component: Usuarios, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
-// 	{ path: "/Ventas", component: Ventas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
-// ];
+const checkAuth = async () => {
+    const useUsuario = useStoreUsuarios();
+    const token = useUsuario.token;
+    if (!token) return false;
+    return true;
+};
 
 const routes = [
-	{ path: "/", component: Login, name: "login" },
-	{
-		path: "/",
-		component: barraLateral,
-		children: [
-			{ path: "Clientes", component: Clientes, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista", "Instructor"] } },
-			{ path: "Ingresos", component: Ingresos, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
-			{ path: "Mantenimientos", component: Mantenimientos, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
-			{ path: "Maquinas", component: Maquinas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
-			{ path: "Pagos", component: Pagos, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
-			{ path: "Planes", component: Planes, beforeEnter: auth, meta: { rol: ["Administrador"] } },
-			{ path: "Productos", component: Productos, beforeEnter: auth, meta: { rol: ["Administrador"] } },
-			{ path: "Sedes", component: Sedes, beforeEnter: auth, meta: { rol: ["Administrador"] } },
-			{ path: "Usuarios", component: Usuarios, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
-			{ path: "Ventas", component: Ventas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
-		]
-	},
+    { path: "/", component: Login, name: "login" },
+    {
+        path: "/mio",
+        component: barraLateral,
+        children: [
+            { path: "Admin", component: Admin, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "AnalisisSuelo", component: Analisis_de_suelo, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Climas", component: Climas, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Comprador", component: Comprador, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "ControlPlagas", component: Control_de_Plagas, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Cultivos", component: Cultivos, /* beforeEnter: auth, meta: { rol: ["Administrador"] } */ },
+            { path: "Elaboracion de Sustrato", component: Elaboracion_de_Sustrato, /* beforeEnter: auth, meta: { rol: ["Administrador"] } */ },
+            { path: "Empleados", component: Empleados, /* beforeEnter: auth, meta: { rol: ["Administrador"] } */ },
+            { path: "Factura", component: Factura, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Fertilizacion", component: Fertilizacion, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Fincas", component: Fincas, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Gastos", component: Gastos, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Insumos", component: Insumos, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Inventario", component: Inventario, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Mantenimiento", component: Mantenimiento, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Maquinaria de herramientas", component: Maquinaria_de_herramientas, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Nomina", component: Nomina, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Parcelas", component: Parcelas, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "PreparacionSuelos", component: Preparacion_de_suelos, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Procesos", component: Procesos, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Produccion", component: Produccion, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Proveedores", component: Proveedores, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Riego", component: Riego, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Semillas", component: Semillas, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "Siembra", component: Siembra, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+        ],
+    },
 ];
 
+// const routes = [
+// 	{ path: "/", component: Login, name: "login" },
+// 	{ path: "Admin", component: Admin, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista", "Instructor"] } },
+// 	{ path: "Analisis de suelo", component: Analisis_de_suelo, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Climas", component: Climas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Comprador", component: Comprador, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Control de Plagas", component: Control_de_Plagas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Cultivos", component: Cultivos, beforeEnter: auth, meta: { rol: ["Administrador"] } },
+// 	{ path: "Elaboracion de Sustrato", component: Elaboracion_de_Sustrato, beforeEnter: auth, meta: { rol: ["Administrador"] } },
+// 	{ path: "Empleados", component: Empleados, beforeEnter: auth, meta: { rol: ["Administrador"] } },
+// 	{ path: "Factura", component: Factura, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Fertilizacion", component: Fertilizacion, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Fincas", component: Fincas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Gastos", component: Gastos, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Insumos", component: Insumos, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Inventario", component: Inventario, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Mantenimiento", component: Mantenimiento, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Maquinaria de herramientas", component: Maquinaria_de_herramientas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Nomina", component: Nomina, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Parcelas", component: Parcelas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Preparacion de suelos", component: Preparacion_de_suelos, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Procesos", component: Ventas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Produccion", component: Produccion, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Proveedores", component: Proveedores, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Riego", component: Riego, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Semillas", component: Semillas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 	{ path: "Siembra", component: Siembra, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// ];
+
+// const routes = [
+// 	{ path: "/", component: Login, name: "login" },
+// 	{
+// 		path: "/",
+// 		component: barraLateral,
+// 		children: [
+// 			{ path: "Admin", component: Admin, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista", "Instructor"] } },
+// 			{ path: "Analisis de suelo", component: Analisis_de_suelo, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Climas", component: Climas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Comprador", component: Comprador, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Control de Plagas", component: Control_de_Plagas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Cultivos", component: Cultivos, beforeEnter: auth, meta: { rol: ["Administrador"] } },
+// 			{ path: "Elaboracion de Sustrato", component: Elaboracion_de_Sustrato, beforeEnter: auth, meta: { rol: ["Administrador"] } },
+// 			{ path: "Empleados", component: Empleados, beforeEnter: auth, meta: { rol: ["Administrador"] } },
+// 			{ path: "Factura", component: Factura, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Fertilizacion", component: Fertilizacion, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Fincas", component: Fincas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Gastos", component: Gastos, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Insumos", component: Insumos, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Inventario", component: Inventario, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Mantenimiento", component: Mantenimiento, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Maquinaria de herramientas", component: Maquinaria_de_herramientas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Nomina", component: Nomina, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Parcelas", component: Parcelas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Preparacion de suelos", component: Preparacion_de_suelos, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Procesos", component: Ventas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Produccion", component: Produccion, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Proveedores", component: Proveedores, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Riego", component: Riego, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Semillas", component: Semillas, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 			{ path: "Siembra", component: Siembra, beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } },
+// 		]
+// 	},
+// ];
+
 export const router = createRouter({
-	history: createWebHashHistory(),
-	routes,
+    history: createWebHashHistory(),
+    routes,
 });
