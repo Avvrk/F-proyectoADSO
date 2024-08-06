@@ -2,7 +2,7 @@ import { createApp } from "vue";
 import { Quasar, Notify } from "quasar";
 import { createPinia } from "pinia";
 import PiniaPersistedState from 'pinia-plugin-persistedstate';
-import router from './router/router.js';
+import router from './routes/routes.js';
 import App from "./App.vue";
 import "./style.css";
 
