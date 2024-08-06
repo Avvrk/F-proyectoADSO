@@ -1,7 +1,8 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { Quasar } from 'quasar'
+import { Quasar, Notify } from "quasar";
 import { router } from './routes/routes.js'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import './style.css'
 import App from './App.vue'
 
@@ -13,10 +14,13 @@ import '@quasar/extras/material-icons-outlined/material-icons-outlined.css'
 import 'quasar/src/css/index.sass'
 
 const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
 const app = createApp(App)
 
 app.use(Quasar, {
-    plugins: {},
+    plugins: {
+        Notify,
+      },
 })
 app.use(router)
 app.use(pinia)
