@@ -1,53 +1,84 @@
 <script setup>
-/* import { ref, computed, onMounted } from "vue";
-import { useStoreAdmins } from "../stores/admin.js";
-// import { notifyErrorRequest } from "../routes/routes.js";
+import { ref, onMounted } from "vue";
+import { useStoreAdmins } from "../stores/admin";
 
-const adminStore = useStoreAdmins();
+const useAdmin = useStoreAdmins();
 
+const rows = ref([]);
+const columns = ref([
+    {
+        name: "nombre",
+        label: "Nombre",
+        field: "nombre",
+        aling: "center",
+        sortable: true,
+    },
+    {
+        name: "direccion",
+        label: "Direccion",
+        field: "direccion",
+        aling: "center",
+    },
+    {
+        name: "correo",
+        label: "Correo",
+        field: "correo",
+        aling: "center",
+        sortable: true,
+    },
+    {
+        name: "telefono",
+        label: "Telefono",
+        field: "telefono",
+        aling: "center",
+    },
+    {
+        name: "municipio",
+        label: "Municipio",
+        field: "municipio",
+        aling: "center",
+        sortable: true,
+    },
+    {
+        name: "opciones",
+        label: "Opciones",
+        field: "opciones",
+        aling: "center",
+    },
+]);
 
-// Propiedad calculada para comprobar si el usuario es un instructor
-const isInstructor = computed(() => useUsuario.user.rol === 'Instructor');
+async function listarAdmin() {
+    try {
+        const r = await useAdmin.getAdmin();
+        rows.value = r.data.admins;
+    } catch (error) {
+        console.log(error.message);
+    }
+}
 
-// Variables y métodos directamente desde la store de Admin
-const { 
-  mostrarMensajeCliente,
-  fechaSeleccionada,
-  fechaIngreso,
-  planC,
-  fechaCumpleanos,
-  nombreCliente,
-  telefonoCliente,
-  idClienteSeleccionado,
-  fechaIngresoCliente,
-  documentoCliente,
-  fechaNacimientoCliente,
-  edadCliente,
-  direccionCliente,
-  objetivoCliente,
-  observacionesCliente,
-  planCliente,
-  fechaVencimientoCliente,
-  seguimientoCliente,
-  selectedOption,
-  options,
-  rows,
-  columns,
-  listarClientes,
-  listarPlanes,
-  listarUsuarios,
-  listarClientePorDocumento
-} = adminStore;
-
-// Montar la store para listar clientes al iniciar
 onMounted(() => {
-  listarClientes();
-}); */
+    listarAdmin;
+});
 </script>
 
 <template>
-  <div>
-    <!-- <q-select
+    <div>
+        <q-table
+            flat
+            bordered
+            title="Administrador"
+            :rows="rows"
+            :columns="columns"
+            row-key="id">
+            <template v-slot:body-cell-opciones="props">
+                <q-td :props="props">
+                    <q-btn> ✏️ </q-btn>
+                    <q-btn v-if="props.row.estado == 1"> ❌ </q-btn>
+                    <q-btn v-else> ✅ </q-btn>
+                </q-td>
+            </template>
+        </q-table>
+        <!-- <q-select
       v-model="selectedOption"
       :options="options"
       label="Selecciona una opción"
@@ -86,5 +117,5 @@ onMounted(() => {
         </li>
       </ul>
     </div> -->
-  </div>
+    </div>
 </template>
