@@ -1,94 +1,69 @@
 <template>
-	<q-layout view="hHh lpR fFf">
-		<!-- <q-header elevated class="bg-primary text-white" height-hint="98">
-			<q-toolbar>
-				<q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
-				<q-toolbar-title>
-					<em>Gym</em>
-				</q-toolbar-title>
-			</q-toolbar>
-		</q-header>
+    <q-layout view="hHh lpR fFf">
+        <q-header elevated class="bg-primary text-white" height-hint="98">
+            <q-toolbar>
+                <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
+                <q-toolbar-title>
+                    <em>Gym</em>
+                </q-toolbar-title>
+            </q-toolbar>
+        </q-header>
 
-		<q-drawer
-			:model-value="leftDrawerOpen"
-			show-if-above
-			side="left"
-			overlay>
-			<div class="drawer-links">
-				<router-link lass="r" to="/Admin">Administrador</router-link>
-				<router-link class="r" to="/AnalisisSuelo"
-					>Analisis de suelo</router-link
-				>
-				<router-link class="r" to="/Climas">Climas</router-link>
-				<router-link class="r" to="/Comprador">Comprador</router-link>
-				<router-link class="r" to="/ControlPlagas"
-					>Control de Plagas</router-link
-				>
-				<router-link class="r" to="/Cultivos">Cultivos</router-link>
-				<router-link class="r" to="/ElaboracionSustrato"
-					>Elaboracion de Sustrato</router-link
-				>
-				<router-link class="r" to="/Empleados">Empleados</router-link>
-				<router-link class="r" to="/Factura">Factura</router-link>
-				<router-link class="r" to="/Fertilizacion"
-					>Fertilizacion</router-link
-				>
-				<router-link class="r" to="/Fincas">Fincas</router-link>
-				<router-link class="r" to="/Gastos">Gastos</router-link>
-				<router-link class="r" to="/Insumos">Insumos</router-link>
-				<router-link class="r" to="/Inventario">Inventario</router-link>
-				<router-link class="r" to="/Mantenimiento"
-					>Mantenimiento</router-link
-				>
-				<router-link class="r" to="/MaquinariaHerramientas"
-					>Maquinaria de herramientas</router-link
-				>
-				<router-link class="r" to="/Nomina">Nomina</router-link>
-				<router-link class="r" to="/Parcelas">Parcelas</router-link>
-				<router-link class="r" to="/Preparacion de suelos"
-					>Preparacion de suelos</router-link
-				>
-				<router-link class="r" to="/Procesos">Procesos</router-link>
-				<router-link class="r" to="/Produccion">Produccion</router-link>
-				<router-link class="r" to="/Proveedores"
-					>Proveedores</router-link
-				>
-				<router-link class="r" to="/Riego">Riego</router-link>
-				<router-link class="r" to="/Semillas">Semillas</router-link>
-				<router-link class="r" to="/Siembra">Siembra</router-link>
+        <q-drawer
+            :model-value="leftDrawerOpen"
+            show-if-above
+            side="left"
+            overlay
+            id="lateral">
+            <div>
+                <router-link lass="r" to="/Admin">Administrador</router-link>
+                <router-link class="r" to="/AnalisisSuelo"
+                    >Analisis de suelo</router-link
+                >
+                <router-link class="r" to="/Climas">Climas</router-link>
+                <router-link class="r" to="/Comprador">Comprador</router-link>
+                <router-link class="r" to="/ControlPlagas"
+                    >Control de Plagas</router-link
+                >
+                <router-link class="r" to="/Cultivos">Cultivos</router-link>
+                <router-link class="r" to="/ElaboracionSustrato"
+                    >Elaboracion de Sustrato</router-link
+                >
+                <router-link class="r" to="/Empleados">Empleados</router-link>
+                <router-link class="r" to="/Factura">Factura</router-link>
+                <router-link class="r" to="/Fertilizacion"
+                    >Fertilizacion</router-link
+                >
+                <router-link class="r" to="/Fincas">Fincas</router-link>
+                <router-link class="r" to="/Gastos">Gastos</router-link>
+                <router-link class="r" to="/Insumos">Insumos</router-link>
+                <router-link class="r" to="/Inventario">Inventario</router-link>
+                <router-link class="r" to="/Mantenimiento"
+                    >Mantenimiento</router-link
+                >
+                <router-link class="r" to="/MaquinariaHerramientas"
+                    >Maquinaria de herramientas</router-link
+                >
+                <router-link class="r" to="/Nomina">Nomina</router-link>
+                <router-link class="r" to="/Parcelas">Parcelas</router-link>
+                <router-link class="r" to="/Preparacion de suelos"
+                    >Preparacion de suelos</router-link
+                >
+                <router-link class="r" to="/Procesos">Procesos</router-link>
+                <router-link class="r" to="/Produccion">Produccion</router-link>
+                <router-link class="r" to="/Proveedores"
+                    >Proveedores</router-link
+                >
+                <router-link class="r" to="/Riego">Riego</router-link>
+                <router-link class="r" to="/Semillas">Semillas</router-link>
+                <router-link class="r" to="/Siembra">Siembra</router-link>
+            </div>
+        </q-drawer>
 
-				<router-link v-if="hasAccess(['Administrador', 'Recepcionista', 'Instructor'])" class="r" to="/Admin">Administrador</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Analisis de suelo">Analisis de suelo</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Climas">Climas</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Comprador">Comprador</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Control de Plagas">Control de Plagas</router-link>
-        <router-link v-if="hasAccess(['Administrador'])" class="r" to="/Cultivos">Cultivos</router-link>
-        <router-link v-if="hasAccess(['Administrador'])" class="r" to="/Elaboracion de Sustrato">Elaboracion de Sustrato</router-link>
-        <router-link v-if="hasAccess(['Administrador'])" class="r" to="/Empleados">Empleados</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Factura">Factura</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Fertilizacion">Fertilizacion</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Fincas">Fincas</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Gastos">Gastos</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Insumos">Insumos</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Inventario">Inventario</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Mantenimiento">Mantenimiento</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Maquinaria de herramientas">Maquinaria de herramientas</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Nomina">Nomina</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Parcelas">Parcelas</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Preparacion de suelos">Preparacion de suelos</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Procesos">Procesos</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Produccion">Produccion</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Proveedores">Proveedores</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Riego">Riego</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Semillas">Semillas</router-link>
-        <router-link v-if="hasAccess(['Administrador', 'Recepcionista'])" class="r" to="/Siembra">Siembra</router-link>
-			</div>
-		</q-drawer>
-
-		--><q-page-container>
-			<router-view />
-		</q-page-container> 
-	</q-layout>
+        <q-page-container>
+            <router-view />
+        </q-page-container>
+    </q-layout>
 </template>
 
 <script setup>
@@ -113,6 +88,12 @@ const toggleLeftDrawer = () => {
 </script>
 
 <style scoped>
+#lateral div {
+    display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 20px;
+}
 /* .drawer-links {
 	text-align: center !important;
 	font-size: 20px !important;
