@@ -71,7 +71,7 @@ const routes = [
             { path: "Insumos", component: Insumos, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
             { path: "Inventario", component: Inventario, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
             { path: "Mantenimiento", component: Mantenimiento, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
-            { path: "Maquinaria de herramientas", component: Maquinaria_de_herramientas, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
+            { path: "MaquinariaHerramientas", component: Maquinaria_de_herramientas, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
             { path: "Nomina", component: Nomina, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
             { path: "Parcelas", component: Parcelas, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
             { path: "PreparacionSuelos", component: Preparacion_de_suelos, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },

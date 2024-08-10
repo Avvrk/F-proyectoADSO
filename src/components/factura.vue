@@ -1,135 +1,134 @@
-<template>
-	<div>
-		<!-- <q-card>
-      <q-card-section>
-        <q-table
-          :rows="filteredRows"
-          :columns="columns"
-          row-key="_id"
-          :pagination="pagination"
-          :rows-per-page-options="[10, 20, 30]"
-          virtual-scroll
-        >
-          <template v-slot:top-left>
-            <q-select
-              v-model="selectedOption"
-              :options="options"
-              label="Seleccionar opción"
-              outlined
-              dense
-            />
-          </template>
-          <template v-slot:body="props">
-            <q-tr :props="props">
-              <q-td key="fecha" :props="props">
-                {{ formatDate(props.row.fecha) }}
-              </q-td>
-              <q-td key="valor" :props="props">
-                {{ props.row.valor }}
-              </q-td>
-              <q-td key="detalles" :props="props">
-                {{ props.row.detalles || '-' }}
-              </q-td>
-              <q-td key="inventario_id" :props="props">
-                {{ props.row.inventario_id || '-' }}
-              </q-td>
-              <q-td key="cantidad" :props="props">
-                {{ props.row.cantidad }}
-              </q-td>
-              <q-td key="nombreProducto" :props="props">
-                {{ props.row.nombreProducto }}
-              </q-td>
-              <q-td key="subtotal" :props="props">
-                {{ props.row.subtotal }}
-              </q-td>
-              <q-td key="iva" :props="props">
-                {{ props.row.iva }}
-              </q-td>
-              <q-td key="total" :props="props">
-                {{ props.row.total }}
-              </q-td>
-              <q-td key="comprador_id" :props="props">
-                {{ props.row.comprador_id || '-' }}
-              </q-td>
-            </q-tr>
-          </template>
-        </q-table>
-      </q-card-section>
-    </q-card> -->
-	</div>
-</template>
-
 <script setup>
-/* import { ref, computed } from 'vue';
-  import { QTable, QTd, QSelect } from 'quasar';
- 
-  
-  const pagination = ref({
-    sortBy: 'fecha',
-    descending: true,
-    page: 1,
-    rowsPerPage: 10
-  });
-  
-  const options = ref([
-    { label: 'Listar Facturas', value: 'Listar Facturas' },
-    // Agrega más opciones según tus necesidades
-  ]);
-  
-  const selectedOption = ref('Listar Facturas');
-  
-  const columns = ref([
-    { name: 'fecha', label: 'Fecha', align: 'center' },
-    { name: 'valor', label: 'Valor', align: 'center' },
-    { name: 'detalles', label: 'Detalles', align: 'center' },
-    { name: 'inventario_id', label: 'ID de Inventario', align: 'center' },
-    { name: 'cantidad', label: 'Cantidad', align: 'center' },
-    { name: 'nombreProducto', label: 'Nombre del Producto', align: 'center' },
-    { name: 'subtotal', label: 'Subtotal', align: 'center' },
-    { name: 'iva', label: 'IVA', align: 'center' },
-    { name: 'total', label: 'Total', align: 'center' },
-    { name: 'comprador_id', label: 'ID del Comprador', align: 'center' },
-  ]);
-  
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES');
-  };
-  
-  const listarFacturas = async () => {
-    try {
-      const response = await Factura.find(); // Ajusta esto según cómo consultas los datos
-      return response;
-    } catch (error) {
-      console.error('Error al listar facturas:', error);
-      return [];
-    }
-  };
-  
-  const filteredRows = computed(() => {
-    switch (selectedOption.value) {
-      case 'Listar Facturas':
-        return listarFacturas();
-      // Agrega más casos según tus necesidades
-      default:
-        return [];
-    }
-  }); */
+import { ref, onMounted } from "vue";
+import { useQuasar } from "quasar";
+const $q = useQuasar();
+// Variables para el funcionamiento de la tabla
+let rows = ref([
+  {
+    fecha: '2024-08-10' ,
+    valor: '$ 4.000' ,
+    detalles: 'Compra de insumos para la siembra de maíz' ,
+    inventario_id: '6476b4f70' ,
+    cantidad: 100 ,
+    nombreProducto: 'Fertilizante NPK 10-10-10' ,
+    subtotal: '$ 400.000' ,
+    iva: '$ 6.000' ,
+    total: '$ 406.000',
+    comprador_id: '6937f8w32'
+  },
+
+  {
+    fecha: '2024-08-15' ,
+    valor: '$ 3.500.000' ,
+    detalles: 'Compra de maquinaria para la cosecha' ,
+    inventario_id: '3672a5j61' ,
+    cantidad: 1 ,
+    nombreProducto: 'Cosechadora Modelo X' ,
+    subtotal: '$ 3.500.000' ,
+    iva: '$ 665.000' ,
+    total: '$ 4.165.000',
+    comprador_id: '6282r1c73'
+  },
+
+
+]);
+let columns = ref([
+  { name: 'fecha', align: 'center', label: 'Fecha', field: 'fecha', sortable: true },
+  { name: 'valor', align: 'center', label: 'Valor Unitario', field: 'valor', sortable: true },
+  { name: 'detalles', align: 'center', label: 'Detalles', field: 'detalles', sortable: true },
+  { name: 'inventario_id', align: 'center', label: 'Id de Inventario', field: 'inventario_id', sortable: true },
+  { name: 'cantidad', align: 'center', label: 'Cantidad', field: 'cantidad', sortable: true },
+  { name: 'nombreProducto', align: 'center', label: 'Nombre de Producto', field: 'nombreProducto', sortable: true },
+  { name: 'subtotal', align: 'center', label: 'Subtotal', field: 'subtotal', sortable: true },
+  { name: 'iva', align: 'center', label: 'IVA', field: 'iva', sortable: true },
+  { name: 'total', align: 'center', label: 'Total', field: 'total', sortable: true },
+  { name: 'comprador_id', align: 'center', label: 'Id del Comprador', field: 'comprador_id', sortable: true },
+]);
+onMounted(() => {
+});
 </script>
 
+<template>
+<div class="container">
+
+<div class="title text-h2 text-center">
+Facturas
+</div>
+<hr class="divider">
+<q-table v-if="!loading" flat bordered title="Lista de Facturas" :rows="rows" :columns="columns" row-key="id" class="table">
+<template v-slot:body-cell-opciones="props">
+  <q-td :props="props" class="actions-cell">
+    <q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
+      ✏️
+    </q-btn>
+    <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">
+      ❌
+    </q-btn>
+    <q-btn v-else @click="editarEstado(props.row)" class="btn-activar">
+      ✅
+    </q-btn>
+  </q-td>
+</template>
+<template v-slot:body-cell-estado="props">
+  <q-td :props="props" class="status-cell">
+    <p v-if="props.row.estado == 1" class="status-activo">
+      Activo
+    </p>
+    <p v-else class="status-inactivo">Inactivo</p>
+  </q-td>
+</template>
+</q-table>
+</div>
+</template>
+
 <style scoped>
-/* .contSelect {
-	display: flex;
-	flex-direction: row;
-	gap: 20px;
+.container {
+padding: 20px;
+background-color: #f5f5f5;
+border-radius: 10px;
 }
-
-.q-select {
-	max-width: 250px;
+.title {
+margin-top: 20px;
+margin-bottom: 20px;
+color: #333;
 }
-
-.q-my-md {
-	max-width: 500px;
-	padding-left: 10px;
-} */
+.divider {
+height: 5px;
+background-color: #007bff;
+border: none;
+margin: 20px 0;
+}
+.table {
+margin-top: 40px;
+border-radius: 10px;
+overflow: hidden;
+}
+.actions-cell {
+display: flex;
+justify-content: space-around;
+align-items: center;
+}
+.btn-editar, .btn-inactivar, .btn-activar {
+font-size: 1pc;
+margin: 5px 5px;
+}
+.btn-editar {
+color: #007bff;
+}
+.btn-inactivar {
+color: #e74c3c;
+}
+.btn-activar {
+color: #2ecc71;
+}
+.status-cell p {
+margin: 0;
+font-weight: bold;
+}
+.status-activo {
+color: #2ecc71;
+}
+.status-inactivo {
+color: #e74c3c;
+}
 </style>

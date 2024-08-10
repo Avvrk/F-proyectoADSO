@@ -1,134 +1,134 @@
+<script setup>
+import { ref, onMounted } from "vue";
+import { useQuasar } from "quasar";
+const $q = useQuasar();
+// Variables para el funcionamiento de la tabla
+let rows = ref([
+  {
+    cultivo_id: 'fce8e247' ,
+    empleado_id: '749bc227' ,
+    fecha: '2024-08-01' ,
+    dias_transplante: 30 ,
+    estado_fenologico: 'Floración' ,
+    hora_inicio: '07:00' ,
+    hora_fin: '08:00' ,
+    dosis: 20 ,
+    cantidad_agua: 1500
+  },
+
+  {
+    cultivo_id: 'trs8e537' ,
+    empleado_id: '471hy286' ,
+    fecha: '2024-08-01' ,
+    dias_transplante: 25 ,
+    estado_fenologico: 'Inicial' ,
+    hora_inicio: '05:00' ,
+    hora_fin: '06:00' ,
+    dosis: 18 ,
+    cantidad_agua: 1200
+  },
+
+
+
+]);
+let columns = ref([
+  { name: 'cultivo_id', align: 'center', label: 'ID del Cultivo', field: 'cultivo_id', sortable: true },
+  { name: 'empleado_id', align: 'center', label: 'ID del Empleado', field: 'empleado_id', sortable: true },
+  { name: 'fecha', align: 'center', label: 'Fecha', field: 'fecha', sortable: true },
+  { name: 'dias_transplante', align: 'center', label: 'Días Transplante', field: 'dias_transplante', sortable: true },
+  { name: 'estado_fenologico', align: 'center', label: 'Estado Fenológico', field: 'estado_fenologico', sortable: true },
+  { name: 'hora_inicio', align: 'center', label: 'Hora Inicio', field: 'hora_inicio', sortable: true },
+  { name: 'hora_fin', align: 'center', label: 'Hora Fin', field: 'hora_fin', sortable: true },
+  { name: 'dosis', align: 'center', label: 'Dósis', field: 'dosis', sortable: true },
+  { name: 'cantidad_agua', align: 'center', label: 'Cantidad Agua', field: 'cantidad_agua', sortable: true },
+  { name: 'estado', align: 'center', label: 'Estado', field: 'estado', sortable: true },
+  { name: 'opciones', align: 'center', label: 'Opciones', field: 'opciones', sortable: true },
+]);
+onMounted(() => {
+});
+</script>
+
 <template>
-    <q-card>
-      <!-- <q-card-section>
-        <q-table
-          :rows="filteredRows"
-          :columns="columns"
-          row-key="_id"
-          :pagination="pagination"
-          :rows-per-page-options="[10, 20, 30]"
-          virtual-scroll
-        >
-          <template v-slot:top-left>
-            <q-select
-              v-model="selectedOption"
-              :options="options"
-              label="Seleccionar opción"
-              outlined
-              dense
-            />
-          </template>
-          <template v-slot:body="props">
-            <q-tr :props="props">
-              <q-td key="cultivo_id" :props="props">
-                {{ props.row.cultivo_id }}
-              </q-td>
-              <q-td key="empleado_id" :props="props">
-                {{ props.row.empleado_id }}
-              </q-td>
-              <q-td key="fecha" :props="props">
-                {{ formatDate(props.row.fecha) }}
-              </q-td>
-              <q-td key="dias_transplante" :props="props">
-                {{ props.row.dias_transplante || '-' }}
-              </q-td>
-              <q-td key="estado_fenologico" :props="props">
-                {{ props.row.estado_fenologico || '-' }}
-              </q-td>
-              <q-td key="hora_inicio" :props="props">
-                {{ props.row.hora_inicio || '-' }}
-              </q-td>
-              <q-td key="hora_fin" :props="props">
-                {{ props.row.hora_fin || '-' }}
-              </q-td>
-              <q-td key="dosis" :props="props">
-                {{ props.row.dosis || '-' }}
-              </q-td>
-              <q-td key="cantidad_agua" :props="props">
-                {{ props.row.cantidad_agua || '-' }}
-              </q-td>
-              <q-td key="estado" :props="props">
-                {{ props.row.estado === 1 ? 'Activo' : 'Inactivo' }}
-              </q-td>
-            </q-tr>
-          </template>
-        </q-table>
-      </q-card-section> -->
-    </q-card>
-  </template>
-  
-  <script setup>
-  /* import { ref, computed } from 'vue';
-  import { QTable, QTd, QSelect } from 'quasar';
-  
-  
-  const pagination = ref({
-    sortBy: 'fecha',
-    descending: true,
-    page: 1,
-    rowsPerPage: 10
-  });
-  
-  const options = ref([
-    { label: 'Listar Riegos', value: 'Listar Riegos' },
-    // Agrega más opciones según tus necesidades
-  ]);
-  
-  const selectedOption = ref('Listar Riegos');
-  
-  const columns = ref([
-    { name: 'cultivo_id', label: 'ID Cultivo', align: 'center' },
-    { name: 'empleado_id', label: 'ID Empleado', align: 'center' },
-    { name: 'fecha', label: 'Fecha', align: 'center' },
-    { name: 'dias_transplante', label: 'Días Transplante', align: 'center' },
-    { name: 'estado_fenologico', label: 'Estado Fenológico', align: 'center' },
-    { name: 'hora_inicio', label: 'Hora Inicio', align: 'center' },
-    { name: 'hora_fin', label: 'Hora Fin', align: 'center' },
-    { name: 'dosis', label: 'Dosis', align: 'center' },
-    { name: 'cantidad_agua', label: 'Cantidad Agua', align: 'center' },
-    { name: 'estado', label: 'Estado', align: 'center' },
-  ]);
-  
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES');
-  };
-  
-  const listarRiegos = async () => {
-    try {
-      const response = await Riego.find(); // Ajusta esto según cómo consultas los datos
-      return response;
-    } catch (error) {
-      console.error('Error al listar riegos:', error);
-      return [];
-    }
-  };
-  
-  const filteredRows = computed(() => {
-    switch (selectedOption.value) {
-      case 'Listar Riegos':
-        return listarRiegos();
-      // Agrega más casos según tus necesidades
-      default:
-        return [];
-    }
-  }); */
-  </script>
-  
-  <style scoped>
-  /* .contSelect {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-  }
-  
-  .q-select {
-    max-width: 250px; 
-  }
-  
-  .q-my-md {
-    max-width: 500px;
-    padding-left: 10px;
-  } */
-  </style>
-  
+<div class="container">
+
+<div class="title text-h2 text-center">
+Riego
+</div>
+<hr class="divider">
+<q-table v-if="!loading" flat bordered title="Lista de Riegos" :rows="rows" :columns="columns" row-key="id" class="table">
+<template v-slot:body-cell-opciones="props">
+  <q-td :props="props" class="actions-cell">
+    <q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
+      ✏️
+    </q-btn>
+    <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">
+      ❌
+    </q-btn>
+    <q-btn v-else @click="editarEstado(props.row)" class="btn-activar">
+      ✅
+    </q-btn>
+  </q-td>
+</template>
+<template v-slot:body-cell-estado="props">
+  <q-td :props="props" class="status-cell">
+    <p v-if="props.row.estado == 1" class="status-activo">
+      Activo
+    </p>
+    <p v-else class="status-inactivo">Inactivo</p>
+  </q-td>
+</template>
+</q-table>
+</div>
+</template>
+
+<style scoped>
+.container {
+padding: 20px;
+background-color: #f5f5f5;
+border-radius: 10px;
+}
+.title {
+margin-top: 20px;
+margin-bottom: 20px;
+color: #333;
+}
+.divider {
+height: 5px;
+background-color: #007bff;
+border: none;
+margin: 20px 0;
+}
+.table {
+margin-top: 40px;
+border-radius: 10px;
+overflow: hidden;
+}
+.actions-cell {
+display: flex;
+justify-content: space-around;
+align-items: center;
+}
+.btn-editar, .btn-inactivar, .btn-activar {
+font-size: 1pc;
+margin: 5px 5px;
+}
+.btn-editar {
+color: #007bff;
+}
+.btn-inactivar {
+color: #e74c3c;
+}
+.btn-activar {
+color: #2ecc71;
+}
+.status-cell p {
+margin: 0;
+font-weight: bold;
+}
+.status-activo {
+color: #2ecc71;
+}
+.status-inactivo {
+color: #e74c3c;
+}
+</style>

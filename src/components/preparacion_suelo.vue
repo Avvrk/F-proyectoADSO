@@ -1,138 +1,133 @@
-<template>
-    <q-card>
-      <!-- <q-card-section>
-        <q-table
-          :rows="filteredRows"
-          :columns="columns"
-          row-key="_id"
-          :pagination="pagination"
-          :rows-per-page-options="[10, 20, 30]"
-          virtual-scroll
-        >
-          <template v-slot:top-left>
-            <q-select
-              v-model="selectedOption"
-              :options="options"
-              label="Seleccionar opción"
-              outlined
-              dense
-            />
-          </template>
-          <template v-slot:body="props">
-            <q-tr :props="props">
-              <q-td key="fecha" :props="props">
-                {{ formatDate(props.row.fecha) }}
-              </q-td>
-              <q-td key="id_parcela" :props="props">
-                {{ props.row.id_parcela }}
-              </q-td>
-              <q-td key="empleado_id" :props="props">
-                {{ props.row.empleado_id }}
-              </q-td>
-              <q-td key="productos" :props="props">
-                {{ props.row.productos || '-' }}
-              </q-td>
-              <q-td key="ingredienteActivo" :props="props">
-                {{ props.row.ingredienteActivo || '-' }}
-              </q-td>
-              <q-td key="dosis" :props="props">
-                {{ props.row.dosis || '-' }}
-              </q-td>
-              <q-td key="metodoAplicacion" :props="props">
-                {{ props.row.metodoAplicacion || '-' }}
-              </q-td>
-              <q-td key="operario" :props="props">
-                {{ props.row.operario || '-' }}
-              </q-td>
-              <q-td key="responsable" :props="props">
-                {{ props.row.responsable || '-' }}
-              </q-td>
-              <q-td key="observaciones" :props="props">
-                {{ props.row.observaciones || '-' }}
-              </q-td>
-              <q-td key="estado" :props="props">
-                {{ props.row.estado === 1 ? 'Activo' : 'Inactivo' }}
-              </q-td>
-            </q-tr>
-          </template>
-        </q-table>
-      </q-card-section> -->
-    </q-card>
-  </template>
-  
-  <script setup>
- /*  import { ref, computed } from 'vue';
-  import { QTable, QTd, QSelect } from 'quasar';
+<script setup>
+import { ref, onMounted } from "vue";
+import { useQuasar } from "quasar";
+const $q = useQuasar();
+// Variables para el funcionamiento de la tabla
+let rows = ref([
+  {
+    fecha: '2024-07-10',
+    id_parcela: '7eb79a7e7',
+    empleado_id: '12214b1',
+    productos: 'Fertilizante NPK 10-10-10',
+    ingredienteActivo: 'Nitrógeno, Fósforo, Potasio',
+    dosis: 50,
+    metodoAplicacion: 'Aplicación foliar',
+    operario: 'Luis Rodríguez',
+    responsable: 'María Fernández',
+    observaciones: 'Aplicar en condiciones de humedad para mejor absorción'
+  },
 
-  
-  const pagination = ref({
-    sortBy: 'fecha',
-    descending: true,
-    page: 1,
-    rowsPerPage: 10
-  });
-  
-  const options = ref([
-    { label: 'Listar Preparaciones de Suelos', value: 'Listar Preparaciones de Suelos' },
-    // Agrega más opciones según tus necesidades
-  ]);
-  
-  const selectedOption = ref('Listar Preparaciones de Suelos');
-  
-  const columns = ref([
-    { name: 'fecha', label: 'Fecha', align: 'center' },
-    { name: 'id_parcela', label: 'ID de Parcela', align: 'center' },
-    { name: 'empleado_id', label: 'ID de Empleado', align: 'center' },
-    { name: 'productos', label: 'Productos', align: 'center' },
-    { name: 'ingredienteActivo', label: 'Ingrediente Activo', align: 'center' },
-    { name: 'dosis', label: 'Dosis', align: 'center' },
-    { name: 'metodoAplicacion', label: 'Método de Aplicación', align: 'center' },
-    { name: 'operario', label: 'Operario', align: 'center' },
-    { name: 'responsable', label: 'Responsable', align: 'center' },
-    { name: 'observaciones', label: 'Observaciones', align: 'center' },
-    { name: 'estado', label: 'Estado', align: 'center' },
-  ]);
-  
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES');
-  };
-  
-  const listarPreparacionesSuelos = async () => {
-    try {
-      const response = await PreparacionSuelos.find(); // Ajusta esto según cómo consultas los datos
-      return response;
-    } catch (error) {
-      console.error('Error al listar preparaciones de suelos:', error);
-      return [];
-    }
-  };
-  
-  const filteredRows = computed(() => {
-    switch (selectedOption.value) {
-      case 'Listar Preparaciones de Suelos':
-        return listarPreparacionesSuelos();
-      // Agrega más casos según tus necesidades
-      default:
-        return [];
-    }
-  }); */
-  </script>
-  
-  <style scoped>
- /*  .contSelect {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-  }
-  
-  .q-select {
-    max-width: 250px;
-  }
-  
-  .q-my-md {
-    max-width: 500px;
-    padding-left: 10px;
-  } */
-  </style>
-  
+  {
+    fecha: '2024-08-01',
+    id_parcela: '7f0f0dcb8e',
+    empleado_id: '987cf24a0',
+    productos: 'Cal en polvo',
+    ingredienteActivo: 'Carbonato de Calcio',
+    dosis: 25,
+    metodoAplicacion: 'Incorporación al suelo',
+    operario: 'Esperanza Gómez',
+    responsable: 'Carlos López',
+    observaciones: 'Verificar pH del suelo después de la aplicación'
+  },
+
+
+]);
+let columns = ref([
+  { name: 'fecha', align: 'center', label: 'Fecha', field: 'fecha', sortable: true },
+  { name: 'id_parcela', align: 'center', label: 'Id de la Parcela', field: 'id_parcela', sortable: true },
+  { name: 'empleado_id', align: 'center', label: 'Id del Empleado', field: 'empleado_id', sortable: true },
+  { name: 'productos', align: 'center', label: 'Productos', field: 'productos', sortable: true },
+  { name: 'ingredienteActivo', align: 'center', label: 'Ingredientes Activos', field: 'ingredienteActivo', sortable: true },
+  { name: 'dosis', align: 'center', label: 'Dósis', field: 'dosis', sortable: true },
+  { name: 'metodoAplicacion', align: 'center', label: 'Método de Aplicación', field: 'metodoAplicacion', sortable: true },
+  { name: 'operario', align: 'center', label: 'Operario', field: 'operario', sortable: true },
+  { name: 'responsable', align: 'center', label: 'Responsable', field: 'responsable', sortable: true },
+  { name: 'observaciones', align: 'center', label: 'Observaciones', field: 'observaciones', sortable: true },
+  { name: 'opciones', align: 'center', label: 'Editar', field: 'opciones', sortable: true },
+
+
+]);
+onMounted(() => {
+});
+</script>
+
+<template>
+<div class="container">
+
+<div class="title text-h2 text-center">
+Preparación de Suelos
+</div>
+<hr class="divider">
+<q-table v-if="!loading" flat bordered title="Lista de Preparaciones de Suelos" :rows="rows" :columns="columns" row-key="id" class="table">
+<template v-slot:body-cell-opciones="props">
+<q-td :props="props" class="actions-cell">
+<q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
+  ✏️
+</q-btn>
+</q-td>
+</template>
+<template v-slot:body-cell-estado="props">
+<q-td :props="props" class="status-cell">
+<p v-if="props.row.estado == 1" class="status-activo">
+  Activo
+</p>
+<p v-else class="status-inactivo">Inactivo</p>
+</q-td>
+</template>
+</q-table>
+</div>
+
+</template>
+
+
+<style scoped>
+.container {
+padding: 20px;
+background-color: #f5f5f5;
+border-radius: 10px;
+}
+.title {
+margin-top: 20px;
+margin-bottom: 20px;
+color: #333;
+}
+.divider {
+height: 5px;
+background-color: #007bff;
+border: none;
+margin: 20px 0;
+}
+.table {
+margin-top: 40px;
+border-radius: 10px;
+overflow: hidden;
+}
+.actions-cell {
+display: flex;
+justify-content: space-around;
+align-items: center;
+}
+.btn-editar, .btn-inactivar, .btn-activar {
+font-size: 1pc;
+margin: 5px 5px;
+}
+.btn-editar {
+color: #007bff;
+}
+.btn-inactivar {
+color: #e74c3c;
+}
+.btn-activar {
+color: #2ecc71;
+}
+.status-cell p {
+margin: 0;
+font-weight: bold;
+}
+.status-activo {
+color: #2ecc71;
+}
+.status-inactivo {
+color: #e74c3c;
+}
+</style>

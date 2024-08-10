@@ -1,125 +1,124 @@
-<template>
-	<q-card>
-		<!-- <q-card-section>
-        <q-table
-          :rows="filteredRows"
-          :columns="columns"
-          row-key="_id"
-          :pagination="pagination"
-          :rows-per-page-options="[10, 20, 30]"
-          virtual-scroll
-        >
-          <template v-slot:top-left>
-            <q-select
-              v-model="selectedOption"
-              :options="options"
-              label="Seleccionar opción"
-              outlined
-              dense
-            />
-          </template>
-          <template v-slot:body="props">
-            <q-tr :props="props">
-              <q-td key="nombre" :props="props">
-                {{ props.row.nombre }}
-              </q-td>
-              <q-td key="fecha" :props="props">
-                {{ formatDate(props.row.fecha) }}
-              </q-td>
-              <q-td key="numeroFactura" :props="props">
-                {{ props.row.numeroFactura || '-' }}
-              </q-td>
-              <q-td key="descripcion" :props="props">
-                {{ props.row.descripcion || '-' }}
-              </q-td>
-              <q-td key="total" :props="props">
-                {{ props.row.total }}
-              </q-td>
-              <q-td key="insumos_id" :props="props">
-                {{ props.row.insumos_id || '-' }}
-              </q-td>
-              <q-td key="semillas_id" :props="props">
-                {{ props.row.semillas_id || '-' }}
-              </q-td>
-              <q-td key="mantenimiento_id" :props="props">
-                {{ props.row.mantenimiento_id || '-' }}
-              </q-td>
-            </q-tr>
-          </template>
-        </q-table>
-      </q-card-section> -->
-	</q-card>
-</template>
-
 <script setup>
-/* import { ref, computed } from 'vue';
-  import { QTable, QTd, QSelect } from 'quasar';
-  
-  
-  const pagination = ref({
-    sortBy: 'fecha',
-    descending: true,
-    page: 1,
-    rowsPerPage: 10
-  });
-  
-  const options = ref([
-    { label: 'Listar Gastos', value: 'Listar Gastos' },
-    // Agrega más opciones según tus necesidades
-  ]);
-  
-  const selectedOption = ref('Listar Gastos');
-  
-  const columns = ref([
-    { name: 'nombre', label: 'Nombre', align: 'center' },
-    { name: 'fecha', label: 'Fecha', align: 'center' },
-    { name: 'numeroFactura', label: 'Número de Factura', align: 'center' },
-    { name: 'descripcion', label: 'Descripción', align: 'center' },
-    { name: 'total', label: 'Total', align: 'center' },
-    { name: 'insumos_id', label: 'ID de Insumo', align: 'center' },
-    { name: 'semillas_id', label: 'ID de Semilla', align: 'center' },
-    { name: 'mantenimiento_id', label: 'ID de Mantenimiento', align: 'center' },
-  ]);
-  
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES');
-  };
-  
-  const listarGastos = async () => {
-    try {
-      const response = await Gasto.find(); // Ajusta esto según cómo consultas los datos
-      return response;
-    } catch (error) {
-      console.error('Error al listar gastos:', error);
-      return [];
-    }
-  };
-  
-  const filteredRows = computed(() => {
-    switch (selectedOption.value) {
-      case 'Listar Gastos':
-        return listarGastos();
-      // Agrega más casos según tus necesidades
-      default:
-        return [];
-    }
-  }); */
+import { ref, onMounted } from "vue";
+import { useQuasar } from "quasar";
+const $q = useQuasar();
+// Variables para el funcionamiento de la tabla
+let rows = ref([
+  {
+    nombre: 'Compra de insumos agrícolas' ,
+    fecha: '2024-07-20' ,
+    numeroFactura: 'FAC-12345' ,
+    descripcion: 'Compra de fertilizantes y plaguicidas para el cultivo de maíz' ,
+    total: '$ 150.000' ,
+    insumos_id: '345d4h56'
+  },
+
+  {
+    nombre: 'Mantenimiento de maquinaria' ,
+    fecha: '2024-08-05' ,
+    numeroFactura: 'FAC-12346' ,
+    descripcion: 'Revisión y reparación de la cosechadora' ,
+    total: '$ 580.000' ,
+    mantenimiento_id: '476b4f90'
+  },
+
+]);
+
+let columns = ref([
+  { name: 'nombre', align: 'center', label: 'nombre', field: 'nombre', sortable: true },
+  { name: 'fecha', align: 'center', label: 'fecha', field: 'fecha', sortable: true },
+  { name: 'numeroFactura', align: 'center', label: 'Número de Factura', field: 'numeroFactura', sortable: true },
+  { name: 'descripcion', align: 'center', label: 'Descripción', field: 'descripcion', sortable: true },
+  { name: 'total', align: 'center', label: 'Total', field: 'total', sortable: true },
+  { name: 'insumos_id', align: 'center', label: 'Id del Insumo', field: 'insumos_id', sortable: true },
+  { name: 'semillas_id', align: 'center', label: 'Id Semilla', field: 'semillas_id', sortable: true },
+  { name: 'mantenimiento_id', align: 'center', label: 'Id del Mantenimiento', field: 'mantenimiento_id', sortable: true },
+]);
+onMounted(() => {
+});
 </script>
 
+<template>
+<div class="container">
+
+<div class="title text-h2 text-center">
+Gastos
+</div>
+<hr class="divider">
+<q-table v-if="!loading" flat bordered title="Lista de Gastos" :rows="rows" :columns="columns" row-key="id" class="table">
+<template v-slot:body-cell-opciones="props">
+  <q-td :props="props" class="actions-cell">
+    <q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
+      ✏️
+    </q-btn>
+    <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">
+      ❌
+    </q-btn>
+    <q-btn v-else @click="editarEstado(props.row)" class="btn-activar">
+      ✅
+    </q-btn>
+  </q-td>
+</template>
+<template v-slot:body-cell-estado="props">
+  <q-td :props="props" class="status-cell">
+    <p v-if="props.row.estado == 1" class="status-activo">
+      Activo
+    </p>
+    <p v-else class="status-inactivo">Inactivo</p>
+  </q-td>
+</template>
+</q-table>
+</div>
+</template>
+
 <style scoped>
-/* .contSelect {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-  }
-  
-  .q-select {
-    max-width: 250px; 
-  }
-  
-  .q-my-md {
-    max-width: 500px;
-    padding-left: 10px;
-  } */
+.container {
+padding: 20px;
+background-color: #f5f5f5;
+border-radius: 10px;
+}
+.title {
+margin-top: 20px;
+margin-bottom: 20px;
+color: #333;
+}
+.divider {
+height: 5px;
+background-color: #007bff;
+border: none;
+margin: 20px 0;
+}
+.table {
+margin-top: 40px;
+border-radius: 10px;
+overflow: hidden;
+}
+.actions-cell {
+display: flex;
+justify-content: space-around;
+align-items: center;
+}
+.btn-editar, .btn-inactivar, .btn-activar {
+font-size: 1pc;
+margin: 5px 5px;
+}
+.btn-editar {
+color: #007bff;
+}
+.btn-inactivar {
+color: #e74c3c;
+}
+.btn-activar {
+color: #2ecc71;
+}
+.status-cell p {
+margin: 0;
+font-weight: bold;
+}
+.status-activo {
+color: #2ecc71;
+}
+.status-inactivo {
+color: #e74c3c;
+}
 </style>

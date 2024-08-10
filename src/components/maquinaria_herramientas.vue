@@ -1,129 +1,130 @@
-<template>
-	<q-card>
-		<!-- <q-card-section>
-        <q-table
-          :rows="filteredRows"
-          :columns="columns"
-          row-key="_id"
-          :pagination="pagination"
-          :rows-per-page-options="[10, 20, 30]"
-          virtual-scroll
-        >
-          <template v-slot:top-left>
-            <q-select
-              v-model="selectedOption"
-              :options="options"
-              label="Seleccionar opción"
-              outlined
-              dense
-            />
-          </template>
-          <template v-slot:body="props">
-            <q-tr :props="props">
-              <q-td key="proveedores_id" :props="props">
-                {{ props.row.proveedores_id || '-' }}
-              </q-td>
-              <q-td key="nombre" :props="props">
-                {{ props.row.nombre }}
-              </q-td>
-              <q-td key="tipo" :props="props">
-                {{ props.row.tipo }}
-              </q-td>
-              <q-td key="fecha" :props="props">
-                {{ formatDate(props.row.fecha) }}
-              </q-td>
-              <q-td key="fechaCompra" :props="props">
-                {{ formatDate(props.row.fechaCompra) }}
-              </q-td>
-              <q-td key="observaciones" :props="props">
-                {{ props.row.observaciones || '-' }}
-              </q-td>
-              <q-td key="cantidad" :props="props">
-                {{ props.row.cantidad }}
-              </q-td>
-              <q-td key="total" :props="props">
-                {{ props.row.total }}
-              </q-td>
-              <q-td key="estado" :props="props">
-                {{ props.row.estado === 1 ? 'Activo' : 'Inactivo' }}
-              </q-td>
-            </q-tr>
-          </template>
-        </q-table>
-      </q-card-section> -->
-	</q-card>
-</template>
-
 <script setup>
-/*  import { ref, computed } from 'vue';
-  import { QTable, QTd, QSelect } from 'quasar';
-  
-  
-  const pagination = ref({
-    sortBy: 'fecha',
-    descending: true,
-    page: 1,
-    rowsPerPage: 10
-  });
-  
-  const options = ref([
-    { label: 'Listar Maquinaria y Herramientas', value: 'Listar Maquinaria y Herramientas' },
-    // Agrega más opciones según tus necesidades
-  ]);
-  
-  const selectedOption = ref('Listar Maquinaria y Herramientas');
-  
-  const columns = ref([
-    { name: 'proveedores_id', label: 'ID de Proveedor', align: 'center' },
-    { name: 'nombre', label: 'Nombre', align: 'center' },
-    { name: 'tipo', label: 'Tipo', align: 'center' },
-    { name: 'fecha', label: 'Fecha', align: 'center' },
-    { name: 'fechaCompra', label: 'Fecha de Compra', align: 'center' },
-    { name: 'observaciones', label: 'Observaciones', align: 'center' },
-    { name: 'cantidad', label: 'Cantidad', align: 'center' },
-    { name: 'total', label: 'Total', align: 'center' },
-    { name: 'estado', label: 'Estado', align: 'center' },
-  ]);
-  
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES');
-  };
-  
-  const listarMaquinariaHerramientas = async () => {
-    try {
-      const response = await MaquinariaHerramienta.find(); // Ajusta esto según cómo consultas los datos
-      return response;
-    } catch (error) {
-      console.error('Error al listar maquinaria y herramientas:', error);
-      return [];
-    }
-  };
-  
-  const filteredRows = computed(() => {
-    switch (selectedOption.value) {
-      case 'Listar Maquinaria y Herramientas':
-        return listarMaquinariaHerramientas();
-      // Agrega más casos según tus necesidades
-      default:
-        return [];
-    }
-  }); */
+import { ref, onMounted } from "vue";
+import { useQuasar } from "quasar";
+const $q = useQuasar();
+// Variables para el funcionamiento de la tabla
+let rows = ref([
+  {
+    proveedores_id: 'a849bc2154' ,
+    nombre: 'Tractor John Deere' ,
+    tipo: 'Tractor' ,
+    fecha: '2024-07-12' ,
+    fechaCompra: '2024-07-12',
+    observaciones: 'Tractor de 100 HP, ideal para terrenos grandes',
+    cantidad: 1 ,
+    total: '$ 5.380.000'
+  },
+
+  {
+    proveedores_id: 'ed6d40c8' ,
+    nombre: 'Segadora de Cosecha' ,
+    tipo: 'Segadora' ,
+    fecha: '2024-08-03' ,
+    fechaCompra: '2024-08-03',
+    observaciones: 'Segadora eficiente para cultivos de maíz y trigo',
+    cantidad: 1 ,
+    total: '$ 5.380.000'
+  },
+
+
+]);
+let columns = ref([
+  { name: 'proveedores_id', align: 'center', label: 'Id de Proveedor', field: 'proveedores_id', sortable: true },
+  { name: 'nombre', align: 'center', label: 'Nombre', field: 'nombre', sortable: true },
+  { name: 'tipo', align: 'center', label: 'tipo', field: 'tipo', sortable: true },
+  { name: 'fecha', align: 'center', label: 'fecha', field: 'fecha', sortable: true },
+  { name: 'fechaCompra', align: 'center', label: 'Fecha de Compra', field: 'fechaCompra', sortable: true },
+  { name: 'observaciones', align: 'center', label: 'Observaciones', field: 'observaciones', sortable: true },
+  { name: 'cantidad', align: 'center', label: 'Cantidad', field: 'cantidad', sortable: true },
+  { name: 'total', align: 'center', label: 'Total', field: 'total', sortable: true },
+  { name: 'estado', align: 'center', label: 'Estado', field: 'estado', sortable:true },
+  { name: 'opciones', align: 'center', label: 'Opciones', field: 'opciones', sortable:true }
+]);
+onMounted(() => {
+});
 </script>
 
+<template>
+<div class="container">
+
+<div class="title text-h2 text-center">
+Máquinaria y Herramientas
+</div>
+<hr class="divider">
+<q-table v-if="!loading" flat bordered title="Lista de Máquinas y Herramientas" :rows="rows" :columns="columns" row-key="id" class="table">
+<template v-slot:body-cell-opciones="props">
+  <q-td :props="props" class="actions-cell">
+    <q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
+      ✏️
+    </q-btn>
+    <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">
+      ❌
+    </q-btn>
+    <q-btn v-else @click="editarEstado(props.row)" class="btn-activar">
+      ✅
+    </q-btn>
+  </q-td>
+</template>
+<template v-slot:body-cell-estado="props">
+  <q-td :props="props" class="status-cell">
+    <p v-if="props.row.estado == 1" class="status-activo">
+      Activo
+    </p>
+    <p v-else class="status-inactivo">Inactivo</p>
+  </q-td>
+</template>
+</q-table>
+</div>
+</template>
+
 <style scoped>
-/*  .contSelect {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-  }
-  
-  .q-select {
-    max-width: 250px;
-  }
-  
-  .q-my-md {
-    max-width: 500px;
-    padding-left: 10px;
-  } */
+.container {
+padding: 20px;
+background-color: #f5f5f5;
+border-radius: 10px;
+}
+.title {
+margin-top: 20px;
+margin-bottom: 20px;
+color: #333;
+}
+.divider {
+height: 5px;
+background-color: #007bff;
+border: none;
+margin: 20px 0;
+}
+.table {
+margin-top: 40px;
+border-radius: 10px;
+overflow: hidden;
+}
+.actions-cell {
+display: flex;
+justify-content: space-around;
+align-items: center;
+}
+.btn-editar, .btn-inactivar, .btn-activar {
+font-size: 1pc;
+margin: 5px 5px;
+}
+.btn-editar {
+color: #007bff;
+}
+.btn-inactivar {
+color: #e74c3c;
+}
+.btn-activar {
+color: #2ecc71;
+}
+.status-cell p {
+margin: 0;
+font-weight: bold;
+}
+.status-activo {
+color: #2ecc71;
+}
+.status-inactivo {
+color: #e74c3c;
+}
 </style>

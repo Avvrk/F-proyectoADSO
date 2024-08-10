@@ -1,145 +1,138 @@
-<template>
-	<q-card>
-		<!-- <q-card-section>
-        <q-table
-          :rows="filteredRows"
-          :columns="columns"
-          row-key="_id"
-          :pagination="pagination"
-          :rows-per-page-options="[10, 20, 30]"
-          virtual-scroll
-        >
-          <template v-slot:top-left>
-            <q-select
-              v-model="selectedOption"
-              :options="options"
-              label="Seleccionar opción"
-              outlined
-              dense
-            />
-          </template>
-          <template v-slot:body="props">
-            <q-tr :props="props">
-              <q-td key="proveedor_id" :props="props">
-                {{ props.row.proveedor_id }}
-              </q-td>
-              <q-td key="numFactura" :props="props">
-                {{ props.row.numFactura || '-' }}
-              </q-td>
-              <q-td key="fechaCompra" :props="props">
-                {{ formatDate(props.row.fechaCompra) }}
-              </q-td>
-              <q-td key="fechaVencimiento" :props="props">
-                {{ formatDate(props.row.fechaVencimiento) }}
-              </q-td>
-              <q-td key="especieVariedad" :props="props">
-                {{ props.row.especieVariedad || '-' }}
-              </q-td>
-              <q-td key="proveedorSemilla" :props="props">
-                {{ props.row.proveedorSemilla || '-' }}
-              </q-td>
-              <q-td key="numeroLote" :props="props">
-                {{ props.row.numeroLote || '-' }}
-              </q-td>
-              <q-td key="origen" :props="props">
-                {{ props.row.origen || '-' }}
-              </q-td>
-              <q-td key="poderGerminativo" :props="props">
-                {{ props.row.poderGerminativo || '-' }}
-              </q-td>
-              <q-td key="observaciones" :props="props">
-                {{ props.row.observaciones || '-' }}
-              </q-td>
-              <q-td key="unidad" :props="props">
-                {{ props.row.unidad || '-' }}
-              </q-td>
-              <q-td key="total" :props="props">
-                {{ props.row.total || '-' }}
-              </q-td>
-              <q-td key="estado" :props="props">
-                {{ props.row.estado === 1 ? 'Activo' : 'Inactivo' }}
-              </q-td>
-            </q-tr>
-          </template>
-        </q-table>
-      </q-card-section> -->
-	</q-card>
-</template>
-
 <script setup>
-/*  import { ref, computed } from 'vue';
-  import { QTable, QTd, QSelect } from 'quasar';
-  
-  
-  const pagination = ref({
-    sortBy: 'fechaCompra',
-    descending: true,
-    page: 1,
-    rowsPerPage: 10
-  });
-  
-  const options = ref([
-    { label: 'Listar Semillas', value: 'Listar Semillas' },
-    // Agrega más opciones según tus necesidades
-  ]);
-  
-  const selectedOption = ref('Listar Semillas');
-  
-  const columns = ref([
-    { name: 'proveedor_id', label: 'ID Proveedor', align: 'center' },
-    { name: 'numFactura', label: 'Número de Factura', align: 'center' },
-    { name: 'fechaCompra', label: 'Fecha de Compra', align: 'center' },
-    { name: 'fechaVencimiento', label: 'Fecha de Vencimiento', align: 'center' },
-    { name: 'especieVariedad', label: 'Especie/Variedad', align: 'center' },
-    { name: 'proveedorSemilla', label: 'Proveedor Semilla', align: 'center' },
-    { name: 'numeroLote', label: 'Número de Lote', align: 'center' },
-    { name: 'origen', label: 'Origen', align: 'center' },
-    { name: 'poderGerminativo', label: 'Poder Germinativo', align: 'center' },
-    { name: 'observaciones', label: 'Observaciones', align: 'center' },
-    { name: 'unidad', label: 'Unidad', align: 'center' },
-    { name: 'total', label: 'Total', align: 'center' },
-    { name: 'estado', label: 'Estado', align: 'center' },
-  ]);
-  
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES');
-  };
-  
-  const listarSemillas = async () => {
-    try {
-      const response = await Semilla.find(); // Ajusta esto según cómo consultas los datos
-      return response;
-    } catch (error) {
-      console.error('Error al listar semillas:', error);
-      return [];
-    }
-  };
-  
-  const filteredRows = computed(() => {
-    switch (selectedOption.value) {
-      case 'Listar Semillas':
-        return listarSemillas();
-      // Agrega más casos según tus necesidades
-      default:
-        return [];
-    }
-  }); */
+import { ref, onMounted } from "vue";
+import { useQuasar } from "quasar";
+const $q = useQuasar();
+// Variables para el funcionamiento de la tabla
+let rows = ref([
+  {
+    proveedor_id: '836ed6d40' ,
+    fechaCompra: '2024-07-15' ,
+    fechaVencimiento: '2025-07-15' ,
+    especieVariedad: 'Tomate Cherry' ,
+    proveedorSemilla: 'Semillas del Valle' ,
+    numeroLote: 'Lote-04' ,
+    origen: 'Nacional',
+    poderGerminativo: '85%',
+    observaciones: 'Semillas de alta calidad para cultivo en invernadero',
+    unidad: '$ 11.000',
+    total: 1000
+  },
+
+  {
+    proveedor_id: '927ab2d30',
+    fechaCompra: '2024-08-05',
+    fechaVencimiento: '2025-08-05',
+    especieVariedad: 'Pimiento Rojo',
+    proveedorSemilla: 'Semillas del Sol',
+    numeroLote: 'Lote-12',
+    origen: 'Importado',
+    poderGerminativo: '90%',
+    observaciones: 'Semillas ideales para cultivo al aire libre, resistencia a enfermedades',
+    unidad: '$ 8.500',
+    total: 800
+}
+
+]);
+let columns = ref([
+  { name: 'proveedor_id', align: 'center', label: 'Id del Proveedor', field: 'proveedor_id', sortable: true },
+  { name: 'fechaCompra', align: 'center', label: 'Fecha Compra', field: 'fechaCompra', sortable: true },
+  { name: 'fechaVencimiento', align: 'center', label: 'fecha Vencimiento', field: 'fechaVencimiento', sortable: true },
+  { name: 'especieVariedad', align: 'center', label: 'Especie Variedad', field: 'especieVariedad', sortable: true },
+  { name: 'proveedorSemilla', align: 'center', label: 'Proveedor Semilla', field: 'proveedorSemilla', sortable: true },
+  { name: 'numeroLote', align: 'center', label: 'Número de Lote', field: 'numeroLote', sortable: true },
+  { name: 'origen', align: 'center', label: 'Origen', field: 'origen', sortable: true },
+  { name: 'poderGerminativo', align: 'center', label: 'Poder Germinativo', field: 'poderGerminativo', sortable: true },
+  { name: 'observaciones', align: 'center', label: 'Observaciones', field: 'observaciones', sortable: true },
+  { name: 'unidad', align: 'center', label: 'Unidad', field: 'unidad', sortable: true },
+  { name: 'total', align: 'center', label: 'Total Semillas', field: 'total', sortable: true },
+  { name: 'estado', align: 'center', label: 'Estado', field: 'estado', sortable: true },
+  { name: 'opciones', align: 'center', label: 'Opciones', field: 'opciones', sortable: true },
+]);
+onMounted(() => {
+});
 </script>
 
+<template>
+<div class="container">
+
+<div class="title text-h2 text-center">
+Siembras
+</div>
+<hr class="divider">
+<q-table v-if="!loading" flat bordered title="Lista de Siembras" :rows="rows" :columns="columns" row-key="id" class="table">
+<template v-slot:body-cell-opciones="props">
+  <q-td :props="props" class="actions-cell">
+    <q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
+      ✏️
+    </q-btn>
+    <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">
+      ❌
+    </q-btn>
+    <q-btn v-else @click="editarEstado(props.row)" class="btn-activar">
+      ✅
+    </q-btn>
+  </q-td>
+</template>
+<template v-slot:body-cell-estado="props">
+  <q-td :props="props" class="status-cell">
+    <p v-if="props.row.estado == 1" class="status-activo">
+      Activo
+    </p>
+    <p v-else class="status-inactivo">Inactivo</p>
+  </q-td>
+</template>
+</q-table>
+</div>
+</template>
+
 <style scoped>
-/*  .contSelect {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-  }
-  
-  .q-select {
-    max-width: 250px;
-  }
-  
-  .q-my-md {
-    max-width: 500px;
-    padding-left: 10px;
-  } */
+.container {
+padding: 20px;
+background-color: #f5f5f5;
+border-radius: 10px;
+}
+.title {
+margin-top: 20px;
+margin-bottom: 20px;
+color: #333;
+}
+.divider {
+height: 5px;
+background-color: #007bff;
+border: none;
+margin: 20px 0;
+}
+.table {
+margin-top: 40px;
+border-radius: 10px;
+overflow: hidden;
+}
+.actions-cell {
+display: flex;
+justify-content: space-around;
+align-items: center;
+}
+.btn-editar, .btn-inactivar, .btn-activar {
+font-size: 1pc;
+margin: 5px 5px;
+}
+.btn-editar {
+color: #007bff;
+}
+.btn-inactivar {
+color: #e74c3c;
+}
+.btn-activar {
+color: #2ecc71;
+}
+.status-cell p {
+margin: 0;
+font-weight: bold;
+}
+.status-activo {
+color: #2ecc71;
+}
+.status-inactivo {
+color: #e74c3c;
+}
 </style>

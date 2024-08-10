@@ -1,109 +1,124 @@
-<template>
-	<div>
-		<!-- <q-card>
-      <q-card-section>
-        <q-table
-          :rows="filteredRows"
-          :columns="columns"
-          row-key="_id"
-          :pagination="pagination"
-          :rows-per-page-options="[10, 20, 30]"
-          virtual-scroll
-        >
-          <template v-slot:top-left>
-            <q-select
-              v-model="selectedOption"
-              :options="options"
-              label="Seleccionar opción"
-              outlined
-              dense
-            />
-          </template>
-          <template v-slot:body="props">
-            <q-tr :props="props">
-              <q-td key="nombre" :props="props">
-                {{ props.row.nombre }}
-              </q-td>
-              <q-td key="direccion" :props="props">
-                {{ props.row.direccion || '-' }}
-              </q-td>
-              <q-td key="telefono" :props="props">
-                {{ props.row.telefono || '-' }}
-              </q-td>
-              <q-td key="estudios" :props="props">
-                {{ props.row.estudios || '-' }}
-              </q-td>
-              <q-td key="descripcion" :props="props">
-                {{ props.row.descripcion || '-' }}
-              </q-td>
-            </q-tr>
-          </template>
-        </q-table>
-      </q-card-section>
-    </q-card> -->
-	</div>
-</template>
-
 <script setup>
-/* import { ref, computed } from 'vue';
-  import { QTable, QTd, QSelect } from 'quasar';
+import { ref, onMounted } from "vue";
+import { useQuasar } from "quasar";
+const $q = useQuasar();
 
-  const pagination = ref({
-    sortBy: 'nombre',
-    descending: false,
-    page: 1,
-    rowsPerPage: 10
-  });
-  
-  const options = ref([
-    { label: 'Listar Empleados', value: 'Listar Empleados' },
-    // Agrega más opciones según tus necesidades
-  ]);
-  
-  const selectedOption = ref('Listar Empleados');
-  
-  const columns = ref([
-    { name: 'nombre', label: 'Nombre', align: 'center' },
-    { name: 'direccion', label: 'Dirección', align: 'center' },
-    { name: 'telefono', label: 'Teléfono', align: 'center' },
-    { name: 'estudios', label: 'Estudios', align: 'center' },
-    { name: 'descripcion', label: 'Descripción', align: 'center' },
-  ]);
-  
-  const listarEmpleados = async () => {
-    try {
-      const response = await Empleado.find(); // Ajusta esto según cómo consultas los datos
-      return response;
-    } catch (error) {
-      console.error('Error al listar empleados:', error);
-      return [];
-    }
-  };
-  
-  const filteredRows = computed(() => {
-    switch (selectedOption.value) {
-      case 'Listar Empleados':
-        return listarEmpleados();
-      // Agrega más casos según tus necesidades
-      default:
-        return [];
-    }
-  }); */
+// Variables para el funcionamiento de la tabla
+let rows = ref([
+  {
+    nombre: 'Jorge Martínez',
+    direccion: 'Cañaveral #23-123',
+    telefono: 23454364565,
+    estudios: 'Ingeniería Agrícola',
+    descripcion: 'Responsabilidad',
+  },
+  {
+    nombre: 'Yolanda Contreras',
+    direccion: 'La Rosaleda, Carrera 32 #84A-32',
+    telefono: 5676867546,
+    estudios: 'Recursos Humanos',
+    descripcion: 'Organización',
+  },
+]);
+
+let columns = ref([
+  { name: 'nombre', align: 'center', label: 'Nombre', field: 'nombre', sortable: true },
+  { name: 'direccion', align: 'center', label: 'Dirección', field: 'direccion', sortable: true },
+  { name: 'telefono', align: 'center', label: 'teléfono', field: 'telefono', sortable: true },
+  { name: 'estudios', align: 'center', label: 'Estudios', field: 'estudios', sortable: true },
+  { name: 'descripcion', align: 'center', label: 'Descripción', field: 'descripcion', sortable: true },
+  { name: 'estado', align: 'center', label: 'Estado', field: 'estado', sortable: true },
+  { name: 'opciones', align: 'center', label: 'Opciones', field: 'opciones', sortable: true },
+]);
+onMounted(() => {
+});
 </script>
 
+
+
+<template>
+<div class="container">
+
+<div class="title text-h2 text-center">
+Empleados
+</div>
+<hr class="divider">
+<q-table v-if="!loading" flat bordered title="Lista de Empleados" :rows="rows" :columns="columns" row-key="id" class="table">
+<template v-slot:body-cell-opciones="props">
+<q-td :props="props" class="actions-cell">
+<q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
+✏️
+</q-btn>
+<q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">
+❌
+</q-btn>
+<q-btn v-else @click="editarEstado(props.row)" class="btn-activar">
+✅
+</q-btn>
+</q-td>
+</template>
+<template v-slot:body-cell-estado="props">
+<q-td :props="props" class="status-cell">
+<p v-if="props.row.estado == 1" class="status-activo">
+Activo
+</p>
+<p v-else class="status-inactivo">Inactivo</p>
+</q-td>
+</template>
+</q-table>
+</div>
+
+</template>
+
+
 <style scoped>
-/* .contSelect {
-	display: flex;
-	flex-direction: row;
-	gap: 20px;
+.container {
+padding: 20px;
+background-color: #f5f5f5;
+border-radius: 10px;
 }
-
-.q-select {
-	max-width: 250px;
+.title {
+margin-top: 20px;
+margin-bottom: 20px;
+color: #333;
 }
-
-.q-my-md {
-	max-width: 500px;
-	padding-left: 10px;
-} */
+.divider {
+height: 5px;
+background-color: #007bff;
+border: none;
+margin: 20px 0;
+}
+.table {
+margin-top: 40px;
+border-radius: 10px;
+overflow: hidden;
+}
+.actions-cell {
+display: flex;
+justify-content: space-around;
+align-items: center;
+}
+.btn-editar, .btn-inactivar, .btn-activar {
+font-size: 1pc;
+margin: 5px 5px;
+}
+.btn-editar {
+color: #007bff;
+}
+.btn-inactivar {
+color: #e74c3c;
+}
+.btn-activar {
+color: #2ecc71;
+}
+.status-cell p {
+margin: 0;
+font-weight: bold;
+}
+.status-activo {
+color: #2ecc71;
+}
+.status-inactivo {
+color: #e74c3c;
+}
 </style>

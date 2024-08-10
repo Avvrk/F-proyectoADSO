@@ -1,130 +1,134 @@
+            <script setup>
+            import { ref, onMounted } from "vue";
+            import { useQuasar } from "quasar";
+            const $q = useQuasar();
+            // Variables para el funcionamiento de la tabla
+            let rows = ref([
+              {
+                _idAdmin: 34546546,
+                nombre: 'Julian',
+                rut: 8765421,
+                direccion: 'Vereda Los Naranjales',
+                ubicacionGeografica: 83274983,
+                departamento: 'Santander',
+                ciudad: 'Barichara',
+                limites: 6787678923,
+                area: '5000 Km',
+              },
+              {
+                _idAdmin: 456547657,
+                nombre: 'Fernando',
+                rut: 45657345,
+                direccion: 'Vereda Robles Km 5',
+                ubicacionGeografica: 34546567,
+                departamento: 'Santander',
+                ciudad: 'Villanueva',
+                limites: 5645345345,
+                area: '3000 Km',
+              },
+            ]);
+            let columns = ref([
+              { name: '_idAdmin', align: 'center', label: 'ID de Administrador', field: '_idAdmin', sortable: true },
+              { name: 'nombre', align: 'center', label: 'Nombre', field: 'nombre', sortable: true },
+              { name: 'rut', align: 'center', label: 'RUT', field: 'rut', sortable: true },
+              { name: 'direccion', align: 'center', label: 'Dirección', field: 'direccion', sortable: true },
+              { name: 'ubicacionGeografica', align: 'center', label: 'Ubicación Geográfica', field: 'ubicacionGeografica', sortable: true },
+              { name: 'departamento', align: 'center', label: 'Departamento', field: 'departamento', sortable: true },
+              { name: 'ciudad', align: 'center', label: 'Ciudad', field: 'ciudad', sortable: true },
+              { name: 'limites', align: 'center', label: 'Límites', field: 'limites', sortable: true },
+              { name: 'area', align: 'center', label: 'Área', field: 'area', sortable: true },
+              { name: 'estado', align: 'center', label: 'Estado', field: 'estado', sortable: true },
+              { name: 'opciones', align: 'center', label: 'Opciones', field: 'opciones', sortable: true },
+            ]);
+            onMounted(() => {
+            });
+            </script>
+
+
+
 <template>
-	<div>
-		<!-- <q-card>
-      <q-card-section>
-        <q-table
-          :rows="filteredRows"
-          :columns="columns"
-          row-key="_id"
-          :pagination="pagination"
-          :rows-per-page-options="[10, 20, 30]"
-          virtual-scroll
-        >
-          <template v-slot:top-left>
-            <q-select
-              v-model="selectedOption"
-              :options="options"
-              label="Seleccionar opción"
-              outlined
-              dense
-            />
-          </template>
-          <template v-slot:body="props">
-            <q-tr :props="props">
-              <q-td key="_idAdmin" :props="props">
-                {{ props.row._idAdmin }}
-              </q-td>
-              <q-td key="nombre" :props="props">
-                {{ props.row.nombre }}
-              </q-td>
-              <q-td key="rut" :props="props">
-                {{ props.row.rut }}
-              </q-td>
-              <q-td key="direccion" :props="props">
-                {{ props.row.direccion }}
-              </q-td>
-              <q-td key="ubicacionGeografica" :props="props">
-                {{ props.row.ubicacionGeografica }}
-              </q-td>
-              <q-td key="departamento" :props="props">
-                {{ props.row.departamento }}
-              </q-td>
-              <q-td key="ciudad" :props="props">
-                {{ props.row.ciudad }}
-              </q-td>
-              <q-td key="limites" :props="props">
-                {{ props.row.limites }}
-              </q-td>
-              <q-td key="area" :props="props">
-                {{ props.row.area }}
-              </q-td>
-              <q-td key="estado" :props="props">
-                {{ props.row.estado === 1 ? 'Activa' : 'Inactiva' }}
-              </q-td>
-            </q-tr>
-          </template>
-        </q-table>
-      </q-card-section>
-    </q-card> -->
-	</div>
+  <div class="container">
+
+    <div class="title text-h2 text-center">
+      Fincas
+    </div>
+    <hr class="divider">
+    <q-table v-if="!loading" flat bordered title="Lista de Fincas" :rows="rows" :columns="columns" row-key="id" class="table">
+      <template v-slot:body-cell-opciones="props">
+        <q-td :props="props" class="actions-cell">
+          <q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
+            ✏️
+          </q-btn>
+          <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">
+            ❌
+          </q-btn>
+          <q-btn v-else @click="editarEstado(props.row)" class="btn-activar">
+            ✅
+          </q-btn>
+        </q-td>
+      </template>
+      <template v-slot:body-cell-estado="props">
+        <q-td :props="props" class="status-cell">
+          <p v-if="props.row.estado == 1" class="status-activo">
+            Activo
+          </p>
+          <p v-else class="status-inactivo">Inactivo</p>
+        </q-td>
+      </template>
+    </q-table>
+  </div>
+
 </template>
 
-<script setup>
-/* import { ref, computed } from 'vue';
-  import { QTable, QTd, QSelect } from 'quasar';
-
-  
-  const pagination = ref({
-    sortBy: 'nombre',
-    descending: false,
-    page: 1,
-    rowsPerPage: 10
-  });
-  
-  const options = ref([
-    { label: 'Listar Fincas', value: 'Listar Fincas' },
-    // Agrega más opciones según tus necesidades
-  ]);
-  
-  const selectedOption = ref('Listar Fincas');
-  
-  const columns = ref([
-    { name: '_idAdmin', label: 'ID de Administrador', align: 'center' },
-    { name: 'nombre', label: 'Nombre', align: 'center' },
-    { name: 'rut', label: 'RUT', align: 'center' },
-    { name: 'direccion', label: 'Dirección', align: 'center' },
-    { name: 'ubicacionGeografica', label: 'Ubicación Geográfica', align: 'center' },
-    { name: 'departamento', label: 'Departamento', align: 'center' },
-    { name: 'ciudad', label: 'Ciudad', align: 'center' },
-    { name: 'limites', label: 'Límites', align: 'center' },
-    { name: 'area', label: 'Área', align: 'center' },
-    { name: 'estado', label: 'Estado', align: 'center' },
-  ]);
-  
-  const listarFincas = async () => {
-    try {
-      const response = await Finca.find(); // Ajusta esto según cómo consultas los datos
-      return response;
-    } catch (error) {
-      console.error('Error al listar fincas:', error);
-      return [];
-    }
-  };
-  
-  const filteredRows = computed(() => {
-    switch (selectedOption.value) {
-      case 'Listar Fincas':
-        return listarFincas();
-      // Agrega más casos según tus necesidades
-      default:
-        return [];
-    }
-  }); */
-</script>
 
 <style scoped>
-/*  .contSelect {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-  }
-  
-  .q-select {
-    max-width: 250px;
-  }
-  
-  .q-my-md {
-    max-width: 500px;
-    padding-left: 10px;
-  } */
+.container {
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+}
+.title {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  color: #333;
+}
+.divider {
+  height: 5px;
+  background-color: #007bff;
+  border: none;
+  margin: 20px 0;
+}
+.table {
+  margin-top: 40px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.actions-cell {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.btn-editar, .btn-inactivar, .btn-activar {
+  font-size: 1pc;
+  margin: 5px 5px;
+}
+.btn-editar {
+  color: #007bff;
+}
+.btn-inactivar {
+  color: #e74c3c;
+}
+.btn-activar {
+  color: #2ecc71;
+}
+.status-cell p {
+  margin: 0;
+  font-weight: bold;
+}
+.status-activo {
+  color: #2ecc71;
+}
+.status-inactivo {
+  color: #e74c3c;
+}
 </style>

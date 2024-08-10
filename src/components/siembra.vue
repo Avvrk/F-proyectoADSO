@@ -1,126 +1,126 @@
-<template>
-    <q-card>
-      <!-- <q-card-section>
-        <q-table
-          :rows="filteredRows"
-          :columns="columns"
-          row-key="_id"
-          :pagination="pagination"
-          :rows-per-page-options="[10, 20, 30]"
-          virtual-scroll
-        >
-          <template v-slot:top-left>
-            <q-select
-              v-model="selectedOption"
-              :options="options"
-              label="Seleccionar opción"
-              outlined
-              dense
-            />
-          </template>
-          <template v-slot:body="props">
-            <q-tr :props="props">
-              <q-td key="id_cultivo" :props="props">
-                {{ props.row.id_cultivo }}
-              </q-td>
-              <q-td key="empleado_id" :props="props">
-                {{ props.row.empleado_id }}
-              </q-td>
-              <q-td key="fechaSiembra" :props="props">
-                {{ formatDate(props.row.fechaSiembra) }}
-              </q-td>
-              <q-td key="fechaCosecha" :props="props">
-                {{ formatDate(props.row.fechaCosecha) }}
-              </q-td>
-              <q-td key="transplante" :props="props">
-                {{ props.row.transplante ? 'Sí' : 'No' }}
-              </q-td>
-              <q-td key="cultivoAnterior" :props="props">
-                {{ props.row.cultivoAnterior || '-' }}
-              </q-td>
-              <q-td key="inventario_id" :props="props">
-                {{ props.row.inventario_id || '-' }}
-              </q-td>
-              <q-td key="estado" :props="props">
-                {{ props.row.estado === 1 ? 'Activo' : 'Inactivo' }}
-              </q-td>
-            </q-tr>
-          </template>
-        </q-table>
-      </q-card-section> -->
-    </q-card>
-  </template>
-  
-  <script setup>
-/*   import { ref, computed } from 'vue';
-  import { QTable, QTd, QSelect } from 'quasar';
+<script setup>
+import { ref, onMounted } from "vue";
+import { useQuasar } from "quasar";
+const $q = useQuasar();
+// Variables para el funcionamiento de la tabla
+let rows = ref([
+  {
+    cultivo_id: '749bc227' ,
+    empleado_id: 'e8bf943d' ,
+    fechaSiembra: '2024-05-15' ,
+    fechaCosecha: '2024-09-15' ,
+    transplante: 'No' ,
+    cultivoAnterior: 'Tomate' ,
+    inventario_id: '7b8e4d90'
+  },
 
-  
-  const pagination = ref({
-    sortBy: 'fechaSiembra',
-    descending: true,
-    page: 1,
-    rowsPerPage: 10
-  });
-  
-  const options = ref([
-    { label: 'Listar Siembras', value: 'Listar Siembras' },
-    // Agrega más opciones según tus necesidades
-  ]);
-  
-  const selectedOption = ref('Listar Siembras');
-  
-  const columns = ref([
-    { name: 'id_cultivo', label: 'ID Cultivo', align: 'center' },
-    { name: 'empleado_id', label: 'ID Empleado', align: 'center' },
-    { name: 'fechaSiembra', label: 'Fecha de Siembra', align: 'center' },
-    { name: 'fechaCosecha', label: 'Fecha de Cosecha', align: 'center' },
-    { name: 'transplante', label: 'Transplante', align: 'center' },
-    { name: 'cultivoAnterior', label: 'Cultivo Anterior', align: 'center' },
-    { name: 'inventario_id', label: 'ID Inventario', align: 'center' },
-    { name: 'estado', label: 'Estado', align: 'center' },
-  ]);
-  
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES');
-  };
-  
-  const listarSiembras = async () => {
-    try {
-      const response = await Siembra.find(); // Ajusta esto según cómo consultas los datos
-      return response;
-    } catch (error) {
-      console.error('Error al listar siembras:', error);
-      return [];
-    }
-  };
-  
-  const filteredRows = computed(() => {
-    switch (selectedOption.value) {
-      case 'Listar Siembras':
-        return listarSiembras();
-      // Agrega más casos según tus necesidades
-      default:
-        return [];
-    }
-  }); */
-  </script>
-  
-  <style scoped>
- /*  .contSelect {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-  }
-  
-  .q-select {
-    max-width: 250px; 
-  }
-  
-  .q-my-md {
-    max-width: 500px;
-    padding-left: 10px;
-  } */
-  </style>
-  
+  {
+    cultivo_id: 'b4a789' ,
+    empleado_id: '79724a' ,
+    fechaSiembra: '2024-06-01' ,
+    fechaCosecha: '2024-10-01' ,
+    transplante: 'Sí' ,
+    cultivoAnterior: 'Pimentón' ,
+    inventario_id: '64b7d7a4'
+  },
+
+]);
+let columns = ref([
+  { name: 'cultivo_id', align: 'center', label: 'ID del Cultivo', field: 'cultivo_id', sortable: true },
+  { name: 'empleado_id', align: 'center', label: 'ID del Empleado', field: 'empleado_id', sortable: true },
+  { name: 'fechaSiembra', align: 'center', label: 'Fecha Siembra', field: 'fechaSiembra', sortable: true },
+  { name: 'fechaCosecha', align: 'center', label: 'Fecha Cosecha', field: 'fechaCosecha', sortable: true },
+  { name: 'transplante', align: 'center', label: 'Transplante', field: 'transplante', sortable: true },
+  { name: 'cultivoAnterior', align: 'center', label: 'Cultivo Anterior', field: 'cultivoAnterior', sortable: true },
+  { name: 'inventario_id', align: 'center', label: 'Id de Inventario', field: 'inventario_id', sortable: true },
+  { name: 'estado', align: 'center', label: 'Estado', field: 'estado', sortable: true },
+  { name: 'opciones', align: 'center', label: 'Opciones', field: 'opciones', sortable: true },
+]);
+onMounted(() => {
+});
+</script>
+
+<template>
+<div class="container">
+
+<div class="title text-h2 text-center">
+Siembras
+</div>
+<hr class="divider">
+<q-table v-if="!loading" flat bordered title="Lista de Siembras" :rows="rows" :columns="columns" row-key="id" class="table">
+<template v-slot:body-cell-opciones="props">
+  <q-td :props="props" class="actions-cell">
+    <q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
+      ✏️
+    </q-btn>
+    <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">
+      ❌
+    </q-btn>
+    <q-btn v-else @click="editarEstado(props.row)" class="btn-activar">
+      ✅
+    </q-btn>
+  </q-td>
+</template>
+<template v-slot:body-cell-estado="props">
+  <q-td :props="props" class="status-cell">
+    <p v-if="props.row.estado == 1" class="status-activo">
+      Activo
+    </p>
+    <p v-else class="status-inactivo">Inactivo</p>
+  </q-td>
+</template>
+</q-table>
+</div>
+</template>
+
+<style scoped>
+.container {
+padding: 20px;
+background-color: #f5f5f5;
+border-radius: 10px;
+}
+.title {
+margin-top: 20px;
+margin-bottom: 20px;
+color: #333;
+}
+.divider {
+height: 5px;
+background-color: #007bff;
+border: none;
+margin: 20px 0;
+}
+.table {
+margin-top: 40px;
+border-radius: 10px;
+overflow: hidden;
+}
+.actions-cell {
+display: flex;
+justify-content: space-around;
+align-items: center;
+}
+.btn-editar, .btn-inactivar, .btn-activar {
+font-size: 1pc;
+margin: 5px 5px;
+}
+.btn-editar {
+color: #007bff;
+}
+.btn-inactivar {
+color: #e74c3c;
+}
+.btn-activar {
+color: #2ecc71;
+}
+.status-cell p {
+margin: 0;
+font-weight: bold;
+}
+.status-activo {
+color: #2ecc71;
+}
+.status-inactivo {
+color: #e74c3c;
+}
+</style>
