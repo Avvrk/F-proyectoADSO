@@ -56,10 +56,10 @@ onMounted(() => {
 <div class="container">
 
 <div class="title text-h2 text-center">
-Siembras
+Semillas
 </div>
 <hr class="divider">
-<q-table v-if="!loading" flat bordered title="Lista de Siembras" :rows="rows" :columns="columns" row-key="id" class="table">
+<q-table v-if="!loading" flat bordered title="Lista de Semillas" :rows="rows" :columns="columns" row-key="id" class="table">
 <template v-slot:body-cell-opciones="props">
   <q-td :props="props" class="actions-cell">
     <q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
