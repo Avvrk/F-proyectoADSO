@@ -146,7 +146,7 @@
                 </q-item>
                 <q-item clickable tag="router-link" to="/mio/Nomina">
                     <q-item-section>
-                        <q-item-label>Nomina</q-item-label>
+                        <q-item-label>Nóminas</q-item-label>
                     </q-item-section>
                     <q-item-section avatar>
                         <q-icon name="volunteer_activism" />
