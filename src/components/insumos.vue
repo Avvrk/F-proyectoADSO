@@ -1,78 +1,122 @@
-          <script setup>
-          import { ref, onMounted } from "vue";
-          import { useQuasar } from "quasar";
-          const $q = useQuasar();
-          // Variables para el funcionamiento de la tabla
-          let rows = ref([
-            {
-              _idProveedor: 23534546,
-              nombre: 'Insecticida',
-              relacionNPK: '20-10-30',
-              cantidad: 30,
-              unidad: '$ 12.000',
-              total: '$ 360.000',
-              responsable: 'Miguel',
-              observaciones: 'Aplicar con sus medidas de precaución',
-            },
-            {
-              _idProveedor: 3454567,
-              nombre: 'Plaguicida',
-              relacionNPK: '40-5-10',
-              cantidad: 10,
-              unidad: '$ 8.000',
-              total: '$ 80.000',
-              responsable: 'Josue',
-              observaciones: 'Utilizar elementos de protección personal',
-            },
-          ]);
-          let columns = ref([
-            { name: '_idProveedor', align: 'center', label: 'ID de Proveedor', field: '_idProveedor', sortable: true },
-            { name: 'nombre', align: 'center', label: 'Nombre', field: 'nombre', sortable: true },
-            { name: 'relacionNPK', align: 'center', label: 'Relación NPK', field: 'relacionNPK', sortable: true },
-            { name: 'cantidad', align: 'center', label: 'Cantidad', field: 'cantidad', sortable: true },
-            { name: 'unidad', align: 'center', label: 'Unidad', field: 'unidad', sortable: true },
-            { name: 'total', align: 'center', label: 'Total', field: 'total', sortable: true },
-            { name: 'responsable', align: 'center', label: 'Responsable', field: 'responsable', sortable: true },
-            { name: 'observaciones', align: 'center', label: 'Observaciones', field: 'observaciones', sortable: true },
-          ]);
-          onMounted(() => {
-          });
-          </script>
+<script setup>
+import { ref, onMounted } from "vue";
+import { useQuasar } from "quasar";
+
+const $q = useQuasar();
+
+// Datos de los insumos
+let rows = ref([
+  {
+    _idProveedor: 23534546,
+    nombre: 'Insecticida',
+    relacionNPK: '20-10-30',
+    cantidad: 30,
+    unidad: '$ 12.000',
+    total: '$ 360.000',
+    responsable: 'Miguel',
+    observaciones: 'Aplicar con sus medidas de precaución',
+  },
+  {
+    _idProveedor: 3454567,
+    nombre: 'Plaguicida',
+    relacionNPK: '40-5-10',
+    cantidad: 10,
+    unidad: '$ 8.000',
+    total: '$ 80.000',
+    responsable: 'Josue',
+    observaciones: 'Utilizar elementos de protección personal',
+  },
+]);
+
+let columns = ref([
+  { name: '_idProveedor', align: 'center', label: 'ID de Proveedor', field: '_idProveedor', sortable: true },
+  { name: 'nombre', align: 'center', label: 'Nombre', field: 'nombre', sortable: true },
+  { name: 'relacionNPK', align: 'center', label: 'Relación NPK', field: 'relacionNPK', sortable: true },
+  { name: 'cantidad', align: 'center', label: 'Cantidad', field: 'cantidad', sortable: true },
+  { name: 'unidad', align: 'center', label: 'Unidad', field: 'unidad', sortable: true },
+  { name: 'total', align: 'center', label: 'Total', field: 'total', sortable: true },
+  { name: 'responsable', align: 'center', label: 'Responsable', field: 'responsable', sortable: true },
+  { name: 'observaciones', align: 'center', label: 'Observaciones', field: 'observaciones', sortable: true },
+  { name: 'opciones', align: 'center', label: 'Editar', field: 'opciones', sortable: true },
+]);
+
+// Información del insumo en edición
+const editando = ref(false);
+const insumoActual = ref({
+  _idProveedor: '',
+  nombre: '',
+  relacionNPK: '',
+  cantidad: 0,
+  unidad: '',
+  total: '',
+  responsable: '',
+  observaciones: '',
+});
+
+// Función para abrir la card de edición
+function editarInsumo(insumo) {
+  insumoActual.value = { ...insumo };
+  editando.value = true;
+}
+
+// Función para guardar los cambios del insumo
+function guardarCambios() {
+  const indice = rows.value.findIndex(i => i._idProveedor === insumoActual.value._idProveedor);
+  if (indice !== -1) {
+    rows.value[indice] = { ...insumoActual.value };
+    $q.notify({
+      type: 'positive',
+      message: 'Cambios guardados exitosamente.'
+    });
+  }
+  editando.value = false;
+}
+
+// Función para cerrar la card de edición
+function cerrarEditar() {
+  editando.value = false;
+}
+
+onMounted(() => {
+
+});
+</script>
 
 <template>
   <div class="container">
-
-    <div class="title text-h2 text-center">
-      Insumos
-    </div>
+    <div class="title text-h2 text-center">Insumos</div>
     <hr class="divider">
-    <q-table v-if="!loading" flat bordered title="Lista de Insumos" :rows="rows" :columns="columns" row-key="id" class="table">
+
+    <!-- Tabla de insumos -->
+    <q-table flat bordered title="Lista de Insumos" :rows="rows" :columns="columns" row-key="_idProveedor" class="table">
       <template v-slot:body-cell-opciones="props">
         <q-td :props="props" class="actions-cell">
-          <q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
-            ✏️
-          </q-btn>
-          <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">
-            ❌
-          </q-btn>
-          <q-btn v-else @click="editarEstado(props.row)" class="btn-activar">
-            ✅
-          </q-btn>
-        </q-td>
-      </template>
-      <template v-slot:body-cell-estado="props">
-        <q-td :props="props" class="status-cell">
-          <p v-if="props.row.estado == 1" class="status-activo">
-            Activo
-          </p>
-          <p v-else class="status-inactivo">Inactivo</p>
+          <q-btn @click="editarInsumo(props.row)" class="btn-editar">✏️</q-btn>
         </q-td>
       </template>
     </q-table>
+
+    <!-- Card de edición de insumo -->
+    <q-dialog v-model="editando">
+      <q-card>
+        <q-card-section>
+          <q-input v-model="insumoActual._idProveedor" label="ID de Proveedor"></q-input>
+          <q-input v-model="insumoActual.nombre" label="Nombre"></q-input>
+          <q-input v-model="insumoActual.relacionNPK" label="Relación NPK"></q-input>
+          <q-input v-model="insumoActual.cantidad" label="Cantidad" type="number"></q-input>
+          <q-input v-model="insumoActual.unidad" label="Unidad"></q-input>
+          <q-input v-model="insumoActual.total" label="Total"></q-input>
+          <q-input v-model="insumoActual.responsable" label="Responsable"></q-input>
+          <q-input v-model="insumoActual.observaciones" label="Observaciones"></q-input>
+        </q-card-section>
+        <q-card-actions>
+          <q-btn @click="guardarCambios" color="primary">Guardar</q-btn>
+          <q-btn @click="cerrarEditar" color="secondary">Cancelar</q-btn>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
-
 </template>
-
 
 <style scoped>
 .container {
@@ -101,27 +145,9 @@
   justify-content: space-around;
   align-items: center;
 }
-.btn-editar, .btn-inactivar, .btn-activar {
+.btn-editar {
   font-size: 1pc;
   margin: 5px 5px;
-}
-.btn-editar {
   color: #007bff;
-}
-.btn-inactivar {
-  color: #e74c3c;
-}
-.btn-activar {
-  color: #2ecc71;
-}
-.status-cell p {
-  margin: 0;
-  font-weight: bold;
-}
-.status-activo {
-  color: #2ecc71;
-}
-.status-inactivo {
-  color: #e74c3c;
 }
 </style>

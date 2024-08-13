@@ -24,7 +24,7 @@ export const useStoreEmpleados = defineStore("Empleados", () => {
 
     const getEmpleadosID = async (id) => {
         try {
-            const r = await axios.get(`${url}/Empleados/${id}`, {
+            const r = await axios.get(`${url}/Empleados/id/${id}`, {
                 headers: {
                     token: useUsuario.token
                 }
@@ -64,11 +64,40 @@ export const useStoreEmpleados = defineStore("Empleados", () => {
             }
         };
 
+        const putEmpleadosActivar = async (id, datos) => {
+            try {
+                const r = await axios.put(`${url}/Empleados/Activar/${id}`, datos, {
+                        headers: {
+                            token: useUsuario.token
+                        }
+                    });
+                    return r;
+                } catch (error) {
+                    console.log(error);
+                    return error
+                }
+            };
+            const putEmpleadosInactivar = async (id, datos) => {
+                try {
+                    const r = await axios.put(`${url}/Empleados/Inactivar${id}`, datos, {
+                            headers: {
+                                token: useUsuario.token
+                            }
+                        });
+                        return r;
+                    } catch (error) {
+                        console.log(error);
+                        return error
+                    }
+                };
+
     return {
         getEmpleados,
         getEmpleadosID,
         postEmpleados,
-        putEmpleados
+        putEmpleados,
+        putEmpleadosActivar,
+        putEmpleadosInactivar
     };
 },
 {
