@@ -1,118 +1,661 @@
 <script setup>
-/* import { ref, computed, onMounted } from "vue";
-import { QTable, QTd, QSelect, QTr } from "quasar";
-import { useStoreAnalisisSuelos } from "../stores/analisis_suelo.js"; // Asegúrate de importar la store correctamente
+import { ref, onMounted, computed } from "vue";
+import { useStoreAnalisisSuelos } from "../stores/analisis_suelo.js";
+import { useQuasar } from "quasar";
 
-const analisisSuelosStore = useStoreAnalisisSuelos();
+const $q = useQuasar();
 
-// Montar la store para listar análisis de suelos al iniciar
+const useAnalisisSuelo = useStoreAnalisisSuelos();
+
+const opcionesTabla = [
+    "Todos",
+    "Activos",
+    "Inactivos",
+    "Fechas",
+    "Responsable",
+];
+const parcelas = ref([]);
+const empleados = ref([]);
+const rows = ref([]);
+const columns = ref([
+    {
+        name: "fecha",
+        label: "Fecha",
+        field: (row) => {
+            const fechaa = `${row.fecha}`;
+            return fechaa.split("T")[0];
+        },
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "id_parcela",
+        label: "Parcela",
+        field: (row) =>
+            `${row.id_parcela.numero} (${row.id_parcela.id_fincas.nombre})`,
+        align: "center",
+    },
+    {
+        name: "empleado_id",
+        label: "Empleado",
+        field: (row) =>
+            `${row.empleado_id.nombre} (DNI: ${row.empleado_id.documento})`,
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "muestra",
+        label: "Muestra",
+        field: "muestra",
+        align: "center",
+    },
+    {
+        name: "laboratorio",
+        label: "Laboratorio",
+        field: "laboratorio",
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "resultados",
+        label: "Resultados",
+        field: "resultados",
+        /* field: (row) => row.resultados.join(" / "), */
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "recomendaciones",
+        label: "Recomendaciones",
+        field: "recomendaciones",
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "estado",
+        label: "Estado",
+        field: "estado",
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "opciones",
+        label: "Opciones",
+        field: "opciones",
+        align: "center",
+    },
+]);
+
+const fechaAnalisisSuelo = ref("");
+const parcelaAnalisisSuelo = ref("");
+const empleadoAnalisisSuelo = ref("");
+const muestraAnalisisSuelo = ref("");
+const cultivoAnalisisSuelo = ref("");
+const laboratorioAnalisisSuelo = ref("");
+const resultadosAnalisisSuelo = ref("");
+/* let resultadosAnalisisSuelo = []; */
+const recomendacionesAnalisisSuelo = ref("");
+/* const nuevoResultado = ref(""); */
+
+const opcionTabla = ref("Todos");
+
+const fechaInicio = ref("");
+const fechaFin = ref("");
+const responsable = ref("");
+
+const datos = ref([]);
+
+const mostrarFormularioAnalisisSuelo = ref(false);
+const mostrarBotonEditar = ref(false);
+const mostrarInputFecha = ref(false);
+const mostrarSelectResponsable = ref(false);
+const mostraInput = ref(false);
+const loading = ref(true);
+
+const opcionesResponsables = computed(() => {
+    return empleados.value.map((emp) => {
+        return { label: `${emp.nombre} (${emp.documento})`, id: emp._id };
+    });
+});
+
+const opcionesParcelas = computed(() => {
+    return parcelas.value.map((par) => {
+        return {
+            label: `${par.numero} (${par.id_fincas.nombre})`,
+            id: par._id,
+        };
+    });
+});
+
+/* function agregarResultado() {
+    if (nuevoResultado.value.trim()) {
+        resultadosAnalisisSuelo.push(nuevoResultado.value.trim());
+        nuevoResultado.value = ""; // Limpiar el input
+    } else {
+        $q.notify({
+            type: "negative",
+            message: "El resultado no puede estar vacío",
+            position: "bottom",
+        });
+    }
+} */
+
+async function listarEmpleado() {
+    try {
+        loading.value = true;
+        const r = await useAnalisisSuelo.getEmpleado();
+        empleados.value = r.data.empleados;
+    } finally {
+        loading.value = false;
+    }
+}
+
+async function listarParcela() {
+    try {
+        loading.value = true;
+        const r = await useAnalisisSuelo.getParcela();
+        parcelas.value = r.data.parcelas;
+    } finally {
+        loading.value = false;
+    }
+}
+
+async function listarAnalisisSuelo() {
+    try {
+        loading.value = true;
+        const r = await useAnalisisSuelo.getAnalisisSuelo();
+        rows.value = r.data.suelos;
+    } finally {
+        loading.value = false;
+    }
+}
+
+async function listarAnalisisSueloActivo() {
+    try {
+        loading.value = true;
+        const r = await useAnalisisSuelo.getAnalisisSueloActivos();
+        rows.value = r.data.suelos;
+    } finally {
+        loading.value = false;
+    }
+}
+
+async function listarAnilisasSueloInactivo() {
+    try {
+        loading.value = true;
+        const r = await useAnalisisSuelo.getAnalisisSueloInactivos();
+        rows.value = r.data.suelos;
+    } finally {
+        loading.value = false;
+    }
+}
+
+async function listarAnalisisSueloFechas() {
+    if (fechaInicio.value && fechaFin.value) {
+        const inicio = new Date(fechaInicio.value);
+        const fin = new Date(fechaFin.value);
+
+        if (inicio > fin) {
+            $q.notify({
+                type: "negative",
+                message:
+                    "La fecha de inicio no puede ser mayor que la fecha de fin.",
+                position: "bottom",
+            });
+            return;
+        }
+        try {
+            loading.value = true;
+            const r = await useAnalisisSuelo.getAnalisisSueloFechas(
+                fechaInicio.value,
+                fechaFin.value
+            );
+            rows.value = r.data.suelos;
+        } finally {
+            loading.value = false;
+        }
+    } else {
+        $q.notify({
+            type: "negative",
+            message: "Llena los campos",
+            position: "bottom",
+        });
+    }
+}
+
+async function listarAnalisisSueloResponsable() {
+    if (responsable.value) {
+        try {
+            loading.value = true;
+            const r = await useAnalisisSuelo.getAnalisisSueloResponsable(
+                responsable.value.id
+            );
+            rows.value = r.data.suelos;
+        } finally {
+            loading.value = false;
+        }
+    } else {
+        $q.notify({
+            type: "negative",
+            message: "Llena el campo",
+            position: "bottom",
+        });
+    }
+}
+
+async function editarEstado(elemento) {
+    try {
+        loading.value = true;
+        if (elemento.estado === 1) {
+            const res = await useAnalisisSuelo.putAnalisisSueloInactivar(
+                elemento._id
+            );
+        } else if (elemento.estado === 0) {
+            const res = await useAnalisisSuelo.putAnalisisSueloActivar(
+                elemento._id
+            );
+        }
+        listarAnalisisSuelo();
+    } finally {
+        loading.value = false;
+    }
+}
+
+async function registrar() {
+    if (validarDatos()) {
+        try {
+            loading.value = true;
+            const info = {
+                fecha: fechaAnalisisSuelo.value,
+                id_parcela: parcelaAnalisisSuelo.value.id,
+                empleado_id: empleadoAnalisisSuelo.value.id,
+                muestra: muestraAnalisisSuelo.value,
+                cultivo: cultivoAnalisisSuelo.value,
+                laboratorio: laboratorioAnalisisSuelo.value,
+                resultados: resultadosAnalisisSuelo.value,
+                recomendaciones: recomendacionesAnalisisSuelo.value,
+            };
+
+            const res = await useAnalisisSuelo.postAnalisisSuelo(info);
+            if (res.status === 200) {
+                mostrarFormularioAnalisisSuelo.value = false;
+                listarAnalisisSuelo();
+				/* resultadosAnalisisSuelo = [] */
+            }
+        } finally {
+            loading.value = false;
+        }
+    }
+}
+
+async function editar() {
+    if (validarDatos()) {
+        try {
+            loading.value = true;
+            const info = {
+                fecha: fechaAnalisisSuelo.value,
+                id_parcela: parcelaAnalisisSuelo.value.id,
+                empleado_id: empleadoAnalisisSuelo.value.id,
+                muestra: muestraAnalisisSuelo.value,
+                cultivo: cultivoAnalisisSuelo.value,
+                laboratorio: laboratorioAnalisisSuelo.value,
+                resultados: resultadosAnalisisSuelo.value,
+                recomendaciones: recomendacionesAnalisisSuelo.value,
+            };
+
+            const res = await useAnalisisSuelo.putAnalisisSuelo(
+                datos.value._id,
+                info
+            );
+            if (res.status === 200) {
+                mostrarFormularioAnalisisSuelo.value = false;
+                listarAnalisisSuelo();
+				/* resultadosAnalisisSuelo = [] */
+            }
+        } finally {
+            loading.value = false;
+        }
+    }
+}
+
+function validarDatos() {
+    let validacion = true;
+    if (
+        !fechaAnalisisSuelo.value &&
+        !parcelaAnalisisSuelo.value &&
+        !empleadoAnalisisSuelo.value &&
+        !muestraAnalisisSuelo.value.trim() &&
+        !cultivoAnalisisSuelo.value.trim() &&
+        !laboratorioAnalisisSuelo.value.trim() &&
+        !resultadosAnalisisSuelo.value.trim() &&
+        /* !resultadosAnalisisSuelo.length && */
+        !recomendacionesAnalisisSuelo.value.trim()
+    ) {
+        $q.notify({
+            type: "negative",
+            message: "Llena todos los campos",
+            position: "bottom",
+        });
+        validacion = false;
+    } else {
+        if (!fechaAnalisisSuelo.value) {
+            $q.notify({
+                type: "negative",
+                message: "La fecha esta vacia",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!parcelaAnalisisSuelo.value) {
+            $q.notify({
+                type: "negative",
+                message: "La parcela esta vacia",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!empleadoAnalisisSuelo.value) {
+            $q.notify({
+                type: "negative",
+                message: "El empleado esta vacio",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!muestraAnalisisSuelo.value.trim()) {
+            $q.notify({
+                type: "negative",
+                message: "La muestra esta vacia",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!cultivoAnalisisSuelo.value.trim()) {
+            $q.notify({
+                type: "negative",
+                message: "El cultivo esta vacio",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!laboratorioAnalisisSuelo.value.trim()) {
+            $q.notify({
+                type: "negative",
+                message: "El laboratorio esta vacio",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!resultadosAnalisisSuelo.value.trim()) {
+            $q.notify({
+                type: "negative",
+                message: "El resultado esta vacio",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+    /*  if (!resultadosAnalisisSuelo.length) {
+            $q.notify({
+                type: "negative",
+                message: "El resultado esta vacio",
+                position: "bottom",
+            });
+            validacion = false;
+        } */
+        if (!recomendacionesAnalisisSuelo.value.trim()) {
+            $q.notify({
+                type: "negative",
+                message: "La recomendacion esta vacia",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+    }
+    return validacion;
+}
+
+function controlFormulario(obj, boolean) {
+    fechaAnalisisSuelo.value = "";
+    parcelaAnalisisSuelo.value = "";
+    empleadoAnalisisSuelo.value = "";
+    muestraAnalisisSuelo.value = "";
+    cultivoAnalisisSuelo.value = "";
+    laboratorioAnalisisSuelo.value = "";
+    resultadosAnalisisSuelo.value = "";
+    recomendacionesAnalisisSuelo.value = "";
+
+    datos.value = obj;
+    mostrarBotonEditar.value = false;
+    if (obj != null && boolean == true) {
+        const par = opcionesParcelas.value
+        const em = opcionesResponsables.value
+
+        fechaAnalisisSuelo.value = datos.value.fecha.split("T")[0];
+        parcelaAnalisisSuelo.value = par.find((as) => as.id == datos.value.id_parcela._id);
+        empleadoAnalisisSuelo.value = em.find((as) => as.id == datos.value.empleado_id._id);
+        muestraAnalisisSuelo.value = datos.value.muestra;
+        cultivoAnalisisSuelo.value = datos.value.cultivo;
+        laboratorioAnalisisSuelo.value = datos.value.laboratorio;
+        resultadosAnalisisSuelo.value = datos.value.resultados;
+        recomendacionesAnalisisSuelo.value = datos.value.recomendaciones;
+
+        mostrarBotonEditar.value = true;
+    }
+    mostrarFormularioAnalisisSuelo.value = boolean;
+}
+
+function estadoTabla() {
+    if (opcionTabla.value == "Activos") {
+        mostrarInputFecha.value = false;
+        mostrarSelectResponsable.value = false;
+        mostraInput.value = false;
+        listarAnalisisSueloActivo();
+    } else if (opcionTabla.value == "Inactivos") {
+        mostrarInputFecha.value = false;
+        mostrarSelectResponsable.value = false;
+        mostraInput.value = false;
+        listarAnilisasSueloInactivo();
+    } else if (opcionTabla.value == "Fechas") {
+        mostrarSelectResponsable.value = false;
+        mostrarInputFecha.value = true;
+        mostraInput.value = true;
+    } else if (opcionTabla.value == "Responsable") {
+        mostrarInputFecha.value = false;
+        mostrarSelectResponsable.value = true;
+        mostraInput.value = true;
+    } else {
+        mostrarInputFecha.value = false;
+        mostrarSelectResponsable.value = false;
+        mostraInput.value = false;
+        listarAnalisisSuelo();
+    }
+}
+
 onMounted(() => {
-	analisisSuelosStore.listarAnalisisSuelos();
+    listarEmpleado();
+    listarParcela();
+    listarAnalisisSuelo();
 });
-
-const pagination = ref({
-	sortBy: "fecha",
-	descending: true,
-	page: 1,
-	rowsPerPage: 10,
-});
-
-const selectedOption = ref("Listar Análisis de Suelos");
-const options = computed(() => analisisSuelosStore.options);
-const columns = computed(() => analisisSuelosStore.columns);
-
-const filteredRows = computed(() => {
-	switch (selectedOption.value) {
-		case "Listar Análisis de Suelos":
-			return analisisSuelosStore.rows;
-		// Agrega más casos según tus necesidades
-		default:
-			return [];
-	}
-});
-
-const formatDate = (dateString) => {
-	const date = new Date(dateString);
-	return date.toLocaleDateString("es-ES");
-}; */
 </script>
 
 <template>
-  <div>
-<!--     <q-card>
-      <q-card-section>
+    <div>
+        <div>
+            <q-btn @click="controlFormulario(null, true)" label="Agregar" />
+        </div>
         <q-table
-          :rows="filteredRows"
-          :columns="columns"
-          row-key="_id"
-          :pagination="pagination"
-          :rows-per-page-options="[10, 20, 30]"
-          virtual-scroll>
-          <template v-slot:top-left>
-            <q-select
-              v-model="selectedOption"
-              :options="options"
-              label="Seleccionar opción"
-              outlined
-              dense />
-          </template>
-          <template v-slot:body="props">
-            <q-tr :props="props">
-              <q-td key="fecha" :props="props">
-                {{ formatDate(props.row.fecha) }}
-              </q-td>
-              <q-td key="id_parcela" :props="props">
-                {{ props.row.id_parcela }}
-              </q-td>
-              <q-td key="empleado_id" :props="props">
-                {{ props.row.empleado_id }}
-              </q-td>
-              <q-td key="muestra" :props="props">
-                {{ props.row.muestra }}
-              </q-td>
-              <q-td key="cultivo" :props="props">
-                {{ props.row.cultivo || "-" }}
-              </q-td>
-              <q-td key="laboratorio" :props="props">
-                {{ props.row.laboratorio || "-" }}
-              </q-td>
-              <q-td key="resultados" :props="props">
-                <ul>
-                  <li
-                    v-for="(resultado, index) in props.row
-                      .resultados"
-                    :key="index">
-                    {{ resultado }}
-                  </li>
-                </ul>
-              </q-td>
-              <q-td key="recomendaciones" :props="props">
-                {{ props.row.recomendaciones || "-" }}
-              </q-td>
-              <q-td key="estado" :props="props">
-                {{ props.row.estado === 1 ? "Activo" : "Inactivo" }}
-              </q-td>
-            </q-tr>
-          </template>
+            flat
+            bordered
+            title="Analisis Suelo"
+            :rows="rows"
+            :columns="columns"
+            row-key="id">
+            <template v-slot:top>
+                <q-select
+                    v-if="mostrarSelectResponsable"
+                    label="Responsable"
+                    :options="opcionesResponsables"
+                    v-model="responsable" />
+                <q-input
+                    v-if="mostrarInputFecha"
+                    label="Fecha Inicio"
+                    type="date"
+                    v-model="fechaInicio" />
+                <q-input
+                    v-if="mostrarInputFecha"
+                    label="Fecha Fin"
+                    type="date"
+                    v-model="fechaFin" />
+                <q-btn
+                    v-if="mostraInput"
+                    @click="
+                        mostrarInputFecha
+                            ? listarAnalisisSueloFechas()
+                            : mostrarSelectResponsable
+                            ? listarAnalisisSueloResponsable()
+                            : ''
+                    "
+                    label="Buscar" />
+                <q-select
+                    standout="bg-green text-while"
+                    :options="opcionesTabla"
+                    v-model="opcionTabla"
+                    @update:model-value="estadoTabla" />
+            </template>
+            <template v-slot:body-cell-estado="props">
+                <q-td :props="props">
+                    <p v-if="props.row.estado == 1" style="color: green">
+                        Activo
+                    </p>
+                    <p v-else style="color: red">Inactivo</p>
+                </q-td>
+            </template>
+            <template v-slot:body-cell-opciones="props">
+                <q-td :props="props">
+                    <q-btn @click="controlFormulario(props.row, true)">
+                        ✏️
+                    </q-btn>
+                    <q-btn
+                        v-if="props.row.estado == 1"
+                        @click="editarEstado(props.row)">
+                        ❌
+                    </q-btn>
+                    <q-btn v-else @click="editarEstado(props.row)"> ✅ </q-btn>
+                </q-td>
+            </template>
         </q-table>
-      </q-card-section>
-    </q-card> -->
-  </div>
+        <q-dialog v-model="mostrarFormularioAnalisisSuelo">
+            <q-card>
+                <q-form
+                    @submit="mostrarBotonEditar ? editar() : registrar()"
+                    class="q-gutter-md">
+                    <div>
+                        <q-input
+                            standout="bg-green text-while"
+                            type="date"
+                            label="Fecha"
+                            v-model="fechaAnalisisSuelo" />
+                        <q-select
+                            standout="bg-green text-while"
+                            :options="opcionesParcelas"
+                            label="Parcela"
+                            v-model="parcelaAnalisisSuelo" />
+                        <q-select
+                            standout="bg-green text-while"
+                            :options="opcionesResponsables"
+                            label="Empledo"
+                            v-model="empleadoAnalisisSuelo" />
+                        <q-input
+                            standout="bg-green text-while"
+                            type="text"
+                            label="Muestra"
+                            v-model="muestraAnalisisSuelo" />
+                        <q-input
+                            standout="bg-green text-while"
+                            type="text"
+                            label="Cultivo"
+                            v-model="cultivoAnalisisSuelo" />
+                        <q-input
+                            standout="bg-green text-while"
+                            type="text"
+                            label="Laboratorio"
+                            v-model="laboratorioAnalisisSuelo" />
+                        <q-input
+                            standout="bg-green text-while"
+                            type="textarea"
+                            label="Resultados"
+                            v-model="resultadosAnalisisSuelo" />
+                        <q-input
+                            standout="bg-green text-while"
+                            type="textarea"
+                            label="Recomendaciones"
+                            v-model="recomendacionesAnalisisSuelo" />
+                        <!-- <q-input
+                            standout="bg-green text-white"
+                            type="text"
+                            label="Nuevo Resultado"
+                            v-model="nuevoResultado"
+                            hint="Formato: 'Elemento: Valor'"
+                            @keyup.enter="agregarResultado" />
+                        <q-btn
+                            unelevated
+                            label="Agregar Resultado"
+                            @click="agregarResultado"
+                            color="positive" />
+
+                        <ul>
+                            <li
+                                v-for="(
+                                    resultado, index
+                                ) in resultadosAnalisisSuelo"
+                                :key="index">
+                                {{ resultado }}
+                            </li>
+                        </ul> -->
+                        <div>
+                            <q-btn
+                                unelevated
+                                v-if="mostrarBotonEditar"
+                                label="Editar"
+                                type="submit"
+                                color="positive" />
+                            <q-btn
+                                unelevated
+                                v-else
+                                label="Registrar"
+                                type="submit"
+                                color="positive" />
+                            <q-btn
+                                @click="controlFormulario(null, false)"
+                                flat
+                                label="Cerrar"
+                                type="button" />
+                        </div>
+                    </div>
+                </q-form>
+            </q-card>
+        </q-dialog>
+    </div>
 </template>
 
 <style scoped>
-/* .contSelect {
-	display: flex;
-	flex-direction: row;
-	gap: 20px;
+.q-card {
+    background-color: rgb(255, 255, 255);
+    padding: 40px 30px 40px 30px;
+    border-radius: 1pc;
+    width: 30rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: 0;
 }
 
-.q-select {
-	max-width: 250px;
+.q-form {
+    display: flex;
+    flex-direction: column;
+    height: auto;
 }
 
-.q-my-md {
-	max-width: 500px;
-	padding-left: 10px;
-} */
+.q-form .q-input,
+.q-form .q-select {
+    margin-bottom: 15px;
+}
 </style>

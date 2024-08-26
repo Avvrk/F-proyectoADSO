@@ -1,165 +1,517 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
+import { useStoreFacturas } from "../stores/factura.js";
 import { useQuasar } from "quasar";
 
 const $q = useQuasar();
 
-// Datos de las Facturas
-let filas = ref([
-  {
-    fecha: '2024-08-10',
-    valor: '$ 4.000',
-    detalles: 'Compra de insumos para la siembra de maíz',
-    inventario_id: '6476b4f70',
-    cantidad: 100,
-    nombreProducto: 'Fertilizante NPK 10-10-10',
-    subtotal: '$ 400.000',
-    iva: '$ 6.000',
-    total: '$ 406.000',
-    comprador_id: '6937f8w32'
-  },
-  {
-    fecha: '2024-08-15',
-    valor: '$ 3.500.000',
-    detalles: 'Compra de maquinaria para la cosecha',
-    inventario_id: '3672a5j61',
-    cantidad: 1,
-    nombreProducto: 'Cosechadora Modelo X',
-    subtotal: '$ 3.500.000',
-    iva: '$ 665.000',
-    total: '$ 4.165.000',
-    comprador_id: '6282r1c73'
-  }
-]);
+const IVA_TASA = 0.19;
 
-let columnas = ref([
-  { name: 'fecha', align: 'center', label: 'Fecha', field: 'fecha', sortable: true },
-  { name: 'comprador_id', align: 'center', label: 'Id del Comprador', field: 'comprador_id', sortable: true },
-  { name: 'inventario_id', align: 'center', label: 'Id de Inventario', field: 'inventario_id', sortable: true },
-  { name: 'nombreProducto', align: 'center', label: 'Nombre de Producto', field: 'nombreProducto', sortable: true },
-  { name: 'valor', align: 'center', label: 'Valor Unitario', field: 'valor', sortable: true },
-  { name: 'cantidad', align: 'center', label: 'Cantidad', field: 'cantidad', sortable: true },
-  { name: 'detalles', align: 'center', label: 'Detalles', field: 'detalles', sortable: true },
-  { name: 'subtotal', align: 'center', label: 'Subtotal', field: 'subtotal', sortable: true },
-  { name: 'iva', align: 'center', label: 'IVA', field: 'iva', sortable: true },
-  { name: 'total', align: 'center', label: 'Total', field: 'total', sortable: true },
-  { name: 'opciones', align: 'center', label: 'Editar', field: 'opciones', sortable: true },
-]);
+const useFacturas = useStoreFacturas();
 
-// Información que lleva la factura
-const editando = ref(false);
-const facturaActual = ref({
-  fecha: '',
-  comprador_id: '',
-  inventario_id: '',
-  valor: '',
-  cantidad: '',
-  detalles: '',
-  // nombreProducto: '',
-  // subtotal: '',
-  // iva: '',
-  // total: '',
+let rows = ref([]);
+let columns = ref([
+	{
+		name: "fecha",
+		align: "center",
+		label: "Fecha",
+		field: (row) => {
+			return row.fecha.split("T")[0];
+		},
+		sortable: true,
+	},
+	{
+		name: "comprador_id",
+		align: "center",
+		label: "Id del Comprador",
+		field: (row) => `${row.comprador_id.nombre}`,
+		sortable: true,
+	},
+	{
+		name: "inventario_id",
+		align: "center",
+		label: "Id de Inventario",
+		field: (row) => `${row.inventario_id.tipo}`,
+		sortable: true,
+	},
+	{
+		name: "nombreProducto",
+		align: "center",
+		label: "Nombre de Producto",
+		field: "nombreProducto",
+		sortable: true,
+	},
+	{
+		name: "valor",
+		align: "center",
+		label: "Valor Unitario",
+		field: "valor",
+		sortable: true,
+	},
+	{
+		name: "cantidad",
+		align: "center",
+		label: "Cantidad",
+		field: "cantidad",
+		sortable: true,
+	},
+	{
+		name: "detalles",
+		align: "center",
+		label: "Detalles",
+		field: "detalles",
+		sortable: true,
+	},
+	{
+		name: "subtotal",
+		align: "center",
+		label: "Subtotal",
+		field: "subtotal",
+		sortable: true,
+	},
+	{
+		name: "iva",
+		align: "center",
+		label: "IVA",
+		field: "iva",
+		sortable: true,
+	},
+	{
+		name: "total",
+		align: "center",
+		label: "Total",
+		field: "total",
+		sortable: true,
+	},
+	{
+		name: "opciones",
+		align: "center",
+		label: "Editar",
+		field: "opciones",
+		sortable: true,
+	},
+]);
+const comprador = ref([]);
+const inventario = ref([]);
+
+//Variables necesarias en el formulario
+const fechaFact = ref("");
+const compradorFact = ref("");
+const inventarioFact = ref("");
+const nombreProductoFact = ref("");
+const valorFact = ref("");
+const cantidadFact = ref("");
+const detallesFact = ref("");
+const subtotalFact = ref("");
+const ivaFact = ref("");
+const totalFact = ref("");
+
+//Variables necesarias para la edición
+const datos = ref([]);
+
+//Variables que controla lo que se va a mostrar en la pantalla
+const mostrarFormularioFactura = ref(false);
+const mostrarBotonEditar = ref(false);
+const loading = ref(true);
+
+function calcularSubtotal(valor, cantidad) {
+	return (parseFloat(valor) || 0) * (parseFloat(cantidad) || 0);
+}
+
+function calcularIVA(subtotal) {
+	return subtotal * IVA_TASA;
+}
+
+function calcularTotal(subtotal, iva) {
+	return subtotal + iva;
+}
+
+watch(
+	[valorFact, cantidadFact],
+	() => {
+		const subtotal = calcularSubtotal(valorFact.value, cantidadFact.value);
+		subtotalFact.value = subtotal.toFixed(2);
+		const iva = calcularIVA(subtotal);
+		ivaFact.value = iva.toFixed(2);
+		const total = calcularTotal(subtotal, iva);
+		totalFact.value = total.toFixed(2);
+	},
+	{ immediate: true }
+);
+
+const opcionesComprador = computed(() => {
+	return comprador.value.map((c) => {
+		return { label: `${c.nombre} ( DNI: ${c.documento})`, id: `${c._id}` };
+	});
 });
 
-// Función para abrir la card de edición
-function editarFactura(factura) {
-  facturaActual.value = { ...factura };
-  editando.value = true;
+const opcionesInventario = computed(() => {
+	return inventario.value.map((i) => {
+		if (i.semillas_id) {
+			return {
+				label: `${i.tipo} / ${i.semillas_id.especieVariedad}`,
+				id: `${i._id}`,
+			};
+		} else if (i.insumos_id) {
+			return {
+				label: `${i.tipo} / ${i.insumos_id.nombre}`,
+				id: `${i._id}`,
+			};
+		} else if (i.maquinaria_id) {
+			return {
+				label: `${i.tipo} / ${i.maquinaria_id.nombre} - ${i.maquinaria_id.tipo}`,
+				id: `${i._id}`,
+			};
+		} else {
+			return {
+				label: "Datos faltantes",
+				id: `${i._id}`,
+			};
+		}
+	});
+});
+
+async function listarComprador() {
+	try {
+		loading.value = true;
+		const r = await useFacturas.getComprador();
+		comprador.value = r.data.compradores;
+	} finally {
+		loading.value = false;
+	}
 }
 
-// Función para guardar los cambios de la factura
-function guardarCambios() {
-  const indice = filas.value.findIndex(fact => fact.inventario_id === facturaActual.value.inventario_id);
-  if (indice !== -1) {
-    filas.value[indice] = { ...facturaActual.value };
-    $q.notify({
-      type: 'positive',
-      message: 'Cambios guardados exitosamente.'
-    });
-  }
-  editando.value = false;
+async function listarInventario() {
+	try {
+		loading.value = true;
+		const r = await useFacturas.getInventario();
+		inventario.value = r.data.inventario;
+	} finally {
+		loading.value = false;
+	}
 }
 
-// Función para cerrar la card de editar
-function cerrarEditar() {
-  editando.value = false;
+async function listarFactura() {
+	try {
+		loading.value = true;
+		const r = await useFacturas.getFacturas();
+		rows.value = r.data.facturas;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function registrar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				fecha: fechaFact.value,
+				comprador_id: compradorFact.value.id,
+				inventario_id: inventarioFact.value.id,
+				nombreProducto: nombreProductoFact.value,
+				valor: valorFact.value,
+				cantidad: cantidadFact.value,
+				detalles: detallesFact.value,
+				subtotal: subtotalFact.value,
+				iva: ivaFact.value,
+				total: totalFact.value,
+			};
+
+			const r = await useFacturas.postFactura(info);
+			mostrarFormularioFactura.value = false;
+			listarFactura();
+		} finally {
+			loading.value = false;
+		}
+	}
+}
+
+async function editar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				fecha: fechaFact.value,
+				comprador_id: compradorFact.value.id,
+				inventario_id: inventarioFact.value.id,
+				nombreProducto: nombreProductoFact.value,
+				valor: valorFact.value,
+				cantidad: cantidadFact.value,
+				detalles: detallesFact.value,
+				subtotal: subtotalFact.value,
+				iva: ivaFact.value,
+				total: totalFact.value,
+			};
+
+			const r = await useFacturas.putFactura(datos.value._id, info);
+			mostrarFormularioFactura.value = false;
+			listarFactura();
+		} finally {
+			loading.value = false;
+		}
+	}
+}
+
+function validarDatos() {
+	let validacion = true;
+	if (
+		!fechaFact.value.trim() &&
+		!compradorFact.value &&
+		!inventarioFact.value &&
+		!nombreProductoFact.value.trim() &&
+		!valorFact.value.trim() &&
+		!cantidadFact.value.trim() &&
+		!detallesFact.value.trim() &&
+		!subtotalFact.value.trim() &&
+		!ivaFact.value.trim() &&
+		!totalFact.value.trim()
+	) {
+		$q.notify({
+			color: "negative",
+			message: "Llena todos los campos",
+			position: "top",
+		});
+		validacion = false;
+	} else {
+		if (!fechaFact.value.trim()) {
+			$q.notify({
+				color: "negative",
+				message: "El campo fecha está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!compradorFact.value) {
+			$q.notify({
+				color: "negative",
+				message: "El campo comprador está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!inventarioFact.value) {
+			$q.notify({
+				color: "negative",
+				message: "El campo inventario está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!nombreProductoFact.value.trim()) {
+			$q.notify({
+				color: "negative",
+				message: "El campo nombre producto está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!valorFact.value.trim()) {
+			$q.notify({
+				color: "negative",
+				message: "El campo valor está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!cantidadFact.value.trim()) {
+			$q.notify({
+				color: "negative",
+				message: "El campo cantidad está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!detallesFact.value.trim()) {
+			$q.notify({
+				color: "negative",
+				message: "El campo detalles está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!subtotalFact.value.trim()) {
+			$q.notify({
+				color: "negative",
+				message: "El campo subtotal está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!ivaFact.value.trim()) {
+			$q.notify({
+				color: "negative",
+				message: "El campo iva está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!totalFact.value.trim()) {
+			$q.notify({
+				color: "negative",
+				message: "El campo total está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+	}
+	return validacion;
+}
+
+function controlFormulario(obj, boolean) {
+	fechaFact.value = "";
+	compradorFact.value = "";
+	inventarioFact.value = "";
+	nombreProductoFact.value = "";
+	valorFact.value = "";
+	cantidadFact.value = "";
+	detallesFact.value = "";
+	subtotalFact.value = "";
+	ivaFact.value = "";
+	totalFact.value = "";
+
+	datos.value = obj;
+	mostrarBotonEditar.value = false;
+	if (obj != null && boolean == true) {
+		fechaFact.value = datos.value.fecha.split("T")[0];
+		// compradorFact.value = datos.value.comprador_id;
+		compradorFact.value = opcionesComprador.value.find(
+			(c) => c.id == datos.value.comprador_id._id
+		);
+		inventarioFact.value = opcionesInventario.value.find(
+			(i) => i.id == datos.value.inventario_id._id
+		);
+		nombreProductoFact.value = datos.value.nombreProducto;
+		valorFact.value = String(datos.value.valor);
+		cantidadFact.value = String(datos.value.cantidad);
+		detallesFact.value = datos.value.detalles;
+		subtotalFact.value = String(datos.value.subtotal);
+		ivaFact.value = String(datos.value.iva);
+		totalFact.value = String(datos.value.total);
+		mostrarBotonEditar.value = true;
+	}
+	mostrarFormularioFactura.value = boolean;
 }
 
 onMounted(() => {
-
+	listarComprador();
+	listarInventario();
+	listarFactura();
 });
 </script>
 
 <template>
-  <div class="container">
-    <div class="title text-h2 text-center">Facturas</div>
-    <hr class="divider">
-
-    <!-- Tabla de facturas -->
-    <q-table flat bordered title="Lista de Facturas" :rows="filas" :columns="columnas" row-key="inventario_id" class="table">
-      <template v-slot:body-cell-opciones="props">
-        <q-td :props="props" class="actions-cell">
-          <q-btn @click="editarFactura(props.row)" class="btn-editar">✏️</q-btn>
-        </q-td>
-      </template>
-    </q-table>
-
-    <!-- Tabla de edición de la Factura -->
-    <q-dialog v-model="editando">
-      <q-card>
-        <q-card-section>
-          <q-input v-model="facturaActual.fecha" label="Fecha" type="date"></q-input>
-          <q-input v-model="facturaActual.comprador_id" label="Comprador"></q-input>
-          <q-input v-model="facturaActual.inventario_id" label="Id Inventario"></q-input>
-          <!-- <q-input v-model="facturaActual.nombreProducto" label="Nombre del Producto"></q-input> -->
-          <!-- <q-input v-model="facturaActual.valor" label="Valor"></q-input> -->
-          <q-input v-model="facturaActual.cantidad" label="Cantidad" type="number"></q-input>
-          <q-input v-model="facturaActual.detalles" label="Detalles"></q-input>
-          <!-- <q-input v-model="facturaActual.subtotal" label="Subtotal"></q-input>
-          <q-input v-model="facturaActual.iva" label="IVA"></q-input>
-          <q-input v-model="facturaActual.total" label="Total"></q-input> -->
-        </q-card-section>
-        <q-card-actions>
-          <q-btn @click="guardarCambios" color="primary">Guardar</q-btn>
-          <q-btn @click="cerrarEditar" color="secondary">Cancelar</q-btn>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-
-  </div>
+	<div>
+		<div>
+			<q-btn @click="controlFormulario(null, true)" label="Agregar" />
+		</div>
+		<q-table
+			flat
+			bordered
+			title="Factura"
+			:rows="rows"
+			:columns="columns"
+			row-key="id">
+			<template v-slot:body-cell-opciones="props">
+				<q-td :props="props">
+					<q-btn @click="controlFormulario(props.row, true)">
+						✏️
+					</q-btn>
+				</q-td>
+			</template>
+		</q-table>
+		<q-dialog v-model="mostrarFormularioFactura">
+			<q-card>
+				<q-form
+					@submit="mostrarBotonEditar ? editar() : registrar()"
+					class="q-gutter-md">
+					<q-input
+						standout="bg-green text-while"
+						type="date"
+						label="Fecha"
+						v-model="fechaFact" />
+					<q-select
+						standout="bg-green text-while"
+						:options="opcionesComprador"
+						label="Comprador"
+						v-model="compradorFact" />
+					<q-select
+						standout="bg-green text-while"
+						:options="opcionesInventario"
+						label="Inventario"
+						v-model="inventarioFact" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Nombre Producto"
+						v-model="nombreProductoFact" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Valor Unitario"
+						v-model="valorFact" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Cantidad"
+						v-model="cantidadFact" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Detalles"
+						v-model="detallesFact" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Subtotal"
+						v-model="subtotalFact" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="IVA"
+						v-model="ivaFact" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Total"
+						v-model="totalFact" />
+					<div>
+						<q-btn
+							unelevated
+							v-if="mostrarBotonEditar"
+							label="Editar"
+							type="submit"
+							color="positive" />
+						<q-btn
+							unelevated
+							v-else
+							label="Registrar"
+							type="submit"
+							color="positive" />
+						<q-btn
+							@click="controlFormulario(null, false)"
+							flat
+							label="Cerrar"
+							type="button" />
+					</div>
+				</q-form>
+			</q-card>
+		</q-dialog>
+	</div>
 </template>
 
 <style scoped>
-.container {
-  padding: 20px;
-  background-color: #f5f5f5;
-  border-radius: 10px;
+.q-card {
+	background-color: rgb(255, 255, 255);
+	padding: 40px 30px 40px 30px;
+	border-radius: 1pc;
+	width: 30rem;
+	z-index: 3;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	border: 0;
 }
-.title {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  color: #333;
-}
-.divider {
-  height: 5px;
-  background-color: #007bff;
-  border: none;
-  margin: 20px 0;
-}
-.table {
-  margin-top: 40px;
-  border-radius: 10px;
-  overflow: hidden;
-}
-.actions-cell {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-}
-.btn-editar {
-  font-size: 1pc;
-  margin: 5px 5px;
-  color: #007bff;
+
+#faDialogo {
+	z-index: 2;
 }
 </style>

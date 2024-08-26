@@ -1,134 +1,756 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import { useQuasar } from "quasar";
-const $q = useQuasar();
-// Variables para el funcionamiento de la tabla
-let rows = ref([
-  {
-    cultivo_id: 'fce8e247' ,
-    empleado_id: '749bc227' ,
-    fecha: '2024-08-01' ,
-    dias_transplante: 30 ,
-    estado_fenologico: 'Floración' ,
-    hora_inicio: '07:00' ,
-    hora_fin: '08:00' ,
-    dosis: 20 ,
-    cantidad_agua: 1500
-  },
+import { ref, onMounted, computed, watch } from "vue";
+import { notifyErrorRequest } from "../routes/routes.js";
+import { useStoreRiego } from "../stores/riego.js";
+import { useStoreCultivos } from "../stores/cultivos.js";
+import { useStoreEmpleados } from "../stores/empleados.js";
+import { format } from "date-fns";
 
-  {
-    cultivo_id: 'trs8e537' ,
-    empleado_id: '471hy286' ,
-    fecha: '2024-08-01' ,
-    dias_transplante: 25 ,
-    estado_fenologico: 'Inicial' ,
-    hora_inicio: '05:00' ,
-    hora_fin: '06:00' ,
-    dosis: 18 ,
-    cantidad_agua: 1200
-  },
+// Para colocar puntos decimales a los nuemros
+function formatoNumerico(numero) {
+	return typeof numero === "number"
+		? numero.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+		: undefined;
+}
 
+// Loading
+const visible = ref(true);
+const loadingg = ref(true);
 
+const listarCodigo = ref("");
 
+const listarFechasOne = ref("");
+const listarFechasTwo = ref("");
+
+// Variables parra mostrar formularios
+const mostrarFormularioEditarRiego = ref(false);
+const mostrarFormularioAgregarRiego = ref(false);
+
+// Llamado de modelos
+const useRiego = useStoreRiego();
+const useCultivo = useStoreCultivos();
+const useEmpleado = useStoreEmpleados();
+
+// Variables de los inputs de agregar y editar
+const idRiegoSeleccionada = ref("");
+const cultivo_id = ref("");
+const empleado_id = ref("");
+const fecha = ref("");
+const dias_transplante = ref("");
+const estado_fenologico = ref("");
+const hora_inicio = ref("");
+const hora_fin = ref("");
+const dosis = ref("");
+const cantidad_agua = ref("");
+
+const estadoOptions = [{ label: "Activo" }, { label: "Inactivo" }];
+const estado = ref("Activo");
+
+const selectedOption = ref("Listar Riegos");
+const options = [
+	{ label: "Listar Riegos", value: "Listar Riegos" },
+	{ label: "Listar Riegos por Cultivo", value: "Listar Riegos por Cultivo" },
+	{ label: "Listar Riegos por fechas", value: "Listar Riegos por fechas" },
+	{ label: "Listar Riegos Activos", value: "Listar Riegos Activos" },
+	{ label: "Listar Riegos Inactivos", value: "Listar Riegos Inactivos" },
+];
+
+let rows = ref([]);
+const columns = ref([
+	{
+		name: "cultivo_id",
+		label: "Cultivo",
+		field: (row) => (row.cultivo_id ? row.cultivo_id.nombre : ""),
+		align: "center",
+	},
+	{
+		name: "empleado_id",
+		label: "Empleado",
+		field: (row) => (row.empleado_id ? row.empleado_id.nombre : ""),
+		align: "center",
+	},
+	{
+		name: "fecha",
+		label: "Fecha",
+		align: "center",
+		field: (row) => {
+			// Obtener la fecha en formato de objeto Date
+			const fecha = new Date(row.fecha);
+			fecha.setDate(fecha.getDate() + 1);
+			// Formatear la fecha sumada como "día/mes/año" usando date-fns
+			const fechaFormateada = format(fecha, "dd/MM/yyyy");
+			return fechaFormateada;
+		},
+	},
+	{
+		name: "dias_transplante",
+		label: "Dias_transplante",
+		field: (row) => formatoNumerico(row.dias_transplante),
+		align: "center",
+	},
+	{
+		name: "estado_fenologico",
+		label: "Estado_fenologico",
+		field: "estado_fenologico",
+		align: "center",
+	},
+	{
+		name: "hora_inicio",
+		label: "Hora_inicio",
+		field: "hora_inicio",
+		align: "center",
+	},
+	{
+		name: "hora_fin",
+		label: "Hora_fin",
+		field: "hora_fin",
+		align: "center",
+	},
+	{
+		name: "dosis",
+		label: "Dosis",
+		field: (row) => formatoNumerico(row.dosis),
+		align: "center",
+	},
+	{
+		name: "cantidad_agua",
+		label: "Cantidad de Agua",
+		field: (row) => formatoNumerico(row.cantidad_agua),
+		align: "center",
+	},
+	{
+		name: "estado",
+		label: "Estado",
+		field: "estado",
+		align: "center",
+	},
+	{ name: "opciones", label: "Opciones", field: "opciones", align: "center" },
 ]);
-let columns = ref([
-  { name: 'cultivo_id', align: 'center', label: 'ID del Cultivo', field: 'cultivo_id', sortable: true },
-  { name: 'empleado_id', align: 'center', label: 'ID del Empleado', field: 'empleado_id', sortable: true },
-  { name: 'fecha', align: 'center', label: 'Fecha', field: 'fecha', sortable: true },
-  { name: 'dias_transplante', align: 'center', label: 'Días Transplante', field: 'dias_transplante', sortable: true },
-  { name: 'estado_fenologico', align: 'center', label: 'Estado Fenológico', field: 'estado_fenologico', sortable: true },
-  { name: 'hora_inicio', align: 'center', label: 'Hora Inicio', field: 'hora_inicio', sortable: true },
-  { name: 'hora_fin', align: 'center', label: 'Hora Fin', field: 'hora_fin', sortable: true },
-  { name: 'dosis', align: 'center', label: 'Dósis', field: 'dosis', sortable: true },
-  { name: 'cantidad_agua', align: 'center', label: 'Cantidad Agua', field: 'cantidad_agua', sortable: true },
-  { name: 'estado', align: 'center', label: 'Estado', field: 'estado', sortable: true },
-  { name: 'opciones', align: 'center', label: 'Opciones', field: 'opciones', sortable: true },
-]);
+
+const cultivos = ref([]);
+const empleados = ref([]);
+
+async function listarCultivos() {
+	const r = await useCultivo.getCultivos();
+	cultivos.value = r.data.cultivos;
+	console.log("Cultivos:", cultivos.value);
+}
+
+async function listarEmpleados() {
+	const r = await useEmpleado.getEmpleados();
+	empleados.value = r.data.empleados;
+	console.log("empleados:", empleados.value);
+}
+
+const cultivoOptions = computed(() => {
+	return cultivos.value
+		.filter((cultivo) => cultivo.estado != 0)
+		.map((cultivo) => ({
+			label: cultivo.nombre,
+			id: cultivo._id,
+		}));
+});
+
+const empleadoOptions = computed(() => {
+	return empleados.value
+		.filter((empleado) => empleado.estado != 0)
+		.map((empleado) => ({
+			label: empleado.nombre,
+			id: empleado._id,
+		}));
+});
+
+const filtrarFilas = computed(() => {
+	if (loadingg.value) {
+		return []; // Retorna una lista vacía mientras se está cargando
+	}
+
+	let riegosFiltradas = rows.value;
+
+	if (
+		selectedOption.value === "Listar Riegos por Cultivo" &&
+		listarCodigo.value
+	) {
+		riegosFiltradas = riegosFiltradas.filter((row) =>
+			row.cultivo_id.nombre
+				.toLowerCase()
+				.includes(listarCodigo.value.toLowerCase())
+		);
+		// notifySuccessRequest('Riegos listadas por cultivo exitosamente.');
+	}
+
+	if (listarFechasOne.value && listarFechasTwo.value) {
+		const normalizeDate = (date) =>
+			new Date(date).toISOString().slice(0, 10);
+
+		const startDate = normalizeDate(listarFechasOne.value);
+		const endDate = normalizeDate(listarFechasTwo.value);
+
+		if (startDate === endDate) {
+			riegosFiltradas = riegosFiltradas.filter((riego) => {
+				const riegoDate = normalizeDate(riego.createdAt);
+				return riegoDate === startDate;
+			});
+			// notifySuccessRequest('Riegos listadas por fechas exitosamente.');
+		} else {
+			// notifyErrorRequest('Fechas inválidas o inconsistentes.');
+		}
+	}
+
+	return riegosFiltradas;
+});
+
+async function actualizarListadoRiegos() {
+	loadingg.value = true;
+	try {
+		const riegoPromise =
+			selectedOption.value === "Listar Riegos Activos"
+				? useRiego.getRiegoActivos()
+				: selectedOption.value === "Listar Riegos Inactivos"
+				? useRiego.getRiegoInactivos()
+				: useRiego.getRiego();
+
+		rows.value = (await riegoPromise).data.riegos;
+		console.log("Riegos", rows.value);
+	} finally {
+		loadingg.value = false;
+		visible.value = false;
+	}
+}
+
+async function editarEstado(props) {
+	if (props.estado == 1) {
+		await useRiego.putRiegoInactivar(props._id);
+	} else {
+		await useRiego.putRiegoActivar(props._id);
+	}
+	actualizarListadoRiegos();
+}
+
+function limpiarCampos() {
+	idRiegoSeleccionada.value = "";
+	cultivo_id.value = "";
+	empleado_id.value = "";
+	fecha.value = "";
+	dias_transplante.value = "";
+	estado_fenologico.value = "";
+	hora_inicio.value = "";
+	hora_fin.value = "";
+	dosis.value = "";
+	cantidad_agua.value = "";
+}
+
+async function validarDatosRiego(riego) {
+	const { cultivo_id, empleado_id } = riego;
+
+	if (cultivo_id == undefined) {
+		notifyErrorRequest("El Cultivo es requerido.");
+		return false;
+	}
+	if (empleado_id == undefined) {
+		notifyErrorRequest("El Empleado es requerido.");
+		return false;
+	}
+
+	return true;
+}
+
+async function agregarRiego() {
+	const nuevoRiego = {
+		cultivo_id: cultivo_id.value.id,
+		empleado_id: empleado_id.value.id,
+		fecha: fecha.value,
+		dias_transplante: dias_transplante.value,
+		estado_fenologico: estado_fenologico.value,
+		hora_inicio: hora_inicio.value,
+		hora_fin: hora_fin.value,
+		dosis: dosis.value,
+		cantidad_agua: cantidad_agua.value,
+		estado: estado.value === "Activo" ? 1 : 0,
+	};
+
+	if (await validarDatosRiego(nuevoRiego)) {
+		const r = await useRiego.postRiego(nuevoRiego);
+		if (r.status == 200) {
+			mostrarFormularioAgregarRiego.value = false;
+			actualizarListadoRiegos();
+			estado.value = "Activo";
+			console.log("Riego agregado exitosamente", nuevoRiego);
+		}
+	}
+}
+
+function cargarRiegoParaEdicion(riego) {
+	idRiegoSeleccionada.value = riego._id;
+	cultivo_id.value = riego.cultivo_id.nombre;
+	empleado_id.value = riego.empleado_id.nombre;
+	fecha.value = riego.fecha.split("T")[0];
+	dias_transplante.value = riego.dias_transplante;
+	estado_fenologico.value = riego.estado_fenologico;
+	hora_inicio.value = riego.hora_inicio;
+	hora_fin.value = riego.hora_fin;
+	dosis.value = riego.dosis;
+	cantidad_agua.value = riego.cantidad_agua;
+
+	mostrarFormularioEditarRiego.value = true;
+	console.log("Datos de la Riego a editar", riego);
+}
+
+async function editarRiego() {
+	let idCultivo_id = cultivo_id.value.id;
+	let idEmpleado_id = empleado_id.value.id;
+
+	for (let cult of cultivos.value) {
+		if (cult.nombre === cultivo_id.value) {
+			// if (cult.estado == 1) {
+			idCultivo_id = cult._id;
+			break;
+			// } else {
+			//   notifyErrorRequest("Cultivo seleccionado inactivo")
+			//   return;
+			// }
+		}
+	}
+	for (let emple of empleados.value) {
+		if (emple.nombre === empleado_id.value) {
+			// if (emple.estado == 1) {
+			idEmpleado_id = emple._id;
+			break;
+			// } else {
+			//   notifyErrorRequest("Cultivo seleccionado inactivo")
+			//   return;
+			// }
+		}
+	}
+	const riegoEditada = {
+		_id: idRiegoSeleccionada.value,
+		cultivo_id: idCultivo_id,
+		empleado_id: idEmpleado_id,
+		fecha: fecha.value,
+		dias_transplante: dias_transplante.value,
+		estado_fenologico: estado_fenologico.value,
+		hora_inicio: hora_inicio.value,
+		hora_fin: hora_fin.value,
+		dosis: dosis.value,
+		cantidad_agua: cantidad_agua.value,
+	};
+	if (await validarDatosRiego(riegoEditada)) {
+		const r = await useRiego.putRiego(
+			idRiegoSeleccionada.value,
+			riegoEditada
+		);
+		if (r.status == 200) {
+			mostrarFormularioEditarRiego.value = false;
+			actualizarListadoRiegos();
+			console.log("Riego editado exitosamente", riegoEditada);
+		}
+	}
+}
+
+const isLoading = computed(() => visible.value);
+
 onMounted(() => {
+	actualizarListadoRiegos();
+	listarCultivos();
+	listarEmpleados();
+});
+
+watch(selectedOption, () => {
+	actualizarListadoRiegos();
+	isLoading;
+	loadingg;
 });
 </script>
 
 <template>
-<div class="container">
+	<div class="q-pa-md" v-if="!visible">
+		<div>
+			<h3 style="text-align: center; margin: 10px">Riegos</h3>
+			<hr style="width: 70%; height: 5px; background-color: green" />
+		</div>
 
-<div class="title text-h2 text-center">
-Riego
-</div>
-<hr class="divider">
-<q-table v-if="!loading" flat bordered title="Lista de Riegos" :rows="rows" :columns="columns" row-key="id" class="table">
-<template v-slot:body-cell-opciones="props">
-  <q-td :props="props" class="actions-cell">
-    <q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
-      ✏️
-    </q-btn>
-    <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">
-      ❌
-    </q-btn>
-    <q-btn v-else @click="editarEstado(props.row)" class="btn-activar">
-      ✅
-    </q-btn>
-  </q-td>
-</template>
-<template v-slot:body-cell-estado="props">
-  <q-td :props="props" class="status-cell">
-    <p v-if="props.row.estado == 1" class="status-activo">
-      Activo
-    </p>
-    <p v-else class="status-inactivo">Inactivo</p>
-  </q-td>
-</template>
-</q-table>
-</div>
+		<div
+			class="contSelect"
+			style="margin-left: 5%; text-align: end; margin-right: 5%">
+			<q-select
+				background-color="green"
+				class="q-my-md"
+				id="q-select"
+				v-model="selectedOption"
+				outlined
+				dense
+				options-dense
+				emit-value
+				:options="options" />
+
+			<input
+				v-if="selectedOption === 'Listar Riegos por Cultivo'"
+				v-model="listarCodigo"
+				class="q-my-md"
+				type="text"
+				name="search"
+				id="search"
+				placeholder="Ingrese el cultivo" />
+
+			<div
+				v-if="selectedOption === 'Listar Riegos por fechas'"
+				style="
+					display: flex;
+					flex-direction: row;
+					text-align: center;
+					flex-wrap: wrap;
+					position: absolute;
+					top: 150px;
+					left: 240px;
+				">
+				<label
+					for="listarFechasOne"
+					style="height: 100%; line-height: 88px; margin-left: 40px"
+					>De:</label
+				>
+				<q-input
+					v-model="listarFechasOne"
+					class="q-my-md"
+					type="date"
+					name="search"
+					id="listarFechasOne"
+					placeholder="Ingrese la fecha" />
+
+				<label
+					for="listarFechasTwo"
+					style="height: 100%; line-height: 88px; margin-left: 40px"
+					>A:</label
+				>
+				<q-input
+					v-model="listarFechasTwo"
+					class="q-my-md"
+					type="date"
+					name="search"
+					id="listarFechasTwo"
+					placeholder="Ingrese la fecha" />
+			</div>
+		</div>
+
+		<div>
+			<div
+				style="margin-left: 5%; text-align: end; margin-right: 5%"
+				class="q-mb-md">
+				<q-btn
+					label="Agregar Riego"
+					@click="mostrarFormularioAgregarRiego = true">
+					<!-- <q-btn label="Editar Riego" @click="mostrarFormularioEditarRiego = true" /> -->
+					<q-tooltip> Agregar Riego </q-tooltip>
+				</q-btn>
+			</div>
+
+			<!-- Formulario para agregar riego -->
+			<q-dialog
+				v-model="mostrarFormularioAgregarRiego"
+				v-bind="mostrarFormularioAgregarRiego && limpiarCampos()">
+				<q-card>
+					<q-card-section>
+						<div class="text-h6">Agregar Riego</div>
+					</q-card-section>
+					<q-card-section>
+						<q-form @submit.prevent="agregarRiego">
+							<q-select
+								v-model="cultivo_id"
+								label="Cultivo"
+								filled
+								outlined
+								:options="cultivoOptions"
+								class="q-mb-md"
+								required>
+								<template v-slot:no-option>
+									<q-item>
+										<q-item-section>
+											No results
+										</q-item-section>
+									</q-item>
+								</template>
+							</q-select>
+							<q-select
+								v-model="empleado_id"
+								label="Empleado"
+								filled
+								outlined
+								:options="empleadoOptions"
+								class="q-mb-md"
+								required>
+								<template v-slot:no-option>
+									<q-item>
+										<q-item-section>
+											No results
+										</q-item-section>
+									</q-item>
+								</template>
+							</q-select>
+							<q-input
+								v-model="fecha"
+								label="Fecha"
+								type="date"
+								filled
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model="dias_transplante"
+								label="Dias_transplante"
+								type="number"
+								filled
+								class="q-mb-md"
+								required
+								min="0"
+								outlined />
+							<q-input
+								v-model.trim="estado_fenologico"
+								label="Estado_fenologico (Inicial, Floracion o Cosecha)"
+								filled
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model.trim="hora_inicio"
+								label="Hora_inicio"
+								filled
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model.trim="hora_fin"
+								label="Hora_fin"
+								filled
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model="dosis"
+								label="Dosis"
+								type="number"
+								filled
+								outlined
+								class="q-mb-md"
+								min="0"
+								required />
+							<q-input
+								v-model="cantidad_agua"
+								label="Cantidad de Agua"
+								type="number"
+								filled
+								outlined
+								class="q-mb-md"
+								min="0"
+								required />
+							<q-select
+								v-model="estado"
+								label="Estado"
+								outlined
+								:options="estadoOptions"
+								filled
+								class="q-mb-md"
+								style="max-width: 100%" />
+
+							<q-btn
+								label="Cancelar"
+								color="negative"
+								class="q-ma-sm"
+								@click="mostrarFormularioAgregarRiego = false">
+								<q-tooltip> Cancelar </q-tooltip>
+							</q-btn>
+							<q-btn
+								:loading="useRiego.loading"
+								:disable="useRiego.loading"
+								type="submit"
+								label="Guardar Cultivo"
+								color="primary"
+								class="q-ma-sm">
+								<q-tooltip> Guardar Cultivo </q-tooltip>
+								<template v-slot:loading>
+									<q-spinner color="white" size="1em" />
+								</template>
+							</q-btn>
+						</q-form>
+					</q-card-section>
+				</q-card>
+			</q-dialog>
+
+			<!-- Formulario para editar Riego -->
+			<q-dialog v-model="mostrarFormularioEditarRiego">
+				<q-card>
+					<q-card-section>
+						<div class="text-h6">Editar Riego</div>
+					</q-card-section>
+					<q-card-section>
+						<q-form @submit.prevent="editarRiego">
+							<q-select
+								v-model="cultivo_id"
+								label="Cultivo"
+								filled
+								outlined
+								:options="cultivoOptions"
+								class="q-mb-md">
+								<template v-slot:no-option>
+									<q-item>
+										<q-item-section>
+											No results
+										</q-item-section>
+									</q-item>
+								</template>
+							</q-select>
+							<q-select
+								v-model="empleado_id"
+								label="Empleado"
+								filled
+								outlined
+								:options="empleadoOptions"
+								class="q-mb-md">
+								<template v-slot:no-option>
+									<q-item>
+										<q-item-section>
+											No results
+										</q-item-section>
+									</q-item>
+								</template>
+							</q-select>
+							<q-input
+								v-model="fecha"
+								label="Fecha"
+								type="date"
+								filled
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model="dias_transplante"
+								label="Dias_transplante"
+								type="number"
+								filled
+								class="q-mb-md"
+								required
+								min="0"
+								outlined />
+							<q-input
+								v-model.trim="estado_fenologico"
+								label="Estado_fenologico (Inicial, Floracion o Cosecha)"
+								filled
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model.trim="hora_inicio"
+								label="Hora_inicio"
+								filled
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model.trim="hora_fin"
+								label="Hora_fin"
+								filled
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model="dosis"
+								label="Dosis"
+								type="number"
+								filled
+								outlined
+								class="q-mb-md"
+								min="0"
+								required />
+							<q-input
+								v-model="cantidad_agua"
+								label="Cantidad de Agua"
+								type="number"
+								filled
+								outlined
+								class="q-mb-md"
+								min="0"
+								required />
+							<q-btn
+								label="Cancelar"
+								color="negative"
+								class="q-ma-sm"
+								@click="mostrarFormularioEditarRiego = false">
+								<q-tooltip> Cancelar </q-tooltip>
+							</q-btn>
+							<q-btn
+								:loading="useRiego.loading"
+								:disable="useRiego.loading"
+								type="submit"
+								label="Guardar Cambios"
+								color="primary"
+								class="q-ma-sm">
+								<q-tooltip> Guardar Cambios </q-tooltip>
+								<template v-slot:loading>
+									<q-spinner color="white" size="1em" />
+								</template>
+							</q-btn>
+						</q-form>
+					</q-card-section>
+				</q-card>
+			</q-dialog>
+		</div>
+
+		<q-table
+			flat
+			bordered
+			title="Riegos"
+			title-class="text-green text-weight-bolder text-h5"
+			:rows="filtrarFilas"
+			:columns="columns"
+			row-key="id"
+			:loading="loadingg">
+			<template v-slot:body-cell-opciones="props">
+				<q-td :props="props">
+					<q-btn @click="cargarRiegoParaEdicion(props.row)">
+						✏️
+						<q-tooltip> Editar Riego </q-tooltip>
+					</q-btn>
+					<q-btn
+						v-if="props.row.estado == 1"
+						@click="editarEstado(props.row)">
+						❌
+						<q-tooltip> Inactivar Cultivo </q-tooltip>
+					</q-btn>
+					<q-btn v-else @click="editarEstado(props.row)">
+						✅
+						<q-tooltip> Activar Cultivo </q-tooltip>
+					</q-btn>
+				</q-td>
+			</template>
+
+			<template class="a" v-slot:body-cell-estado="props">
+				<q-td class="b" :props="props">
+					<p
+						:style="{
+							color: props.row.estado === 1 ? 'green' : 'red',
+							margin: 0,
+						}">
+						{{ props.row.estado === 1 ? "Activo" : "Inactivo" }}
+					</p>
+				</q-td>
+			</template>
+
+			<template v-slot:loading>
+				<q-inner-loading
+					:showing="loadingg"
+					label="Por favor espere..."
+					label-class="text-teal"
+					label-style="font-size: 1.1em">
+				</q-inner-loading>
+			</template>
+		</q-table>
+	</div>
+	<q-inner-loading
+		:showing="isLoading"
+		label="Por favor espere..."
+		label-class="text-teal"
+		label-style="font-size: 1.1em" />
 </template>
 
 <style scoped>
-.container {
-padding: 20px;
-background-color: #f5f5f5;
-border-radius: 10px;
+.contSelect {
+	display: flex;
+	flex-direction: row;
+	gap: 20px;
 }
-.title {
-margin-top: 20px;
-margin-bottom: 20px;
-color: #333;
-}
-.divider {
-height: 5px;
-background-color: #007bff;
-border: none;
-margin: 20px 0;
-}
-.table {
-margin-top: 40px;
-border-radius: 10px;
-overflow: hidden;
-}
-.actions-cell {
-display: flex;
-justify-content: space-around;
-align-items: center;
-}
-.btn-editar, .btn-inactivar, .btn-activar {
-font-size: 1pc;
-margin: 5px 5px;
-}
-.btn-editar {
-color: #007bff;
-}
-.btn-inactivar {
-color: #e74c3c;
-}
-.btn-activar {
-color: #2ecc71;
-}
-.status-cell p {
-margin: 0;
-font-weight: bold;
-}
-.status-activo {
-color: #2ecc71;
-}
-.status-inactivo {
-color: #e74c3c;
+
+.q-my-md {
+	max-width: 200px;
+	padding-left: 10px;
 }
 </style>

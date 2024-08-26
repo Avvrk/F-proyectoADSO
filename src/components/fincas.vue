@@ -1,195 +1,519 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import { useQuasar } from "quasar";
+import { ref, onMounted, computed } from "vue";
+import { useStoreFincas } from "../stores/fincas.js";
+import { date, useQuasar } from "quasar";
 
 const $q = useQuasar();
 
+const useFincas = useStoreFincas();
+
+const opcionesTabla = ["Todos", "Activos", "Inactivos"];
+
 // Datos de las Fincas
-let rows = ref([
-  {
-    _idAdmin: 34546546,
-    nombre: 'Julian',
-    rut: 8765421,
-    direccion: 'Vereda Los Naranjales',
-    ubicacionGeografica: 83274983,
-    departamento: 'Santander',
-    ciudad: 'Barichara',
-    limites: 6787678923,
-    area: '5000 Km',
-    estado: 1
-  },
-  {
-    _idAdmin: 456547657,
-    nombre: 'Fernando',
-    rut: 45657345,
-    direccion: 'Vereda Robles Km 5',
-    ubicacionGeografica: 34546567,
-    departamento: 'Santander',
-    ciudad: 'Villanueva',
-    limites: 5645345345,
-    area: '3000 Km',
-    estado: 0
-  }
-]);
-
+let rows = ref([]);
 let columns = ref([
-  { name: '_idAdmin', align: 'center', label: 'ID de Administrador', field: '_idAdmin', sortable: true },
-  { name: 'nombre', align: 'center', label: 'Nombre', field: 'nombre', sortable: true },
-  { name: 'rut', align: 'center', label: 'RUT', field: 'rut', sortable: true },
-  { name: 'direccion', align: 'center', label: 'Dirección', field: 'direccion', sortable: true },
-  { name: 'ubicacionGeografica', align: 'center', label: 'Ubicación Geográfica', field: 'ubicacionGeografica', sortable: true },
-  { name: 'departamento', align: 'center', label: 'Departamento', field: 'departamento', sortable: true },
-  { name: 'ciudad', align: 'center', label: 'Ciudad', field: 'ciudad', sortable: true },
-  { name: 'limites', align: 'center', label: 'Límites', field: 'limites', sortable: true },
-  { name: 'area', align: 'center', label: 'Área', field: 'area', sortable: true },
-  { name: 'estado', align: 'center', label: 'Estado', field: 'estado', sortable: true },
-  { name: 'opciones', align: 'center', label: 'Opciones', field: 'opciones', sortable: true },
+	{
+		name: "_idAdmin",
+		align: "center",
+		label: "Administrador",
+		field: (row) => `${row._idAdmin.nombre}`,
+		sortable: true,
+	},
+	{
+		name: "nombre",
+		align: "center",
+		label: "Nombre Finca",
+		field: "nombre",
+		sortable: true,
+	},
+	{
+		name: "rut",
+		align: "center",
+		label: "RUT",
+		field: "rut",
+		sortable: true,
+	},
+	{
+		name: "direccion",
+		align: "center",
+		label: "Dirección",
+		field: "direccion",
+		sortable: true,
+	},
+	{
+		name: "ubicacionGeografica",
+		align: "center",
+		label: "Ubicación Geográfica",
+		field: "ubicacionGeografica",
+		sortable: true,
+	},
+	{
+		name: "departamento",
+		align: "center",
+		label: "Departamento",
+		field: "departamento",
+		sortable: true,
+	},
+	{
+		name: "ciudad",
+		align: "center",
+		label: "Ciudad",
+		field: "ciudad",
+		sortable: true,
+	},
+	{
+		name: "limites",
+		align: "center",
+		label: "Límites",
+		field: "limites",
+		sortable: true,
+	},
+	{
+		name: "area",
+		align: "center",
+		label: "Área",
+		field: "area",
+		sortable: true,
+	},
+	{
+		name: "estado",
+		align: "center",
+		label: "Estado",
+		field: "estado",
+		sortable: true,
+	},
+	{
+		name: "opciones",
+		align: "center",
+		label: "Opciones",
+		field: "opciones",
+		sortable: true,
+	},
 ]);
 
-// Información de la finca en edición
-const editando = ref(false);
-const fincaActual = ref({
-  _idAdmin: '',
-  nombre: '',
-  rut: '',
-  direccion: '',
-  ubicacionGeografica: '',
-  departamento: '',
-  ciudad: '',
-  limites: '',
-  area: '',
+const admin = ref([]);
+
+const opcionTabla = ref("Todos");
+const colombia = ref([]);
+const datos = ref([]);
+
+//Variables necesarias en el formulario
+const idAdminFin = ref("");
+const nombreFin = ref("");
+const rutFin = ref("");
+const direccionFin = ref("");
+const ubicacionGeograficaFin = ref("");
+const departamentoFin = ref("");
+const ciudadFin = ref("");
+const limitesFin = ref("");
+const areaFin = ref("");
+
+//Variables necesarias para la edición
+const mostrarFormularioFinca = ref(false);
+const mostrarBotonEditar = ref(false);
+const loading = ref(true);
+
+const ciudadOpciones = computed(() => {
+	const ciudad = colombia.value.find(
+		(f) => f.departamento == departamentoFin.value.departamento
+	);
+	return ciudad ? ciudad.ciudades : [];
 });
 
-// Función para abrir la card de edición
-function editarFinca(finca) {
-  fincaActual.value = { ...finca };
-  editando.value = true;
+const opcionesAdmins = computed(() => {
+	return admin.value.map((a) => {
+		return { label: `${a.nombre}`, id: `${a._id}` };
+	});
+});
+
+async function listarMunicipio() {
+	const r = await useFincas.getMunicipios();
+	colombia.value = r.data;
 }
 
-// Función para guardar los cambios de la finca
-function guardarCambios() {
-  const indice = rows.value.findIndex(finca => finca._idAdmin === fincaActual.value._idAdmin);
-  if (indice !== -1) {
-    rows.value[indice] = { ...fincaActual.value };
-    $q.notify({
-      type: 'positive',
-      message: 'Cambios guardados exitosamente.'
-    });
-  }
-  editando.value = false;
+async function listarAdmins() {
+	try {
+		loading.value = true;
+		const r = await useFincas.getAdmin();
+		admin.value = r.data.admins;
+	} finally {
+		loading.value = false;
+	}
 }
 
-// Función para cerrar la card de edición
-function cerrarEditar() {
-  editando.value = false;
+async function listarFincas() {
+	try {
+		loading.value = true;
+		const r = await useFincas.getFincas();
+		rows.value = r.data.fincas;
+	} finally {
+		loading.value = false;
+	}
 }
 
-// Función para cambiar el estado de la finca
-function editarEstado(finca) {
-  const indice = rows.value.findIndex(f => f._idAdmin === finca._idAdmin);
-  if (indice !== -1) {
-    rows.value[indice].estado = rows.value[indice].estado === 1 ? 0 : 1;
-  }
+async function listarFincaActivo() {
+	try {
+		loading.value = true;
+		const r = await useFincas.getFincasActivos();
+		rows.value = r.data.fincas;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function listarFincaInactivo() {
+	try {
+		loading.value = true;
+		const r = await useFincas.getFincasInactivos();
+		rows.value = r.data.fincas;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function editarEstado(elemento) {
+	try {
+		loading.value = true;
+		if (elemento.estado === 1) {
+			const res = await useFincas.putFincaInactivar(elemento._id);
+		} else if (elemento.estado === 0) {
+			const res = await useFincas.putFincaActivar(elemento._id);
+		}
+		listarFincas();
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function registrar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				_idAdmin: idAdminFin.value.id,
+				nombre: nombreFin.value,
+				rut: rutFin.value,
+				direccion: direccionFin.value,
+				ubicacionGeografica: ubicacionGeograficaFin.value,
+				departamento: departamentoFin.value,
+				ciudad: ciudadFin.value,
+				limites: limitesFin.value,
+				area: areaFin.value,
+			};
+			console.log(info);
+
+			const r = await useFincas.postFincas(info);
+			mostrarFormularioFinca.value = false;
+			listarFincas();
+		} finally {
+			loading.value = false;
+		}
+	}
+}
+
+async function editar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				_idAdmin: idAdminFin.value.id,
+				nombre: nombreFin.value,
+				rut: rutFin.value,
+				direccion: direccionFin.value,
+				ubicacionGeografica: ubicacionGeograficaFin.value,
+				departamento: departamentoFin.value,
+				ciudad: ciudadFin.value,
+				limites: limitesFin.value,
+				area: areaFin.value,
+			};
+
+			const r = await useFincas.putFincas(datos.value._id, info);
+			mostrarFormularioFinca.value = false;
+			listarFincas();
+		} finally {
+			loading.value = false;
+		}
+	}
+}
+
+function validarDatos() {
+	let validacion = true;
+	if (
+		!idAdminFin.value &&
+		!nombreFin.value &&
+		!rutFin.value &&
+		!direccionFin.value &&
+		!ubicacionGeograficaFin.value &&
+		!departamentoFin.value &&
+		!ciudadFin.value &&
+		!limitesFin.value &&
+		!areaFin.value
+	) {
+		$q.notify({
+			color: "negative",
+			position: "top",
+			message: "Todos los campos son obligatorios",
+		});
+		validacion = false;
+	} else {
+		if (!idAdminFin.value) {
+			$q.notify({
+				color: "negative",
+				position: "top",
+				message: "El campo ID de Administrador es obligatorio",
+			});
+			validacion = false;
+		}
+		if (!nombreFin.value) {
+			$q.notify({
+				color: "negative",
+				position: "top",
+				message: "El campo Nombre es obligatorio",
+			});
+			validacion = false;
+		}
+		if (!rutFin.value) {
+			$q.notify({
+				color: "negative",
+				position: "top",
+				message: "El campo RUT es obligatorio",
+			});
+			validacion = false;
+		}
+		if (!direccionFin.value) {
+			$q.notify({
+				color: "negative",
+				position: "top",
+				message: "El campo Dirección es obligatorio",
+			});
+			validacion = false;
+		}
+		if (!ubicacionGeograficaFin.value) {
+			$q.notify({
+				color: "negative",
+				position: "top",
+				message: "El campo Ubicación Geográfica es obligatorio",
+			});
+			validacion = false;
+		}
+		if (!departamentoFin.value) {
+			$q.notify({
+				color: "negative",
+				position: "top",
+				message: "El campo Departamento es obligatorio",
+			});
+			validacion = false;
+		}
+		if (!ciudadFin.value) {
+			$q.notify({
+				color: "negative",
+				position: "top",
+				message: "El campo Ciudad es obligatorio",
+			});
+			validacion = false;
+		}
+		if (!limitesFin.value) {
+			$q.notify({
+				color: "negative",
+				position: "top",
+				message: "El campo Límites es obligatorio",
+			});
+			validacion = false;
+		}
+		if (!areaFin.value) {
+			$q.notify({
+				color: "negative",
+				position: "top",
+				message: "El campo Área es obligatorio",
+			});
+			validacion = false;
+		}
+	}
+	return validacion;
+}
+
+function controlFormulario(obj, boolean) {
+	idAdminFin.value = "";
+	nombreFin.value = "";
+	rutFin.value = "";
+	direccionFin.value = "";
+	ubicacionGeograficaFin.value = "";
+	departamentoFin.value = "";
+	ciudadFin.value = "";
+	limitesFin.value = "";
+	areaFin.value = "";
+
+	datos.value = obj;
+	mostrarBotonEditar.value = false;
+	if (obj != null && boolean == true) {
+		idAdminFin.value = opcionesAdmins.value.find(
+			(a) => a.id == datos.value._idAdmin._id
+		);
+		nombreFin.value = obj.nombre;
+		rutFin.value = obj.rut;
+		direccionFin.value = obj.direccion;
+		ubicacionGeograficaFin.value = obj.ubicacionGeografica;
+		departamentoFin.value = datos.value.municipio;
+		ciudadFin.value = datos.value.ciudad;
+		limitesFin.value = obj.limites;
+		areaFin.value = obj.area;
+		mostrarBotonEditar.value = true;
+	}
+
+	console.log(datos.value);
+
+	mostrarFormularioFinca.value = boolean;
+}
+
+function estadoTabla() {
+	console.log(opcionTabla.value);
+
+	if (opcionTabla.value == "Activos") {
+		listarFincaActivo();
+	} else if (opcionTabla.value == "Inactivos") {
+		listarFincaInactivo();
+	} else {
+		listarFincas();
+	}
 }
 
 onMounted(() => {
-
+	listarMunicipio();
+	listarAdmins();
+	listarFincas();
 });
 </script>
 
 <template>
-  <div class="container">
-    <div class="title text-h2 text-center">Fincas</div>
-    <hr class="divider">
-
-    <!-- Tabla de fincas -->
-    <q-table flat bordered title="Lista de Fincas" :rows="rows" :columns="columns" row-key="_idAdmin" class="table">
-      <template v-slot:body-cell-opciones="props">
-        <q-td :props="props" class="actions-cell">
-          <q-btn @click="editarFinca(props.row)" class="btn-editar">✏️</q-btn>
-          <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">❌</q-btn>
-          <q-btn v-else @click="editarEstado(props.row)" class="btn-activar">✅</q-btn>
-        </q-td>
-      </template>
-      <template v-slot:body-cell-estado="props">
-        <q-td :props="props" class="status-cell">
-          <p v-if="props.row.estado == 1" class="status-activo">Activo</p>
-          <p v-else class="status-inactivo">Inactivo</p>
-        </q-td>
-      </template>
-    </q-table>
-
-    <!-- Tabla para la edición de la Finca -->
-    <q-dialog v-model="editando">
-      <q-card>
-        <q-card-section>
-          <q-input v-model="fincaActual._idAdmin" label="ID de Administrador"></q-input>
-          <q-input v-model="fincaActual.nombre" label="Nombre"></q-input>
-          <q-input v-model="fincaActual.rut" label="RUT" type="number"></q-input>
-          <q-input v-model="fincaActual.direccion" label="Dirección"></q-input>
-          <q-input v-model="fincaActual.ubicacionGeografica" label="Ubicación Geográfica" type="number"></q-input>
-          <q-input v-model="fincaActual.departamento" label="Departamento"></q-input>
-          <q-input v-model="fincaActual.ciudad" label="Ciudad"></q-input>
-          <q-input v-model="fincaActual.limites" label="Límites" type="number"></q-input>
-          <q-input v-model="fincaActual.area" label="Área"></q-input>
-        </q-card-section>
-        <q-card-actions>
-          <q-btn @click="guardarCambios" color="primary">Guardar</q-btn>
-          <q-btn @click="cerrarEditar" color="secondary">Cancelar</q-btn>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-  </div>
+	<div>
+		<div>
+			<q-btn @click="controlFormulario(null, true)" label="Agregar" />
+		</div>
+		<q-table
+			flat
+			bordered
+			title="Fincas"
+			:rows="rows"
+			:columns="columns"
+			row-key="id">
+			<template v-slot:top>
+				<q-select
+					standout="bg-green text-while"
+					:options="opcionesTabla"
+					v-model="opcionTabla"
+					@update:model-value="estadoTabla" />
+			</template>
+			<template v-slot:body-cell-estado="props">
+				<q-td :props="props">
+					<p v-if="props.row.estado == 1" style="color: green">
+						Activo
+					</p>
+					<p v-else style="color: red">Inactivo</p>
+				</q-td>
+			</template>
+			<template v-slot:body-cell-opciones="props">
+				<q-td :props="props">
+					<q-btn @click="controlFormulario(props.row, true)">
+						✏️
+					</q-btn>
+					<q-btn
+						v-if="props.row.estado == 1"
+						@click="editarEstado(props.row)">
+						❌
+					</q-btn>
+					<q-btn v-else @click="editarEstado(props.row)"> ✅ </q-btn>
+				</q-td>
+			</template>
+		</q-table>
+		<q-dialog v-model="mostrarFormularioFinca">
+			<q-card>
+				<q-form
+					@submit="mostrarBotonEditar ? editar() : registrar()"
+					class="q-gutter-md">
+					<q-select
+						standout="bg-green text-while"
+						:options="opcionesAdmins"
+						label="Administrador"
+						v-model="idAdminFin" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Nombre Finca"
+						v-model="nombreFin" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Rut"
+						v-model="rutFin" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Dirección Finca"
+						v-model="direccionFin" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Ubicación Geográfica"
+						v-model="ubicacionGeograficaFin" />
+					<q-select
+						standout="bg-green text-while"
+						:options="colombia"
+						option-label="departamento"
+						option-value="departamento"
+						label="Departamento"
+						v-model="departamentoFin" />
+					<q-select
+						standout="bg-green text-while"
+						:options="ciudadOpciones"
+						label="Ciudad"
+						v-model="ciudadFin" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Límites Finca"
+						v-model="limitesFin" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Área Finca"
+						v-model="areaFin" />
+					<div>
+						<q-btn
+							unelevated
+							v-if="mostrarBotonEditar"
+							label="Editar"
+							type="submit"
+							color="positive" />
+						<q-btn
+							unelevated
+							v-else
+							label="Registrar"
+							type="submit"
+							color="positive" />
+						<q-btn
+							@click="controlFormulario(null, false)"
+							flat
+							label="Cerrar"
+							type="button" />
+					</div>
+				</q-form>
+			</q-card>
+		</q-dialog>
+	</div>
 </template>
 
 <style scoped>
-.container {
-  padding: 20px;
-  background-color: #f5f5f5;
-  border-radius: 10px;
+.q-card {
+	background-color: rgb(255, 255, 255);
+	padding: 40px 30px 40px 30px;
+	border-radius: 1pc;
+	width: 30rem;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	border: 0;
 }
-.title {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  color: #333;
-}
-.divider {
-  height: 5px;
-  background-color: #007bff;
-  border: none;
-  margin: 20px 0;
-}
-.table {
-  margin-top: 40px;
-  border-radius: 10px;
-  overflow: hidden;
-}
-.actions-cell {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-}
-.btn-editar, .btn-inactivar, .btn-activar {
-  font-size: 1pc;
-  margin: 5px 5px;
-}
-.btn-editar {
-  color: #007bff;
-}
-.btn-inactivar {
-  color: #e74c3c;
-}
-.btn-activar {
-  color: #2ecc71;
-}
-.status-cell p {
-  margin: 0;
-  font-weight: bold;
-}
-.status-activo {
-  color: #2ecc71;
-}
-.status-inactivo {
-  color: #e74c3c;
+
+.q-form .q-input,
+.q-form .q-select {
+	margin-bottom: 15px;
 }
 </style>

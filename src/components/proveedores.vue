@@ -1,115 +1,542 @@
-  <script setup>
-  import { ref, onMounted } from "vue";
-  import { useQuasar } from "quasar";
-  const $q = useQuasar();
-  // Variables para el funcionamiento de la tabla
-  let rows = ref([
-    {
-      nombre: 'Francisco',
-      direccion: 'Carrera 41 #32B-125, Bucaramanga',
-      telefono: 123456789,
-      email: 'Fran@gmail.com',
-    },
-    {
-      nombre: 'Carlos',
-      direccion: 'Cc La Castellana, piso 3 Local #29-31, Cali',
-      telefono: 987654321,
-      email: 'Carleto@gmail.com',
-    },
-  ]);
-  let columns = ref([
-    { name: 'nombre', align: 'center', label: 'Nombre', field: 'nombre', sortable: true },
-    { name: 'direccion', align: 'center', label: 'Dirección', field: 'direccion', sortable: true },
-    { name: 'telefono', align: 'center', label: 'Teléfono', field: 'telefono', sortable: true },
-    { name: 'email', align: 'center', label: 'Email', field: 'email', sortable: true },
-    { name: 'estado', align: 'center', label: 'Estado', field: 'estado', sortable: true },
-    { name: 'opciones', align: 'center', label: 'Opciones', field: 'opciones', sortable: true },
-  ]);
-  onMounted(() => {
-  });
-  </script>
+<script setup>
+import { ref, onMounted, computed, watch } from "vue";
+// import { notifyErrorRequest } from "../routes/routes.js";
+import { useStoreProveedores } from "../stores/proveedores.js";
+import { format } from "date-fns";
+
+// Loading
+const visible = ref(true);
+const loadingg = ref(true);
+const listarProducto = ref("");
+const listarFechasOne = ref("");
+const listarFechasTwo = ref("");
+
+// Variables parra mostrar formularios
+const mostrarFormularioEditarProveedor = ref(false);
+const mostrarFormularioAgregarProveedor = ref(false);
+
+// Llamado de modelos
+const useProveedor = useStoreProveedores();
+
+// // Variables de los inputs de agregar y editar
+const idProveedorSeleccionada = ref("");
+const nombre = ref("");
+const direccion = ref("");
+const telefono = ref("");
+const email = ref("");
+
+// const estadoOptions = [
+//   { label: "Activo" },
+//   { label: "Inactivo" },
+// ];
+const estado = ref("Activo");
+
+const selectedOption = ref("Listar Proveedores");
+const options = [
+	{ label: "Listar Proveedores", value: "Listar Proveedores" },
+	{
+		label: "Listar Proveedores por Nombre",
+		value: "Listar Proveedores por Nombre",
+	},
+	{
+		label: "Listar Proveedores por fechas",
+		value: "Listar Proveedores por fechas",
+	},
+	{
+		label: "Listar Proveedores Activos",
+		value: "Listar Proveedores Activos",
+	},
+	{
+		label: "Listar Proveedores Inactivos",
+		value: "Listar Proveedores Inactivos",
+	},
+];
+
+let rows = ref([]);
+const columns = ref([
+	{
+		name: "createdAt",
+		label: "Fecha",
+		field: (row) => format(new Date(row.createdAt), "dd/MM/yyyy"),
+		align: "center",
+	},
+	{
+		name: "nombre",
+		label: "Nombre",
+		field: "nombre",
+		align: "center",
+	},
+	{
+		name: "direccion",
+		label: "Dirección",
+		field: "direccion",
+		align: "center",
+	},
+	{
+		name: "telefono",
+		label: "Teléfono",
+		field: "telefono",
+		align: "center",
+	},
+	{
+		name: "email",
+		label: "Email",
+		field: "email",
+		align: "center",
+	},
+	{
+		name: "estado",
+		label: "Estado",
+		field: "estado",
+		align: "center",
+	},
+	{ name: "opciones", label: "Opciones", field: "opciones", align: "center" },
+]);
+
+async function actualizarListadoProveedores() {
+	loadingg.value = true;
+	try {
+		const proveedoresPromise =
+			selectedOption.value === "Listar Proveedores Activos"
+				? useProveedor.getProveedoresActivos()
+				: selectedOption.value === "Listar Proveedores Inactivos"
+				? useProveedor.getProveedoresInactivos()
+				: useProveedor.getProveedores();
+
+		rows.value = (await proveedoresPromise).data.proveedores;
+		console.log("Proveedores", rows.value);
+	} finally {
+		loadingg.value = false;
+		visible.value = false;
+	}
+}
+
+async function editarEstado(props) {
+	if (props.estado == 1) {
+		await useProveedor.putProveedoresInactivar(props._id);
+	} else {
+		await useProveedor.putProveedoresActivar(props._id);
+	}
+	actualizarListadoProveedores();
+}
+
+const filtrarFilas = computed(() => {
+	if (loadingg.value) {
+		return []; // Retorna una lista vacía mientras se está cargando
+	}
+
+	let proveedoresFiltradas = rows.value;
+
+	// Filtrar por nombre del producto
+	if (
+		selectedOption.value === "Listar Proveedores por Nombre" &&
+		listarProducto.value
+	) {
+		proveedoresFiltradas = proveedoresFiltradas.filter((row) =>
+			row.nombre
+				.toLowerCase()
+				.includes(listarProducto.value.toLowerCase())
+		);
+		// notifySuccessRequest('Proveedores listadas por producto exitosamente.');
+	}
+
+	// Filtrar por rango de fechas
+	if (listarFechasOne.value && listarFechasTwo.value) {
+		const normalizeDate = (date) =>
+			new Date(date).toISOString().slice(0, 10);
+
+		const startDate = normalizeDate(listarFechasOne.value);
+		const endDate = normalizeDate(listarFechasTwo.value);
+
+		if (startDate === endDate) {
+			proveedoresFiltradas = proveedoresFiltradas.filter((compra) => {
+				const compraDate = normalizeDate(compra.createdAt);
+				return compraDate === startDate;
+			});
+			// notifySuccessRequest('Proveedores listadas por fechas exitosamente.');
+		} else {
+			// notifyErrorRequest('Fechas inválidas o inconsistentes.');
+		}
+	}
+
+	return proveedoresFiltradas;
+});
+
+const limpiarCampos = () => {
+	idProveedorSeleccionada.value = "";
+	nombre.value = "";
+	direccion.value = "";
+	telefono.value = "";
+	email.value = "";
+	estado.value = "Activo";
+};
+
+async function agregarProveedor() {
+	const nuevoProveedor = {
+		nombre: nombre.value,
+		direccion: direccion.value,
+		telefono: telefono.value,
+		email: email.value,
+		estado: estado.value === "Activo" ? 1 : 0,
+	};
+
+	const r = await useProveedor.postProveedores(nuevoProveedor);
+	if (r.status === 200) {
+		mostrarFormularioAgregarProveedor.value = false;
+		actualizarListadoProveedores();
+		estado.value = "Activo";
+		console.log("Proveedor agregado exitosamente", nuevoProveedor);
+	}
+}
+
+const cargarProveedorParaEdicion = (proveedor) => {
+	idProveedorSeleccionada.value = proveedor._id;
+	nombre.value = proveedor.nombre;
+	direccion.value = proveedor.direccion;
+	telefono.value = proveedor.telefono;
+	email.value = proveedor.email;
+
+	mostrarFormularioEditarProveedor.value = true;
+	console.log("Datos del proveedor a editar", proveedor);
+};
+
+async function editarProveedor() {
+	const proveedorEditado = {
+		_id: idProveedorSeleccionada.value,
+		nombre: nombre.value,
+		direccion: direccion.value,
+		telefono: telefono.value,
+		email: email.value,
+	};
+
+	const r = await useProveedor.putProveedores(
+		idProveedorSeleccionada.value,
+		proveedorEditado
+	);
+	if (r.status === 200) {
+		mostrarFormularioEditarProveedor.value = false;
+		actualizarListadoProveedores();
+		console.log("Proveedor editado exitosamente", proveedorEditado);
+	}
+}
+
+const isLoading = computed(() => visible.value);
+
+onMounted(() => {
+	actualizarListadoProveedores();
+});
+
+watch(selectedOption, () => {
+	actualizarListadoProveedores();
+	isLoading;
+	loadingg;
+});
+</script>
 
 <template>
-<div class="container">
+	<div>
+		<div class="q-pa-md" v-if="!visible">
+			<h3 style="text-align: center; margin: 10px">Proveedores</h3>
+			<hr style="width: 70%; height: 5px; background-color: green" />
+		</div>
 
-<div class="title text-h2 text-center">
-  Proveedores
-</div>
-<hr class="divider">
-<q-table v-if="!loading" flat bordered title="Lista de Proveedores" :rows="rows" :columns="columns" row-key="id" class="table">
-  <template v-slot:body-cell-opciones="props">
-    <q-td :props="props" class="actions-cell">
-      <q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
-        ✏️
-      </q-btn>
-      <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">
-        ❌
-      </q-btn>
-      <q-btn v-else @click="editarEstado(props.row)" class="btn-activar">
-        ✅
-      </q-btn>
-    </q-td>
-  </template>
-  <template v-slot:body-cell-estado="props">
-    <q-td :props="props" class="status-cell">
-      <p v-if="props.row.estado == 1" class="status-activo">
-        Activo
-      </p>
-      <p v-else class="status-inactivo">Inactivo</p>
-    </q-td>
-  </template>
-</q-table>
-</div>
-  </template>
-  
-  <style scoped>
-.container {
-  padding: 20px;
-  background-color: #f5f5f5;
-  border-radius: 10px;
+		<div
+			class="contSelect"
+			style="margin-left: 5%; text-align: end; margin-right: 5%">
+			<q-select
+				background-color="green"
+				class="q-my-md"
+				id="q-select"
+				v-model="selectedOption"
+				outlined
+				dense
+				options-dense
+				emit-value
+				:options="options" />
+
+			<input
+				v-if="selectedOption === 'Listar Proveedores por Nombre'"
+				v-model="listarProducto"
+				class="q-my-md"
+				type="text"
+				name="search"
+				id="search"
+				placeholder="Ingrese el producto" />
+
+			<div
+				v-if="selectedOption === 'Listar Proveedores por fechas'"
+				style="
+					display: flex;
+					flex-direction: row;
+					text-align: center;
+					flex-wrap: wrap;
+					position: absolute;
+					top: 150px;
+					left: 240px;
+				">
+				<label
+					for="listarFechasOne"
+					style="height: 100%; line-height: 88px; margin-left: 40px"
+					>De:</label
+				>
+				<q-input
+					v-model="listarFechasOne"
+					class="q-my-md"
+					type="date"
+					name="search"
+					id="listarFechasOne"
+					placeholder="Ingrese la fecha" />
+
+				<label
+					for="listarFechasTwo"
+					style="height: 100%; line-height: 88px; margin-left: 40px"
+					>A:</label
+				>
+				<q-input
+					v-model="listarFechasTwo"
+					class="q-my-md"
+					type="date"
+					name="search"
+					id="listarFechasTwo"
+					placeholder="Ingrese la fecha" />
+			</div>
+		</div>
+
+		<div>
+			<div
+				style="margin-left: 5%; text-align: end; margin-right: 5%"
+				class="q-mb-md">
+				<q-btn
+					label="Agregar Proveedor"
+					@click="mostrarFormularioAgregarProveedor = true">
+					<q-tooltip> Agregar Proveedor </q-tooltip>
+				</q-btn>
+			</div>
+
+			<!-- Formulario para agregar proveedor -->
+			<q-dialog
+				v-model="mostrarFormularioAgregarProveedor"
+				v-bind="mostrarFormularioAgregarProveedor && limpiarCampos()">
+				<q-card style="width: 340px">
+					<q-card-section>
+						<div class="text-h6" style="padding: 10px 0 0 15px">
+							Agregar Proveedor
+						</div>
+					</q-card-section>
+					<q-card-section style="padding: 10px 25px">
+						<q-form @submit.prevent="agregarProveedor">
+							<q-input
+								v-model.trim="nombre"
+								label="Nombre"
+								filled
+								outlined
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model.trim="direccion"
+								label="Dirección"
+								filled
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model.trim="telefono"
+								label="Teléfono"
+								type="number"
+								filled
+								outlined
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model.trim="email"
+								label="Email"
+								type="email"
+								filled
+								outlined
+								class="q-mb-md"
+								required />
+							<q-select
+								v-model="estado"
+								label="Estado"
+								:options="[
+									{ label: 'Activo' },
+									{ label: 'Inactivo' },
+								]"
+								filled
+								outlined
+								class="q-mb-md"
+								required
+								style="max-width: 100%" />
+							<div
+								class="q-mt-md"
+								style="
+									display: flex;
+									justify-content: flex-end;
+								">
+								<q-btn
+									label="Cancelar"
+									color="negative"
+									class="q-ma-sm"
+									@click="
+										mostrarFormularioAgregarProveedor = false
+									">
+									<q-tooltip> Cancelar </q-tooltip>
+								</q-btn>
+								<q-btn
+									:loading="useProveedor.loading"
+									:disable="useProveedor.loading"
+									type="submit"
+									label="Guardar Proveedor"
+									color="primary"
+									class="q-ma-sm">
+									<q-tooltip> Guardar Proveedor </q-tooltip>
+									<template v-slot:loading>
+										<q-spinner color="white" size="1em" />
+									</template>
+								</q-btn>
+							</div>
+						</q-form>
+					</q-card-section>
+				</q-card>
+			</q-dialog>
+
+			<!-- Formulario para editar proveedor -->
+			<q-dialog v-model="mostrarFormularioEditarProveedor">
+				<q-card>
+					<q-card-section>
+						<div class="text-h6">Editar Proveedor</div>
+					</q-card-section>
+					<q-card-section style="padding: 10px 25px">
+						<q-form @submit.prevent="editarProveedor">
+							<q-input
+								v-model.trim="nombre"
+								label="Nombre"
+								filled
+								outlined
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model.trim="direccion"
+								label="Dirección"
+								filled
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model.trim="telefono"
+								label="Teléfono"
+								type="number"
+								filled
+								outlined
+								class="q-mb-md"
+								required />
+							<q-input
+								v-model.trim="email"
+								label="Email"
+								type="email"
+								filled
+								outlined
+								class="q-mb-md"
+								required />
+
+							<div
+								class="q-mt-md"
+								style="
+									display: flex;
+									justify-content: flex-end;
+								">
+								<q-btn
+									label="Cancelar"
+									color="negative"
+									class="q-ma-sm"
+									@click="
+										mostrarFormularioEditarProveedor = false
+									">
+									<q-tooltip> Cancelar </q-tooltip>
+								</q-btn>
+								<q-btn
+									:loading="useProveedor.loading"
+									:disable="useProveedor.loading"
+									type="submit"
+									label="Guardar Cambios"
+									color="primary"
+									class="q-ma-sm">
+									<q-tooltip> Guardar Cambios </q-tooltip>
+									<template v-slot:loading>
+										<q-spinner color="white" size="1em" />
+									</template>
+								</q-btn>
+							</div>
+						</q-form>
+					</q-card-section>
+				</q-card>
+			</q-dialog>
+		</div>
+
+		<q-table
+			flat
+			bordered
+			title="Proveedores"
+			title-class="text-green text-weight-bolder text-h5"
+			:rows="filtrarFilas"
+			:columns="columns"
+			row-key="id"
+			:loading="loadingg">
+			<template v-slot:body-cell-opciones="props">
+				<q-td :props="props">
+					<q-btn @click="cargarProveedorParaEdicion(props.row)">
+						✏️
+						<q-tooltip> Editar Proveedor </q-tooltip>
+					</q-btn>
+					<q-btn
+						v-if="props.row.estado == 1"
+						@click="editarEstado(props.row)">
+						❌
+						<q-tooltip> Inactivar Proveedor </q-tooltip>
+					</q-btn>
+					<q-btn v-else @click="editarEstado(props.row)">
+						✅
+						<q-tooltip> Activar Proveedor </q-tooltip>
+					</q-btn>
+				</q-td>
+			</template>
+
+			<template class="a" v-slot:body-cell-estado="props">
+				<q-td class="b" :props="props">
+					<p
+						:style="{
+							color: props.row.estado === 1 ? 'green' : 'red',
+							margin: 0,
+						}">
+						{{ props.row.estado === 1 ? "Activo" : "Inactivo" }}
+					</p>
+				</q-td>
+			</template>
+
+			<template v-slot:loading>
+				<q-inner-loading
+					:showing="loadingg"
+					label="Por favor espere..."
+					label-class="text-teal"
+					label-style="font-size: 1.1em">
+				</q-inner-loading>
+			</template>
+		</q-table>
+	</div>
+	<q-inner-loading
+		:showing="isLoading"
+		label="Por favor espere..."
+		label-class="text-teal"
+		label-style="font-size: 1.1em" />
+</template>
+
+<style scoped>
+.contSelect {
+	display: flex;
+	flex-direction: row;
+	gap: 20px;
 }
-.title {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  color: #333;
+
+.q-my-md {
+	max-width: 200px;
+	padding-left: 10px;
 }
-.divider {
-  height: 5px;
-  background-color: #007bff;
-  border: none;
-  margin: 20px 0;
-}
-.table {
-  margin-top: 40px;
-  border-radius: 10px;
-  overflow: hidden;
-}
-.actions-cell {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-}
-.btn-editar, .btn-inactivar, .btn-activar {
-  font-size: 1pc;
-  margin: 5px 5px;
-}
-.btn-editar {
-  color: #007bff;
-}
-.btn-inactivar {
-  color: #e74c3c;
-}
-.btn-activar {
-  color: #2ecc71;
-}
-.status-cell p {
-  margin: 0;
-  font-weight: bold;
-}
-.status-activo {
-  color: #2ecc71;
-}
-.status-inactivo {
-  color: #e74c3c;
-}
-  </style>
+</style>

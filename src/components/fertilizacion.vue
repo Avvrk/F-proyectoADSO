@@ -1,158 +1,496 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
+import { useStoreFertilizacion } from "../stores/fertilizacion.js";
 import { useQuasar } from "quasar";
 
 const $q = useQuasar();
 
-// Datos de las Fertilizaciones
-let rows = ref([
-  {
-    id_cultivo: '749bc227',
-    empleado_id: '422a763ab',
-    fecha: '2024-08-01',
-    estadoFenologico: 'inicial',
-    tipo: 'Antes de Siembra',
-    nombreFertilizante: 'Fertilizante NPK 10-10-10',
-    cantidad: 100,
-    inventario_id: '476b4f71'
-  },
-  {
-    id_cultivo: '66b4a789',
-    empleado_id: 'aec0122',
-    fecha: '2024-08-10',
-    estadoFenologico: 'floración',
-    tipo: 'Después de siembra',
-    nombreFertilizante: 'Fertilizante Orgánico BioGrow',
-    cantidad: 150,
-    inventario_id: '6b4c73164'
-  },
-]);
+const useFertilizacion = useStoreFertilizacion();
 
+// (row) =>  /* buscarInventario(row) */{
+//             return row.inventario_id.semillas_id
+//                 ? `${row.inventario_id.semillas_id.especieVariedad}`
+//                 : row.inventario_id.insumos_id
+//                 ? `${row.inventario_id.insumos_id.nombre}`
+//                 : row.inventario_id.maquinaria_id
+//                 ? `${row.inventario_id.maquinaria_id.nombre} (tipo: ${row.inventario_id.maquinaria_id.tipo})`
+//                 : "?";
+//         }
+
+const estadoF = ["inicial", "floracion", "cosecha"];
+const tipo = ["antes de siembra", "después de siembra"];
+let rows = ref([]);
 let columns = ref([
-  { name: 'id_cultivo', align: 'center', label: 'Id del Cultivo', field: 'id_cultivo', sortable: true },
-  { name: 'fecha', align: 'center', label: 'Fecha', field: 'fecha', sortable: true },
-  { name: 'empleado_id', align: 'center', label: 'Id del Empleado', field: 'empleado_id', sortable: true },
-  { name: 'tipo', align: 'center', label: 'Tipo', field: 'tipo', sortable: true },
-  { name: 'estadoFenologico', align: 'center', label: 'Estado Fenológico', field: 'estadoFenologico', sortable: true },
-  { name: 'inventario_id', align: 'center', label: 'Id del Inventario', field: 'inventario_id', sortable: true },
-  { name: 'nombreFertilizante', align: 'center', label: 'Nombre del Fertilizante', field: 'nombreFertilizante', sortable: true },
-  { name: 'cantidad', align: 'center', label: 'Cantidad Aplicada', field: 'cantidad', sortable: true },
-  { name: 'opciones', align: 'center', label: 'Editar', field: 'opciones', sortable: true },
+	{
+		name: "id_cultivo",
+		align: "center",
+		label: "Cultivo",
+		field: (row) =>
+			`${row.id_cultivo.nombre} (tipo: ${row.id_cultivo.tipo})`,
+		sortable: true,
+	},
+	{
+		name: "empleado_id",
+		align: "center",
+		label: "Empleado",
+		field: (row) =>
+			`${row.empleado_id.nombre} (DNI: ${row.empleado_id.documento})`,
+		sortable: true,
+	},
+	{
+		name: "fecha",
+		align: "center",
+		label: "Fecha",
+		field: (row) => {
+			return row.fecha.split("T")[0];
+		},
+		sortable: true,
+	},
+	{
+		name: "estadoFenologico",
+		align: "center",
+		label: "Estado Fenológico",
+		field: "estadoFenologico",
+		sortable: true,
+	},
+	{
+		name: "tipo",
+		align: "center",
+		label: "Tipo",
+		field: "tipo",
+		sortable: true,
+	},
+	{
+		name: "nombreFertilizante",
+		align: "center",
+		label: "Nombre del Fertilizante",
+		field: "nombreFertilizante",
+		sortable: true,
+	},
+	{
+		name: "cantidad",
+		align: "center",
+		label: "Cantidad Aplicada",
+		field: "cantidad",
+		sortable: true,
+	},
+	{
+		name: "inventario_id",
+		align: "center",
+		label: "Inventario",
+		field: (row) => {
+			// Verifica si inventario_id no es null o undefined antes de acceder a sus propiedades
+			if (row.inventario_id) {
+				return (
+					row.inventario_id.insumos_id?.nombre ||
+					row.inventario_id.semillas_id?.nombre ||
+					row.inventario_id.maquinaria_id?.nombre ||
+					"N/A"
+				);
+			}
+			// Si inventario_id es null o undefined, retorna "N/A"
+			return "N/A";
+		},
+		sortable: true,
+	},
+	{
+		name: "opciones",
+		align: "center",
+		label: "Editar",
+		field: "opciones",
+		sortable: true,
+	},
 ]);
 
-// Información que lleva la fertilización
-const editando = ref(false);
-const fertilizacionActual = ref({
-  id_cultivo: '',
-  fecha: '',
-  empleado_id: '',
-  tipo: '',
-  estadoFenologico: '',
-  inventario_id: '',
-  nombreFertilizante: '',
-  cantidad: '',
+const cultivo = ref([]);
+const empleado = ref([]);
+const inventario = ref([]);
+
+//Variables necesarias en el formulario
+const cultivoFer = ref("");
+const empleadoFer = ref("");
+const fechaFer = ref("");
+const estadoFenologicoFer = ref("");
+const tipoFer = ref("");
+const nombreFertilizanteFer = ref("");
+const cantidadFer = ref("");
+const inventarioFer = ref("");
+
+//Variables necesarias para la edición
+const datos = ref([]);
+
+//Variables que ocntrola lo que se va a mostrar en la pantalla
+const mostrarFormularioFertilizacion = ref(false);
+const mostrarBotonEditar = ref(false);
+const loading = ref(true);
+
+const opcionesEmplados = computed(() => {
+	return empleado.value.map((e) => {
+		return { label: `${e.nombre} (dni: ${e.documento})`, id: `${e._id}` };
+	});
 });
 
-// Función para abrir la card de edición
-function editarFertilizacion(fertilizacion) {
-  fertilizacionActual.value = { ...fertilizacion };
-  editando.value = true;
+const opcionesCultivos = computed(() => {
+	return cultivo.value.map((c) => {
+		return { label: `${c.nombre} (tipo: ${c.tipo})`, id: `${c._id}` };
+	});
+});
+
+const opcionesInventario = computed(() => {
+	return inventario.value.map((i) => {
+		if (i.semillas_id) {
+			return {
+				label: `${i.tipo} / ${i.semillas_id.especieVariedad}`,
+				id: `${i._id}`,
+			};
+		} else if (i.insumos_id) {
+			return {
+				label: `${i.tipo} / ${i.insumos_id.nombre}`,
+				id: `${i._id}`,
+			};
+		} else if (i.maquinaria_id) {
+			return {
+				label: `${i.tipo} / ${i.maquinaria_id.nombre} - ${i.maquinaria_id.tipo}`,
+				id: `${i._id}`,
+			};
+		} else {
+			return {
+				label: "Datos faltantes",
+				id: `${i._id}`,
+			};
+		}
+	});
+});
+
+const buscarInventario = (row) => {
+	console.log(row);
+};
+
+async function listarCultivo() {
+	try {
+		loading.value = true;
+		const r = await useFertilizacion.getCultivos();
+		cultivo.value = r.data.cultivos;
+	} finally {
+		loading.value = false;
+	}
 }
 
-// Función para guardar los cambios de la Fertilización
-function guardarCambios() {
-  const indice = rows.value.findIndex(fert => fert.id_cultivo === fertilizacionActual.value.id_cultivo);
-  if (indice !== -1) {
-    rows.value[indice] = { ...fertilizacionActual.value };
-    $q.notify({
-      type: 'positive',
-      message: 'Cambios guardados exitosamente.'
-    });
-  } else {
-    $q.notify({
-      type: 'negative',
-      message: 'No se encontró la fertilización para actualizar.'
-    });
-  }
-  editando.value = false;
+async function listarEmpleado() {
+	try {
+		loading.value = true;
+		const r = await useFertilizacion.getEmpleados();
+		empleado.value = r.data.empleados;
+	} finally {
+		loading.value = false;
+	}
 }
 
-// Función para cerrar la card de editar
-function cerrarEditar() {
-  editando.value = false;
+async function listarInventario() {
+	try {
+		loading.value = true;
+		const r = await useFertilizacion.getInventario();
+		inventario.value = r.data.inventario;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function listarFertilizacion() {
+	try {
+		loading.value = true;
+		const r = await useFertilizacion.getFertilizacion();
+		rows.value = r.data.fertilizaciones;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function registrar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				id_cultivo: cultivoFer.value.id,
+				empleado_id: empleadoFer.value.id,
+				fecha: fechaFer.value,
+				estadoFenologico: estadoFenologicoFer.value,
+				tipo: tipoFer.value,
+				nombreFertilizante: nombreFertilizanteFer.value,
+				cantidad: cantidadFer.value,
+				inventario_id: inventarioFer.value.id,
+			};
+			console.log(info);
+
+			const r = await useFertilizacion.postFertilizacion(info);
+			mostrarFormularioFertilizacion.value = false;
+			listarFertilizacion();
+		} finally {
+			loading.value = false;
+		}
+	}
+}
+
+async function editar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				id_cultivo: cultivoFer.value.id,
+				empleado_id: empleadoFer.value.id,
+				fecha: fechaFer.value,
+				estadoFenologico: estadoFenologicoFer.value,
+				tipo: tipoFer.value,
+				nombreFertilizante: nombreFertilizanteFer.value,
+				cantidad: cantidadFer.value,
+				inventario_id: inventarioFer.value.id,
+			};
+
+			const r = await useFertilizacion.putFertilizacion(
+				datos.value._id,
+				info
+			);
+			mostrarFormularioFertilizacion.value = false;
+			listarFertilizacion();
+		} finally {
+			loading.value = false;
+		}
+	}
+}
+
+function validarDatos() {
+	let validacion = true;
+	if (
+		!cultivoFer.value &&
+		!empleadoFer.value &&
+		!fechaFer.value &&
+		!estadoFenologicoFer.value &&
+		!tipoFer.value &&
+		!nombreFertilizanteFer.value &&
+		!cantidadFer.value &&
+		!inventarioFer.value
+	) {
+		$q.notify({
+			color: "negative",
+			message: "Llena todos los campos",
+			position: "top",
+		});
+		validacion = false;
+	} else {
+		if (!cultivoFer.value) {
+			$q.notify({
+				color: "negative",
+				message: "El campo cultivo está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!empleadoFer.value) {
+			$q.notify({
+				color: "negative",
+				message: "El campo empleado está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!fechaFer.value) {
+			$q.notify({
+				color: "negative",
+				message: "El campo fecha está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!estadoFenologicoFer.value) {
+			$q.notify({
+				color: "negative",
+				message: "El campo estado fenológico está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!tipoFer.value) {
+			$q.notify({
+				color: "negative",
+				message: "El campo tipo está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!nombreFertilizanteFer.value) {
+			$q.notify({
+				color: "negative",
+				message: "El campo nombre de fertilizante está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!cantidadFer.value) {
+			$q.notify({
+				color: "negative",
+				message: "El campo cantidad está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!inventarioFer.value) {
+			$q.notify({
+				color: "negative",
+				message: "El campo inventario está vacío",
+				position: "top",
+			});
+			validacion = false;
+		}
+	}
+	return validacion;
+}
+
+function controlFormulario(obj, boolean) {
+	cultivoFer.value = "";
+	empleadoFer.value = "";
+	fechaFer.value = "";
+	estadoFenologicoFer.value = "";
+	tipoFer.value = "";
+	nombreFertilizanteFer.value = "";
+	cantidadFer.value = "";
+	inventarioFer.value = "";
+	console.log(obj);
+
+	datos.value = obj;
+	mostrarBotonEditar.value = false;
+	if (obj != null && boolean == true) {
+		cultivoFer.value = opcionesCultivos.value.find(
+			(c) => c.id == datos.value.id_cultivo._id
+		);
+		empleadoFer.value = opcionesEmplados.value.find(
+			(e) => e.id == datos.value.empleado_id._id
+		);
+		fechaFer.value = datos.value.fecha;
+		estadoFenologicoFer.value = datos.value.estadoFenologico;
+		tipoFer.value = datos.value.tipo;
+		nombreFertilizanteFer.value = datos.value.nombreFertilizante;
+		cantidadFer.value = datos.value.cantidad;
+		inventarioFer.value = opcionesInventario.value.find(
+			(i) => i.id == datos.value.inventario_id._id
+		);
+		mostrarBotonEditar.value = true;
+	}
+
+	console.log(datos.value);
+
+	mostrarFormularioFertilizacion.value = boolean;
 }
 
 onMounted(() => {
-
+	listarCultivo();
+	listarEmpleado();
+	listarInventario();
+	listarFertilizacion();
 });
 </script>
 
 <template>
-  <div class="container">
-    <div class="title text-h2 text-center">Fertilizaciones</div>
-    <hr class="divider">
-
-    <!-- Tabla de fertilizaciones -->
-    <q-table flat bordered title="Lista de Fertilizaciones" :rows="rows" :columns="columns" row-key="id_cultivo" class="table">
-      <template v-slot:body-cell-opciones="props">
-        <q-td :props="props" class="actions-cell">
-          <q-btn @click="editarFertilizacion(props.row)" class="btn-editar">✏️</q-btn>
-        </q-td>
-      </template>
-    </q-table>
-
-    <!-- Tabla para la edición de la Fertilización -->
-    <q-dialog v-model="editando">
-      <q-card>
-        <q-card-section>
-          <q-input v-model="fertilizacionActual.id_cultivo" label="Id Cultivo"></q-input>
-          <q-input v-model="fertilizacionActual.fecha" label="Fecha" type="date"></q-input>
-          <q-input v-model="fertilizacionActual.empleado_id" label="Id Empleado"></q-input>
-          <q-input v-model="fertilizacionActual.tipo" label="Tipo"></q-input>
-          <q-input v-model="fertilizacionActual.estadoFenologico" label="Estado Fenológico"></q-input>
-          <q-input v-model="fertilizacionActual.inventario_id" label="Id Inventario"></q-input>
-          <q-input v-model="fertilizacionActual.nombreFertilizante" label="Nombre del Fertilizante"></q-input>
-          <q-input v-model="fertilizacionActual.cantidad" label="Cantidad Aplicada" type="number"></q-input>
-        </q-card-section>
-        <q-card-actions>
-          <q-btn @click="guardarCambios" color="primary">Guardar</q-btn>
-          <q-btn @click="cerrarEditar" color="secondary">Cancelar</q-btn>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-  </div>
+	<div>
+		<div>
+			<q-btn @click="controlFormulario(null, true)" label="Agregar" />
+		</div>
+		<q-table
+			flat
+			bordered
+			title="Fertilizaciones"
+			:rows="rows"
+			:columns="columns"
+			row-key="id">
+			<template v-slot:body-cell-opciones="props">
+				<q-td :props="props">
+					<q-btn @click="controlFormulario(props.row, true)">
+						✏️
+					</q-btn>
+				</q-td>
+			</template>
+		</q-table>
+		<q-dialog v-model="mostrarFormularioFertilizacion">
+			<q-card>
+				<q-form
+					@submit="mostrarBotonEditar ? editar() : registrar()"
+					class="q-gutter-md">
+					<q-select
+						standout="bg-green text-while"
+						:options="opcionesCultivos"
+						label="Cultivo"
+						v-model="cultivoFer" />
+					<q-select
+						standout="bg-green text-while"
+						:options="opcionesEmplados"
+						label="Empleado"
+						v-model="empleadoFer" />
+					<q-input
+						standout="bg-green text-while"
+						type="date"
+						label="Fecha"
+						v-model="fechaFer" />
+					<q-select
+						standout="bg-green text-while"
+						:options="estadoF"
+						label="Estado Fenológico"
+						v-model="estadoFenologicoFer" />
+					<q-select
+						standout="bg-green text-while"
+						:options="tipo"
+						label="tipo"
+						v-model="tipoFer" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Nombre Fertilizante"
+						v-model="nombreFertilizanteFer" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Cantidad"
+						v-model="cantidadFer" />
+					<q-select
+						standout="bg-green text-while"
+						:options="opcionesInventario"
+						label="Inventario"
+						v-model="inventarioFer" />
+					<div>
+						<q-btn
+							unelevated
+							v-if="mostrarBotonEditar"
+							label="Editar"
+							type="submit"
+							color="positive" />
+						<q-btn
+							unelevated
+							v-else
+							label="Registrar"
+							type="submit"
+							color="positive" />
+						<q-btn
+							@click="controlFormulario(null, false)"
+							flat
+							label="Cerrar"
+							type="button" />
+					</div>
+				</q-form>
+			</q-card>
+		</q-dialog>
+	</div>
 </template>
 
 <style scoped>
-.container {
-  padding: 20px;
-  background-color: #f5f5f5;
-  border-radius: 10px;
+.q-card {
+	background-color: rgb(255, 255, 255);
+	padding: 40px 30px 40px 30px;
+	border-radius: 1pc;
+	width: 30rem;
+	z-index: 3;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	border: 0;
 }
-.title {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  color: #333;
-}
-.divider {
-  height: 5px;
-  background-color: #007bff;
-  border: none;
-  margin: 20px 0;
-}
-.table {
-  margin-top: 40px;
-  border-radius: 10px;
-  overflow: hidden;
-}
-.actions-cell {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-}
-.btn-editar {
-  font-size: 1pc;
-  margin: 5px 5px;
-  color: #007bff;
+
+#faDialogo {
+	z-index: 2;
 }
 </style>

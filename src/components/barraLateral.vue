@@ -226,8 +226,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-// import { useStoreUsuarios } from '../stores/Usuarios.js';
+import { ref } from "vue";
 
 const leftDrawerOpen = ref(false);
 

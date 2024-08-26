@@ -1,123 +1,798 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import { useQuasar } from "quasar";
-const $q = useQuasar();
-// Variables para el funcionamiento de la tabla
-let rows = ref([
-  {
-    cultivo_id: '471806c1c' ,
-    empleado_id: 'cf24a00a' ,
-    tipo: 'Riego' ,
-    descripcion: 'Riego inicial para el cultivo de tomates' ,
-    fecha_inicio: '2024-08-01' ,
-    fecha_final: '2024-08-01' ,
-  },
+import { ref, onMounted, computed, watch } from "vue";
+import { notifyErrorRequest, notifySuccessRequest } from "../routes/routes.js";
+import { useStoreCultivos } from "../stores/cultivos.js";
+import { useStoreProcesos } from "../stores/procesos.js";
+import { useStoreEmpleados } from "../stores/empleados.js";
+import { format } from "date-fns";
 
-  {
-    cultivo_id: '1caa749bc' ,
-    empleado_id: 'e8bf94' ,
-    tipo: 'Fertilización' ,
-    descripcion: 'Aplicación de fertilizante nitrogenado' ,
-    fecha_inicio: '2024-08-05T10' ,
-    fecha_final: '2024-08-05' ,
-  },
+// Para colocar puntos decimales a los nuemros
+function formatoNumerico(numero) {
+	return typeof numero === "number"
+		? numero.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+		: undefined;
+}
 
+// Loading
+const visible = ref(true);
+const loadingg = ref(true);
+
+// Variables parra mostrar formularios
+const mostrarFormularioAgregarProceso = ref(false);
+const mostrarFormularioEditarProceso = ref(false);
+
+// Llamado de modelos
+const useCultivo = useStoreCultivos();
+const useProceso = useStoreProcesos();
+const useEmpleado = useStoreEmpleados();
+
+// Variables del input para peticiones get
+const fecha1 = ref("");
+const fecha2 = ref("");
+const empleadoC = ref("");
+const listarCultivo = ref("");
+
+// Arrays de modelos
+const cultivos = ref([]);
+const empleados = ref([]);
+
+// Variables de los inputs de agregar y editar
+const idProcesoSeleccionada = ref("");
+const cultivo_id = ref("");
+const tipo = ref("");
+const descripcion = ref("");
+const empleado_id = ref("");
+const fecha_inicio = ref("");
+const fecha_final = ref("");
+
+const estadoOptions = [{ label: "Activo" }, { label: "Inactivo" }];
+
+async function actualizarListadoProcesos() {
+	loadingg.value = true;
+	try {
+		const procesosPromise =
+			selectedOption.value === "Listar Procesos Activos"
+				? useProceso.getProcesosActivos()
+				: selectedOption.value === "Listar Procesos Inactivos"
+				? useProceso.getProcesosInactivos()
+				: useProceso.getProcesos();
+
+		rows.value = (await procesosPromise).data.procesos;
+		console.log("Procesos", rows.value);
+	} finally {
+		loadingg.value = false;
+		visible.value = false;
+	}
+}
+
+async function listarCultivos() {
+	const r = await useCultivo.getCultivos();
+	cultivos.value = r.data.cultivos;
+	// console.log("cultivos", cultivos.value);
+}
+
+async function listarEmpleados() {
+	const r = await useEmpleado.getEmpleados();
+	empleados.value = r.data.empleados;
+	// console.log("empleados", r.data.empleados);
+}
+
+const cultivosOptions = computed(() => {
+	const needle = input.value.toLocaleLowerCase();
+
+	return cultivos.value
+		.filter((cultivo) => {
+			const combinedString = cultivo.nombre.toLocaleLowerCase();
+			return combinedString.includes(needle) && cultivo.estado !== 0;
+		})
+		.map((cultivo) => ({
+			label: cultivo.nombre,
+			id: cultivo._id,
+		}));
+});
+
+const empleadoOptions = computed(() => {
+	return empleados.value
+		.filter((empleado) => empleado.estado != 0)
+		.map((empleado) => ({
+			label: empleado.nombre,
+			id: empleado._id,
+		}));
+});
+const estadoProceso = ref("Activo");
+
+const selectedOption = ref("Listar Procesos");
+const options = [
+	{ label: "Listar Procesos", value: "Listar Procesos" },
+	{
+		label: "Listar Procesos por Fechas",
+		value: "Listar Procesos por Fechas",
+	},
+	{
+		label: "Listar Procesos por Empleado",
+		value: "Listar Procesos por Empleado",
+	},
+	{
+		label: "Listar Procesos por Cultivo",
+		value: "Listar Procesos por Cultivo",
+	},
+	{ label: "Listar Procesos Activos", value: "Listar Procesos Activos" },
+	{ label: "Listar Procesos Inactivos", value: "Listar Procesos Inactivos" },
+];
+
+let rows = ref([]);
+const columns = ref([
+	{
+		name: "cultivo_id",
+		label: "Cultivo",
+		field: (row) => (row.cultivo_id ? row.cultivo_id.nombre : ""),
+		align: "center",
+	},
+	{
+		name: "empleado_id",
+		label: "Empleado",
+		field: (row) => (row.empleado_id ? row.empleado_id.nombre : ""),
+		align: "center",
+	},
+	{
+		name: "tipo",
+		label: "Tipo",
+		field: "tipo",
+		align: "center",
+	},
+	{
+		name: "descripcion",
+		label: "Descripción",
+		field: "descripcion",
+		align: "center",
+	},
+	{
+		name: "fecha_inicio",
+		label: "Fecha inicial",
+		field: (row) => {
+			const fecha = new Date(row.fecha_inicio);
+			fecha.setDate(fecha.getDate() + 1);
+			const fechaFormateada = format(fecha, "dd/MM/yyyy");
+			return fechaFormateada;
+		},
+		align: "center",
+	},
+	{
+		name: "fecha_final",
+		label: "Fecha final",
+		field: (row) => {
+			const fecha = new Date(row.fecha_final);
+			fecha.setDate(fecha.getDate() + 1);
+			const fechaFormateada = format(fecha, "dd/MM/yyyy");
+			return fechaFormateada;
+		},
+		align: "center",
+	},
+	{ name: "estado", label: "Estado", field: "estado", align: "center" },
+	{ name: "opciones", label: "Opciones", field: "opciones", align: "center" },
 ]);
-let columns = ref([
-  { name: 'cultivo_id', align: 'center', label: 'ID del Cultivo', field: 'cultivo_id', sortable: true },
-  { name: 'empleado_id', align: 'center', label: 'ID del Empleado', field: 'empleado_id', sortable: true },
-  { name: 'tipo', align: 'center', label: 'tipo', field: 'tipo', sortable: true },
-  { name: 'descripcion', align: 'center', label: 'descripcion', field: 'descripcion', sortable: true },
-  { name: 'fecha_inicio', align: 'center', label: 'fecha_inicio', field: 'fecha_inicio', sortable: true },
-  { name: 'fecha_final', align: 'center', label: 'fecha_final', field: 'fecha_final', sortable: true },
-  { name: 'estado', align: 'center', label: 'Estado', field: 'estado', sortable: true },
-  { name: 'opciones', align: 'center', label: 'Opciones', field: 'opciones', sortable: true },
-]);
+
+const filtrarFilas = computed(() => {
+	if (loadingg.value) {
+		return []; // Retorna una lista vacía mientras se está cargando
+	}
+
+	const fecha1Value = fecha1.value ? new Date(fecha1.value) : null;
+	const fecha2Value = fecha2.value ? new Date(fecha2.value) : null;
+	const empleadoInput = empleadoC.value ? empleadoC.value.toString() : "";
+	const cultivoInput = listarCultivo.value ? listarCultivo.value : "";
+
+	return rows.value.filter((proceso) => {
+		switch (selectedOption.value) {
+			case "Listar Procesos por Fechas":
+				if (!fecha1Value || !fecha2Value) return true;
+				const fecha_inicio = new Date(proceso.fecha_inicio);
+				if (
+					fecha_inicio >= fecha1Value &&
+					fecha_inicio <= fecha2Value
+				) {
+					// notifySuccessRequest('Procesos listados por fechas exitosamente.');
+					return true;
+				} else {
+					// notifyErrorRequest('Fechas inválidas o inconsistentes.');
+					return false;
+				}
+
+			case "Listar Procesos por Empleado":
+				if (
+					proceso.cultivo_id.nombre.toString().includes(empleadoInput)
+				) {
+					// notifySuccessRequest('Listado correctamente por empleado.');
+					return true;
+				}
+				return false;
+
+			case "Listar Procesos por Cultivo":
+				if (proceso.empleado_id.nombre.includes(cultivoInput)) {
+					// notifySuccessRequest('Listado correctamente por cultivo.');
+					return true;
+				}
+				return false;
+
+			default:
+				return true;
+		}
+	});
+});
+
+async function editarEstado(props) {
+	if (props.estado == 1) {
+		await useProceso.putProcesoInactivar(props._id);
+	} else {
+		await useProceso.putProcesoActivar(props._id);
+	}
+	actualizarListadoProcesos();
+}
+
+const limpiarCampos = () => {
+	cultivo_id.value = "";
+	empleado_id.value = "";
+	tipo.value = "";
+	descripcion.value = "";
+	fecha_inicio.value = "";
+	fecha_final.value = "";
+};
+
+const cancelarEdicionProceso = () => {
+	mostrarFormularioEditarProceso.value = false;
+	mostrarFormularioAgregarProceso.value = false;
+};
+
+async function validarDatosProceso(proceso) {
+	const { cultivo_id, empleado_id } = proceso;
+
+	if (cultivo_id === "") {
+		notifyErrorRequest(`El Cultivo es requerido.`);
+		return false;
+	}
+	if (empleado_id === undefined) {
+		notifyErrorRequest(`El Empleado es requerido.`);
+		return false;
+	}
+
+	// Si no hay errores, retornar true
+	return true;
+}
+
+const agregarProceso = async () => {
+	const nuevoProceso = {
+		cultivo_id: cultivo_id.value.id,
+		empleado_id: empleado_id.value.id,
+		tipo: tipo.value,
+		descripcion: descripcion.value,
+		fecha_inicio: fecha_inicio.value,
+		fecha_final: fecha_final.value,
+		estado: estadoProceso.value === "Activo" ? 1 : 0,
+	};
+
+	if (await validarDatosProceso(nuevoProceso)) {
+		const r = await useProceso.postProceso(nuevoProceso);
+		if (r.status == 200) {
+			mostrarFormularioAgregarProceso.value = false;
+			actualizarListadoProcesos();
+			estadoProceso.value = "Activo";
+			console.log("Proceso agregado exitosamente", nuevoProceso);
+		}
+	}
+};
+
+const cargarProcesoParaEdicion = (proceso) => {
+	idProcesoSeleccionada.value = proceso._id;
+	cultivo_id.value = proceso.cultivo_id.nombre;
+	empleado_id.value = proceso.empleado_id.nombre;
+	tipo.value = proceso.tipo;
+	descripcion.value = proceso.descripcion;
+	fecha_inicio.value = proceso.fecha_inicio.split("T")[0];
+	fecha_final.value = proceso.fecha_final.split("T")[0];
+
+	console.log("Datos del proceso del cultivo a editar:", proceso);
+	mostrarFormularioEditarProceso.value = true;
+};
+
+async function editarProceso() {
+	let idCultivo = cultivo_id.value.id;
+	let idEmpleado = empleado_id.value.id;
+
+	for (let cultivo of cultivos.value) {
+		if (cultivo.nombre === cultivo_id.value) {
+			if (cultivo.estado == 1) {
+				idCultivo = cultivo._id;
+				break;
+			} else {
+				notifyErrorRequest("Cultivo seleccionado inactivo");
+				return;
+			}
+		}
+	}
+	for (let empleado of empleados.value) {
+		if (empleado.nombre === empleado_id.value) {
+			if (empleado.estado == 1) {
+				idEmpleado = empleado._id;
+				break;
+			} else {
+				notifyErrorRequest("Empleado seleccionado inactivo");
+				return;
+			}
+		}
+	}
+	const procesoEditado = {
+		_id: idProcesoSeleccionada.value,
+		cultivo_id: idCultivo,
+		tipo: tipo.value,
+		descripcion: descripcion.value,
+		empleado_id: idEmpleado,
+		fecha_inicio: fecha_inicio.value,
+		fecha_final: fecha_final.value,
+	};
+
+	if (await validarDatosProceso(procesoEditado)) {
+		const r = await useProceso.putProceso(
+			idProcesoSeleccionada.value,
+			procesoEditado
+		);
+		if (r.status == 200) {
+			mostrarFormularioEditarProceso.value = false;
+			actualizarListadoProcesos();
+			console.log("Proceso editado exitosamente", procesoEditado);
+		}
+	}
+}
+
+// Funciones auxiliares
+function showTooltip(event, text) {
+	tooltipText.value = text;
+	tooltipVisible.value = true;
+	tooltipPosition.value = { top: event.clientY, left: event.clientX };
+}
+function hideTooltip() {
+	tooltipVisible.value = false;
+}
+function truncateText(text, maxLength) {
+	if (!text) return "";
+	if (text.length <= maxLength) return text;
+	return text.substring(0, maxLength) + "...";
+}
+function checkAndShowTooltip(event, text, maxLength) {
+	if (text.length > maxLength) {
+		showTooltip(event, text);
+	}
+}
+
+const isLoading = computed(() => visible.value);
+
 onMounted(() => {
+	actualizarListadoProcesos();
+	listarCultivos();
+	listarEmpleados();
+});
+
+watch(selectedOption, () => {
+	actualizarListadoProcesos();
+	isLoading;
+	loadingg;
 });
 </script>
 
 <template>
-<div class="container">
+	<div class="q-pa-md" v-if="!visible">
+		<div>
+			<h3 style="text-align: center; margin: 10px">Procesos</h3>
+			<hr style="width: 70%; height: 5px; background-color: green" />
+		</div>
 
-<div class="title text-h2 text-center">
-Procesos
-</div>
-<hr class="divider">
-<q-table v-if="!loading" flat bordered title="Lista de Procesos" :rows="rows" :columns="columns" row-key="id" class="table">
-<template v-slot:body-cell-opciones="props">
-  <q-td :props="props" class="actions-cell">
-    <q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
-      ✏️
-    </q-btn>
-    <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">
-      ❌
-    </q-btn>
-    <q-btn v-else @click="editarEstado(props.row)" class="btn-activar">
-      ✅
-    </q-btn>
-  </q-td>
-</template>
-<template v-slot:body-cell-estado="props">
-  <q-td :props="props" class="status-cell">
-    <p v-if="props.row.estado == 1" class="status-activo">
-      Activo
-    </p>
-    <p v-else class="status-inactivo">Inactivo</p>
-  </q-td>
-</template>
-</q-table>
-</div>
+		<div
+			class="contSelect"
+			style="margin-left: 5%; text-align: end; margin-right: 5%">
+			<q-select
+				background-color="green"
+				class="q-my-md"
+				v-model="selectedOption"
+				outlined
+				dense
+				options-dense
+				emit-value
+				:options="options" />
+
+			<div
+				v-if="selectedOption === 'Listar Procesos por Fechas'"
+				style="
+					display: flex;
+					flex-direction: row;
+					text-align: center;
+					flex-wrap: wrap;
+					position: absolute;
+					top: 147px;
+					left: 270px;
+				">
+				<label
+					for="fecha1"
+					style="height: 100%; line-height: 88px; margin-left: 40px"
+					>De:</label
+				>
+				<q-input
+					v-model="fecha1"
+					class="q-my-md"
+					type="date"
+					name="search"
+					id="fecha1"
+					placeholder="Ingrese la fecha" />
+
+				<label
+					for="fecha2"
+					style="height: 100%; line-height: 88px; margin-left: 40px"
+					>A:</label
+				>
+				<q-input
+					v-model="fecha2"
+					class="q-my-md"
+					type="date"
+					name="search"
+					id="fecha2"
+					placeholder="Ingrese la fecha" />
+			</div>
+
+			<input
+				v-if="selectedOption === 'Listar Procesos por Empleado'"
+				v-model="empleadoC"
+				class="q-my-md"
+				type="text"
+				name="search"
+				id="empleadoC"
+				placeholder="Ingrese el empleado" />
+
+			<input
+				v-if="selectedOption === 'Listar Procesos por Cultivo'"
+				v-model="listarCultivo"
+				class="q-my-md"
+				type="text"
+				name="search"
+				placeholder="Nombre del cultivo" />
+		</div>
+
+		<div>
+			<div
+				style="margin-left: 5%; text-align: end; margin-right: 5%"
+				class="q-mb-md">
+				<q-btn
+					label="Agregar Proceso"
+					@click="mostrarFormularioAgregarProceso = true">
+					<!-- <q-btn label="Editar Proceso" @click="mostrarFormularioEditarProceso = true" /> -->
+					<q-tooltip> Agregar Proceso </q-tooltip>
+				</q-btn>
+			</div>
+
+			<!-- Dialogo para agregar proceso -->
+			<q-dialog
+				v-model="mostrarFormularioAgregarProceso"
+				v-bind="mostrarFormularioAgregarProceso && limpiarCampos()">
+				<q-card>
+					<q-card-section>
+						<div class="text-h5" style="padding: 10px 0 0 25px">
+							Agregar Proceso
+						</div>
+					</q-card-section>
+
+					<q-card-section>
+						<div class="q-pa-md">
+							<q-form @submit.prevent="agregarProceso">
+								<!-- Campos del formulario de agregar proceso -->
+								<q-select
+									filled
+									outlined
+									v-model="cultivo_id"
+									use-input
+									hide-selected
+									fill-input
+									input-debounce="0"
+									:options="cultivosOptions"
+									label="Cultivo"
+									emit-value
+									map-options
+									@filter="filterFn"
+									@input-value="setModel"
+									class="q-mb-md"
+									style="min-width: 100%"
+									required>
+									<template v-slot:no-option>
+										<q-item>
+											<q-item-section>
+												No results
+											</q-item-section>
+										</q-item>
+									</template>
+								</q-select>
+								<q-select
+									v-model="empleado_id"
+									label="Empleado"
+									filled
+									outlined
+									:options="empleadoOptions"
+									class="q-mb-md"
+									style="max-width: 100%">
+									<template v-slot:no-option>
+										<q-item>
+											<q-item-section>
+												No results
+											</q-item-section>
+										</q-item>
+									</template>
+								</q-select>
+								<q-input
+									v-model="tipo"
+									label="Tipo"
+									filled
+									outlined
+									class="q-mb-md"
+									required />
+								<q-input
+									v-model="descripcion"
+									label="Descripción"
+									filled
+									outlined
+									class="q-mb-md"
+									required />
+								<q-input
+									v-model="fecha_inicio"
+									label="Fecha inicial"
+									filled
+									type="date"
+									outlined
+									class="q-mb-md"
+									required />
+								<q-input
+									v-model="fecha_final"
+									label="Fecha final"
+									filled
+									type="date"
+									outlined
+									class="q-mb-md"
+									required />
+
+								<q-select
+									v-model="estadoProceso"
+									label="Estado"
+									filled
+									outlined
+									:options="estadoOptions"
+									class="q-mb-md"
+									style="max-width: 100%" />
+
+								<!-- Botones de acción -->
+								<div class="q-mt-md">
+									<q-btn
+										@click="cancelarEdicionProceso"
+										label="Cancelar"
+										color="negative"
+										class="q-mr-sm">
+										<q-tooltip> Cancelar </q-tooltip>
+									</q-btn>
+									<q-btn
+										:loading="useProceso.loading"
+										:disable="useProceso.loading"
+										type="submit"
+										label="Guardar proceso"
+										color="primary">
+										<q-tooltip> Guardar proceso </q-tooltip>
+										<template v-slot:loading>
+											<q-spinner
+												color="white"
+												size="1em" />
+										</template>
+									</q-btn>
+								</div>
+							</q-form>
+						</div>
+					</q-card-section>
+				</q-card>
+			</q-dialog>
+
+			<!-- Dialogo para editar proceso -->
+			<q-dialog v-model="mostrarFormularioEditarProceso">
+				<q-card>
+					<q-card-section>
+						<div class="text-h5" style="padding: 10px 0 0 25px">
+							Editar Proceso
+						</div>
+					</q-card-section>
+
+					<q-card-section>
+						<div class="q-pa-md">
+							<q-form @submit.prevent="editarProceso">
+								<!-- Campos del formulario de editar proceso -->
+								<q-select
+									filled
+									outlined
+									v-model="cultivo_id"
+									use-input
+									hide-selected
+									fill-input
+									input-debounce="0"
+									:options="cultivosOptions"
+									label="Cultivo"
+									emit-value
+									map-options
+									@filter="filterFn"
+									@input-value="setModel"
+									class="q-mb-md"
+									style="min-width: 100%">
+									<template v-slot:no-option>
+										<q-item>
+											<q-item-section>
+												No results
+											</q-item-section>
+										</q-item>
+									</template>
+								</q-select>
+								<q-select
+									v-model="empleado_id"
+									label="Empleado"
+									filled
+									outlined
+									:options="empleadoOptions"
+									class="q-mb-md"
+									style="max-width: 100%">
+									<template v-slot:no-option>
+										<q-item>
+											<q-item-section>
+												No results
+											</q-item-section>
+										</q-item>
+									</template>
+								</q-select>
+								<q-input
+									v-model="tipo"
+									label="Tipo"
+									filled
+									outlined
+									class="q-mb-md"
+									required />
+								<q-input
+									v-model="descripcion"
+									label="Descripción"
+									filled
+									outlined
+									class="q-mb-md"
+									required />
+								<q-input
+									v-model="fecha_inicio"
+									label="Fecha inicial"
+									filled
+									type="date"
+									outlined
+									class="q-mb-md"
+									required />
+								<q-input
+									v-model="fecha_final"
+									label="Fecha final"
+									filled
+									type="date"
+									outlined
+									class="q-mb-md"
+									required />
+
+								<!-- Botones de acción -->
+								<div class="q-mt-md">
+									<q-btn
+										@click="cancelarEdicionProceso"
+										label="Cancelar"
+										color="negative"
+										class="q-mr-sm">
+										<q-tooltip> Cancelar </q-tooltip>
+									</q-btn>
+									<q-btn
+										:loading="useProceso.loading"
+										:disable="useProceso.loading"
+										type="submit"
+										label="Guardar cambios"
+										color="primary">
+										<q-tooltip> Guardar cambios </q-tooltip>
+										<template v-slot:loading>
+											<q-spinner
+												color="white"
+												size="1em" />
+										</template>
+									</q-btn>
+								</div>
+							</q-form>
+						</div>
+					</q-card-section>
+				</q-card>
+			</q-dialog>
+		</div>
+
+		<q-table
+			flat
+			bordered
+			title="Procesos"
+			title-class="text-green text-weight-bolder text-h5"
+			:rows="filtrarFilas"
+			:columns="columns"
+			row-key="id"
+			:loading="loadingg">
+			<template v-slot:body-cell-opciones="props">
+				<q-td :props="props">
+					<q-btn @click="cargarProcesoParaEdicion(props.row)">
+						✏️
+						<q-tooltip> Editar Proceso </q-tooltip>
+					</q-btn>
+					<q-btn
+						v-if="props.row.estado == 1"
+						@click="editarEstado(props.row)">
+						❌
+						<q-tooltip> Inactivar Proceso </q-tooltip>
+					</q-btn>
+					<q-btn v-else @click="editarEstado(props.row)">
+						✅
+						<q-tooltip> Activar Proceso </q-tooltip>
+					</q-btn>
+				</q-td>
+			</template>
+
+			<template class="a" v-slot:body-cell-estado="props">
+				<q-td class="b" :props="props">
+					<p
+						:style="{
+							color: props.row.estado === 1 ? 'green' : 'red',
+							margin: 0,
+						}">
+						{{ props.row.estado === 1 ? "Activo" : "Inactivo" }}
+					</p>
+				</q-td>
+			</template>
+
+			<!-- Descripción Column -->
+			<template v-slot:body-cell-descripcion="props">
+				<q-td :props="props" class="relative">
+					<div
+						class="truncated-text"
+						@mouseover="
+							checkAndShowTooltip(
+								$event,
+								props.row.descripcion,
+								20
+							)
+						"
+						@mouseleave="hideTooltip">
+						{{ truncateText(props.row.descripcion, 20) }}
+					</div>
+				</q-td>
+			</template>
+
+			<template v-slot:loading>
+				<q-inner-loading
+					:showing="loadingg"
+					label="Por favor espere..."
+					label-class="text-teal"
+					label-style="font-size: 1.1em">
+				</q-inner-loading>
+			</template>
+		</q-table>
+	</div>
+	<q-inner-loading
+		:showing="isLoading"
+		label="Por favor espere..."
+		label-class="text-teal"
+		label-style="font-size: 1.1em" />
 </template>
 
 <style scoped>
-.container {
-padding: 20px;
-background-color: #f5f5f5;
-border-radius: 10px;
+.contSelect {
+	display: flex;
+	flex-direction: row;
+	gap: 20px;
 }
-.title {
-margin-top: 20px;
-margin-bottom: 20px;
-color: #333;
+
+.q-select {
+	max-width: 200px;
 }
-.divider {
-height: 5px;
-background-color: #007bff;
-border: none;
-margin: 20px 0;
-}
-.table {
-margin-top: 40px;
-border-radius: 10px;
-overflow: hidden;
-}
-.actions-cell {
-display: flex;
-justify-content: space-around;
-align-items: center;
-}
-.btn-editar, .btn-inactivar, .btn-activar {
-font-size: 1pc;
-margin: 5px 5px;
-}
-.btn-editar {
-color: #007bff;
-}
-.btn-inactivar {
-color: #e74c3c;
-}
-.btn-activar {
-color: #2ecc71;
-}
-.status-cell p {
-margin: 0;
-font-weight: bold;
-}
-.status-activo {
-color: #2ecc71;
-}
-.status-inactivo {
-color: #e74c3c;
+
+.q-my-md {
+	max-width: 500px;
+	padding-left: 10px;
 }
 </style>

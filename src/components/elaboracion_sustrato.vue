@@ -1,132 +1,86 @@
-<template>
-  <div>
-    <!-- <q-card>
-      <q-card-section>
-        <q-table
-          :rows="filteredRows"
-          :columns="columns"
-          row-key="_id"
-          :pagination="pagination"
-          :rows-per-page-options="[10, 20, 30]"
-          virtual-scroll>
-          <template v-slot:top-left>
-            <q-select
-              v-model="selectedOption"
-              :options="options"
-              label="Seleccionar opción"
-              outlined
-              dense />
-          </template>
-          <template v-slot:body="props">
-            <q-tr :props="props">
-              <q-td key="fecha" :props="props">
-                {{ formatDate(props.row.fecha) }}
-              </q-td>
-              <q-td key="productoComercial" :props="props">
-                {{ props.row.productoComercial || "-" }}
-              </q-td>
-              <q-td key="ingredienteActivo" :props="props">
-                {{ props.row.ingredienteActivo || "-" }}
-              </q-td>
-              <q-td key="dosisUtilizada" :props="props">
-                {{ props.row.dosisUtilizada || "-" }}
-              </q-td>
-              <q-td key="metodoAplicacion" :props="props">
-                {{ props.row.metodoAplicacion || "-" }}
-              </q-td>
-              <q-td key="empleado_idOperario" :props="props">
-                {{ props.row.empleado_idOperario || "-" }}
-              </q-td>
-              <q-td key="empleado_idResponsable" :props="props">
-                {{ props.row.empleado_idResponsable || "-" }}
-              </q-td>
-              <q-td key="observaciones" :props="props">
-                {{ props.row.observaciones || "-" }}
-              </q-td>
-            </q-tr>
-          </template>
-        </q-table>
-      </q-card-section>
-    </q-card> -->
-  </div>
-</template>
-
 <script setup>
-/* import { ref, computed } from "vue";
-import { QTable, QTd, QSelect } from "quasar";
+import { ref, onMounted } from "vue";
+import { useStoreElaboracion_sustrato } from "../stores/elaboracion_sustrato.js";
 
-const pagination = ref({
-	sortBy: "fecha",
-	descending: true,
-	page: 1,
-	rowsPerPage: 10,
-});
+const useSustrato = useStoreElaboracion_sustrato();
 
-const options = ref([
-	{ label: "Listar Sustratos", value: "Listar Sustratos" },
-	// Agrega más opciones según tus necesidades
+const rows = ref([
+	{
+		_id: "66b4a471806c1caa749bc227",
+		nombre: "Tomate",
+		tipo: "Hortaliza",
+		id_parcela: "64d7a5f9dcb8e4f6476b4f30",
+	},
 ]);
-
-const selectedOption = ref("Listar Sustratos");
-
 const columns = ref([
-	{ name: "fecha", label: "Fecha", align: "center" },
-	{ name: "productoComercial", label: "Producto Comercial", align: "center" },
-	{ name: "ingredienteActivo", label: "Ingrediente Activo", align: "center" },
-	{ name: "dosisUtilizada", label: "Dosis Utilizada", align: "center" },
 	{
-		name: "metodoAplicacion",
-		label: "Método de Aplicación",
+		name: "nombre",
+		label: "Nombre",
+		field: "nombre",
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "tipo",
+		label: "Tipo",
+		field: "tipo",
 		align: "center",
 	},
-	{ name: "empleado_idOperario", label: "ID de Operario", align: "center" },
 	{
-		name: "empleado_idResponsable",
-		label: "ID de Responsable",
+		name: "id_parcela",
+		label: "Parcela",
+		field: "id_parcela",
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "opciones",
+		label: "Opciones",
+		field: "opciones",
 		align: "center",
 	},
-	{ name: "observaciones", label: "Observaciones", align: "center" },
 ]);
 
-const formatDate = (dateString) => {
-	const date = new Date(dateString);
-	return date.toLocaleDateString("es-ES");
-};
-
-const listarSustratos = async () => {
+async function listarSustratos() {
 	try {
-		const response = await Sustrato.find(); // Ajusta esto según cómo consultas los datos
-		return response;
+		const r = await useSustrato.getSustratos();
+		rows.value = r.data.sustratos;
 	} catch (error) {
-		console.error("Error al listar sustratos:", error);
-		return [];
+		console.log(error.message);
 	}
-};
+}
 
-const filteredRows = computed(() => {
-	switch (selectedOption.value) {
-		case "Listar Sustratos":
-			return listarSustratos();
-		// Agrega más casos según tus necesidades
-		default:
-			return [];
-	}
-}); */
+onMounted(() => {
+	listarSustratos();
+});
 </script>
 
-<style scoped>
-/* .contSelect {
-	display: flex;
-	flex-direction: row;
-	gap: 20px;
-}
+<template>
+	<div>
+		<q-table
+			flat
+			bordered
+			title="Climas"
+			:rows="rows"
+			:columns="columns"
+			row-key="id">
+			<template v-slot:body-cell-opciones="props">
+				<q-td :props="props">
+					<q-btn> ✏️ </q-btn>
+					<q-btn v-if="props.row.estado == 1"> ❌ </q-btn>
+					<q-btn v-else> ✅ </q-btn>
+				</q-td>
+			</template>
+			<template v-slot:body-cell-estado="props">
+				<q-td :props="props">
+					<p v-if="props.row.estado == 1" style="color: green">
+						Activo
+					</p>
+					<p v-else style="color: red">Inactivo</p>
+				</q-td>
+			</template>
+		</q-table>
+	</div>
+</template>
 
-.q-select {
-	max-width: 250px; 
-}
-
-.q-my-md {
-	max-width: 500px;
-	padding-left: 10px;
-} */
-</style>
+<style scoped></style>

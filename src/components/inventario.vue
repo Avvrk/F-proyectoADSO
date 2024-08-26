@@ -1,142 +1,463 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
+import { useStoreInventario } from "../stores/inventario.js";
 import { useQuasar } from "quasar";
+
 const $q = useQuasar();
-// Variables para el funcionamiento de la tabla
-let rows = ref([
-  {
-    tipo: 'Insumo' ,
-    observacion: 'Nuevo lote de pesticida recibido' ,
-    unidad: 'litros' ,
-    cantidad: '150' ,
-    fecha: '2024-08-15',
-    insumos_id: '4b4c6fbfd8a6bfa9',
-  },
 
-  {
-    tipo: 'Semilla' ,
-    observacion: 'Lote de semillas de maíz recibido' ,
-    unidad: 'kilogramos' ,
-    cantidad: '500' ,
-    fecha: '2024-08-20',
-    semillas_id: '4b4c6fbfd8a6bf',
-  },
-  {
-    tipo: 'Maquinaria' ,
-    observacion: 'Nueva sembradora adquirida' ,
-    unidad: 'unidad' ,
-    cantidad: '1' ,
-    fecha: '2024-08-25',
-    maquinaria_id: 'b4c6fbfd8a6bfa',
-  },
-  {
-    tipo: 'Herramienta' ,
-    observacion: 'Nueva podadora adquirida para la cosecha' ,
-    unidad: 'unidad' ,
-    cantidad: '3' ,
-    fecha: '2024-08-30',
-    maquinaria_id: 'fd8a6bfa9e0',
-  },
+const useInventario = useStoreInventario();
 
+const opcionesTabla = ["Todos", "Fechas"];
 
+const tipos = ref([]);
+const semilla = ref([]);
+const insumo = ref([]);
+const maquina = ref([]);
+const rows = ref([]);
+const columns = ref([
+	{
+		name: "fecha",
+		label: "Fecha",
+		field: (row) => {
+			const fechaa = `${row.fecha}`;
+			return fechaa.split("T")[0];
+		},
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "tipo",
+		label: "Tipo",
+		field: "tipo",
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "observacion",
+		label: "Observación",
+		field: "observacion",
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "unidad",
+		label: "Unidad",
+		field: "unidad",
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "cantidad",
+		label: "Cantidad",
+		field: "cantidad",
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "semillas_id",
+		label: "Semilla",
+		field: (row) =>
+			row.semillas_id ? row.semillas_id.especieVariedad : "?",
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "insumos_id",
+		label: "Insumo",
+		field: (row) => (row.insumos_id ? row.insumos_id.nombre : "?"),
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "maquinaria_id",
+		label: "Maquinaria",
+		field: (row) =>
+			row.maquinaria_id
+				? `${row.maquinaria_id.nombre} (tipo:${row.maquinaria_id.tipo})`
+				: "?",
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "opciones",
+		label: "Opciones",
+		field: "opciones",
+		align: "center",
+	},
 ]);
-let columns = ref([
-  { name: 'tipo', align: 'center', label: 'Tipo', field: 'tipo', sortable: true },
-  { name: 'observacion', align: 'center', label: 'Observación', field: 'observacion', sortable: true },
-  { name: 'unidad', align: 'center', label: 'Unidad', field: 'unidad', sortable: true },
-  { name: 'cantidad', align: 'center', label: 'Cantidad', field: 'cantidad', sortable: true },
-  { name: 'fecha', align: 'center', label: 'Fecha', field: 'fecha', sortable: true },
-  { name: 'semillas_id', align: 'center', label: 'Id Semilla', field: 'semillas_id', sortable: true },
-  { name: 'insumos_id', align: 'center', label: 'Id Insumo', field: 'insumos_id', sortable: true },
-  { name: 'maquinaria_id', align: 'center', label: 'Id Herramienta', field: 'maquinaria_id', sortable: true },
 
+const fechaInventario = ref("");
+const tipoInventario = ref("");
+const observacionInventario = ref("");
+const unidadInventario = ref("");
+const cantidadInventario = ref(0);
+const semillasInventario = ref("");
+const insumosInventario = ref("");
+const maquinariaInventario = ref("");
 
-]);
+const opcionTabla = ref("Todos");
+
+const fechaInicio = ref("");
+const fechaFin = ref("");
+// const tipo = ref("");
+
+const datos = ref([]);
+
+const mostrarFormularioInventario = ref(false);
+const mostrarBotonEditar = ref(false);
+const loading = ref(true);
+
+// const opcionesTipos = computed(() => {
+// 	return tipos.value.map((tipo) => {
+// 		return { label: tipo, value: tipo };
+// 	});
+// });
+
+const opcionesSemillas = computed(() => {
+	return semilla.value.map((s) => {
+		return { label: `${s.especieVariedad}`, id: `${s._id}` };
+	});
+});
+
+const opcionesInsumos = computed(() => {
+	return insumo.value.map((i) => {
+		return { label: `${i.nombre}`, id: `${i._id}` };
+	});
+});
+
+const opcionesMaquinaria = computed(() => {
+	return maquina.value.map((m) => {
+		return { label: `${m.nombre} (tipo: ${m.tipo})`, id: `${m._id}` };
+	});
+});
+
+async function listarsemilla() {
+	try {
+		loading.value = true;
+		const r = await useInventario.getSemillas();
+		semilla.value = r.data.semillas;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function listarinsumos() {
+	try {
+		loading.value = true;
+		const r = await useInventario.getInsumos();
+		insumo.value = r.data.insumos;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function listarmaquinariaHerramienta() {
+	try {
+		loading.value = true;
+		const r = await useInventario.getMaquinaria();
+		maquina.value = r.data.maquinariaH;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function listarInventario() {
+	try {
+		loading.value = true;
+		const r = await useInventario.getInventario();
+		rows.value = r.data.inventario;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function listarInventarioFechas() {
+	if (fechaInicio.value && fechaFin.value) {
+		try {
+			loading.value = true;
+			const r = await useInventario.getInventarioFechas(
+				fechaInicio.value,
+				fechaFin.value
+			);
+			rows.value = r.data.inventario;
+		} finally {
+			loading.value = false;
+		}
+	} else {
+		$q.notify({
+			type: "negative",
+			message: "Llena los campos",
+			position: "bottom",
+		});
+	}
+}
+
+// async function listarInventarioTipo() {
+// 	if (tipo.value) {
+// 		try {
+// 			loading.value = true;
+// 			const r = await useInventario.getInventarioTipo(tipo.value);
+// 			rows.value = r.data.inventario;
+// 		} finally {
+// 			loading.value = false;
+// 		}
+// 	} else {
+// 		$q.notify({
+// 			type: "negative",
+// 			message: "Selecciona un tipo",
+// 			position: "bottom",
+// 		});
+// 	}
+// }
+
+async function registrar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				fecha: fechaInventario.value,
+				tipo: tipoInventario.value,
+				observacion: observacionInventario.value,
+				unidad: unidadInventario.value,
+				cantidad: cantidadInventario.value,
+				semillas_id: semillasInventario.value
+					? semillasInventario.value.id
+					: null,
+				insumos_id: insumosInventario.value
+					? insumosInventario.value.id
+					: null,
+				maquinaria_id: maquinariaInventario.value
+					? maquinariaInventario.value.id
+					: null,
+			};
+
+			console.log(info);
+
+			const res = await useInventario.postInventario(info);
+			if (res.status === 200) {
+				mostrarFormularioInventario.value = false;
+				listarInventario();
+			}
+		} finally {
+			loading.value = false;
+		}
+	}
+}
+
+async function editar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				fecha: fechaInventario.value,
+				tipo: tipoInventario.value,
+				observacion: observacionInventario.value,
+				unidad: unidadInventario.value,
+				cantidad: cantidadInventario.value,
+				semillas_id: semillasInventario.value
+					? semillasInventario.value.id
+					: null,
+				insumos_id: insumosInventario.value
+					? insumosInventario.value.id
+					: null,
+				maquinaria_id: maquinariaInventario.value
+					? maquinariaInventario.value.id
+					: null,
+			};
+
+			const res = await useInventario.putInventario(
+				datos.value._id,
+				info
+			);
+			if (res.status === 200) {
+				mostrarFormularioInventario.value = false;
+				listarInventario();
+			}
+		} finally {
+			loading.value = false;
+		}
+	}
+}
+
+function validarDatos() {
+	let validacion = true;
+	if (
+		!fechaInventario.value ||
+		!tipoInventario.value ||
+		!unidadInventario.value ||
+		!cantidadInventario.value
+	) {
+		$q.notify({
+			type: "negative",
+			message: "Llena todos los campos obligatorios",
+			position: "bottom",
+		});
+		validacion = false;
+	}
+	return validacion;
+}
+
+function controlFormulario(obj, boolean) {
+	fechaInventario.value = "";
+	tipoInventario.value = "";
+	observacionInventario.value = "";
+	unidadInventario.value = "";
+	cantidadInventario.value = 0;
+	semillasInventario.value = "";
+	insumosInventario.value = "";
+	maquinariaInventario.value = "";
+
+	datos.value = obj;
+	mostrarBotonEditar.value = false;
+	if (obj != null && boolean == true) {
+		fechaInventario.value = datos.value.fecha.split("T")[0];
+		tipoInventario.value = datos.value.tipo;
+		observacionInventario.value = datos.value.observacion;
+		unidadInventario.value = datos.value.unidad;
+		cantidadInventario.value = datos.value.cantidad;
+		semillasInventario.value = datos.value.semillas_id
+			? opcionesSemillas.value.find(
+					(s) => s.id == datos.value.semillas_id
+			  )
+			: "";
+		insumosInventario.value = datos.value.insumos_id
+			? opcionesInsumos.value.find(
+					(i) => i.id == datos.value.insumos_id._id
+			  )
+			: "";
+		maquinariaInventario.value = datos.value.maquinaria_id
+			? opcionesMaquinaria.value.find(
+					(m) => m.id == datos.value.maquinaria_id
+			  )
+			: "";
+
+		mostrarBotonEditar.value = true;
+	}
+	mostrarFormularioInventario.value = boolean;
+}
+
+watch(opcionTabla, (newValue) => {
+	if (newValue === "Todos") {
+		listarInventario();
+	}
+});
+
+function estadoTabla() {
+	if (opcionTabla.value == "Fechas") {
+		listarInventarioFechas();
+	} else {
+		listarInventario();
+	}
+}
+
 onMounted(() => {
+	listarInventario();
+	listarinsumos();
+	listarsemilla();
+	listarmaquinariaHerramienta();
 });
 </script>
 
 <template>
-<div class="container">
+	<div>
+		<div>
+			<q-btn @click="controlFormulario(null, true)" label="Agregar" />
+		</div>
+		<div v-if="opcionTabla != 'Todos'">
+			<q-btn label="Realizar" @click="estadoTabla()" />
+		</div>
+		<q-table
+			flat
+			bordered
+			title="Inventario"
+			:rows="rows"
+			:columns="columns"
+			row-key="id"
+			:loading="loading">
+			<template v-slot:top>
+				<q-input
+					v-if="opcionTabla == 'Fechas'"
+					v-model="fechaInicio"
+					type="date"
+					label="Fecha Inicio" />
+				<q-input
+					v-if="opcionTabla == 'Fechas'"
+					v-model="fechaFin"
+					type="date"
+					label="Fecha Fin" />
+				<q-btn
+					v-if="opcionTabla != 'Todos'"
+					label="Buscar"
+					@click="listarInventarioFechas()" />
+				<q-select
+					filled
+					v-model="opcionTabla"
+					:options="opcionesTabla"
+					label="Filtrar por" />
+			</template>
+			<template v-slot:body-cell-opciones="props">
+				<q-td :props="props">
+					<q-btn
+						@click="controlFormulario(props.row, true)"
+						color="primary"
+						label="Editar" />
+				</q-td>
+			</template>
+		</q-table>
 
-<div class="title text-h2 text-center">
-Inventario
-</div>
-<hr class="divider">
-<q-table v-if="!loading" flat bordered title="Lista de Inventario" :rows="rows" :columns="columns" row-key="id" class="table">
-<template v-slot:body-cell-opciones="props">
-  <q-td :props="props" class="actions-cell">
-    <q-btn @click="editarVistaFondo(true, props.row, false)" class="btn-editar">
-      ✏️
-    </q-btn>
-    <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)" class="btn-inactivar">
-      ❌
-    </q-btn>
-    <q-btn v-else @click="editarEstado(props.row)" class="btn-activar">
-      ✅
-    </q-btn>
-  </q-td>
-</template>
-<template v-slot:body-cell-estado="props">
-  <q-td :props="props" class="status-cell">
-    <p v-if="props.row.estado == 1" class="status-activo">
-      Activo
-    </p>
-    <p v-else class="status-inactivo">Inactivo</p>
-  </q-td>
-</template>
-</q-table>
-</div>
+		<q-dialog v-model="mostrarFormularioInventario">
+			<q-card>
+				<q-card-section>
+					<div class="text-h6">
+						{{
+							mostrarBotonEditar
+								? "Editar Inventario"
+								: "Agregar Inventario"
+						}}
+					</div>
+				</q-card-section>
+				<q-card-section>
+					<q-input
+						v-model="fechaInventario"
+						type="date"
+						label="Fecha" />
+					<q-input v-model="tipoInventario" label="Tipo" />
+					<q-input
+						v-model="observacionInventario"
+						label="Observación" />
+					<q-input v-model="unidadInventario" label="Unidad" />
+					<q-input
+						v-model="cantidadInventario"
+						type="number"
+						label="Cantidad" />
+					<q-select
+						v-model="semillasInventario"
+						:options="opcionesSemillas"
+						label="Semilla" />
+					<q-select
+						v-model="insumosInventario"
+						:options="opcionesInsumos"
+						label="Insumo" />
+					<q-select
+						v-model="maquinariaInventario"
+						:options="opcionesMaquinaria"
+						label="Maquinaria" />
+				</q-card-section>
+				<q-card-actions>
+					<q-btn
+						@click="mostrarFormularioInventario = false"
+						color="secondary"
+						label="Cancelar" />
+					<q-btn
+						@click="mostrarBotonEditar ? editar() : registrar()"
+						color="primary"
+						label="Guardar" />
+				</q-card-actions>
+			</q-card>
+		</q-dialog>
+	</div>
 </template>
 
 <style scoped>
-.container {
-padding: 20px;
-background-color: #f5f5f5;
-border-radius: 10px;
-}
-.title {
-margin-top: 20px;
-margin-bottom: 20px;
-color: #333;
-}
-.divider {
-height: 5px;
-background-color: #007bff;
-border: none;
-margin: 20px 0;
-}
-.table {
-margin-top: 40px;
-border-radius: 10px;
-overflow: hidden;
-}
-.actions-cell {
-display: flex;
-justify-content: space-around;
-align-items: center;
-}
-.btn-editar, .btn-inactivar, .btn-activar {
-font-size: 1pc;
-margin: 5px 5px;
-}
-.btn-editar {
-color: #007bff;
-}
-.btn-inactivar {
-color: #e74c3c;
-}
-.btn-activar {
-color: #2ecc71;
-}
-.status-cell p {
-margin: 0;
-font-weight: bold;
-}
-.status-activo {
-color: #2ecc71;
-}
-.status-inactivo {
-color: #e74c3c;
-}
+/* Agrega estilos personalizados aquí si es necesario */
 </style>

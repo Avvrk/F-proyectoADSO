@@ -1,3 +1,5 @@
+import { Notify } from "quasar";
+
 import Home from "../components/home.vue";
 import Login from "../components/Login.vue";
 import barraLateral from "../components/barraLateral.vue";
@@ -28,6 +30,26 @@ import Semillas from "../components/semillas.vue";
 import Siembra from "../components/siembra.vue";
 
 import { createRouter, createWebHashHistory } from "vue-router";
+
+export const notifyErrorRequest = (msg, position = "bottom") => {
+	Notify.create({
+		color: "negative",
+		message: msg,
+		icon: "error",
+		position: position,
+		timeout: 4500,
+	});
+};
+
+export const notifySuccessRequest = (msg, position = "bottom") => {
+	Notify.create({
+		color: "positive",
+		message: msg,
+		icon: "check",
+		position: position,
+		timeout: 3500,
+	});
+};
 
 /* const auth = (to, from, next) => {
     if (checkAuth()) {
@@ -62,7 +84,7 @@ const routes = [
             { path: "Comprador", component: Comprador, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
             { path: "ControlPlagas", component: Control_de_Plagas, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
             { path: "Cultivos", component: Cultivos, /* beforeEnter: auth, meta: { rol: ["Administrador"] } */ },
-            { path: "Elaboracion de Sustrato", component: Elaboracion_de_Sustrato, /* beforeEnter: auth, meta: { rol: ["Administrador"] } */ },
+            { path: "ElaboracionSustrato", component: Elaboracion_de_Sustrato, /* beforeEnter: auth, meta: { rol: ["Administrador"] } */ },
             { path: "Empleados", component: Empleados, /* beforeEnter: auth, meta: { rol: ["Administrador"] } */ },
             { path: "Factura", component: Factura, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },
             { path: "Fertilizacion", component: Fertilizacion, /* beforeEnter: auth, meta: { rol: ["Administrador", "Recepcionista"] } */ },

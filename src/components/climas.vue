@@ -1,446 +1,521 @@
 <script setup>
-/* import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useStoreClimas } from "../stores/climas.js";
+import { useQuasar } from "quasar";
+
+const $q = useQuasar();
 
 const useClima = useStoreClimas();
 
-const finca_id = ref("");
-const empleado_id = ref("");
-const fecha = ref("");
-const tipoClima = ref("");
-const horaInicio = ref("");
-const horaFinal = ref("");
-const temperaturaMaxima = ref("");
-const temperaturaMinima = ref("");
-
-const mostrarFormularioAgregarClima = ref(false);
-const mostrarFormularioEditarClima = ref(false);
-const idClimaSeleccionado = ref(null);
-
-const options = ref([
-	{ label: "Listar Clima por Fecha", value: "fecha" },
-	{ label: "Listar Clima por Tipo", value: "tipoClima" },
-]);
-
-const selectedOption = ref("");
-const fechaSeleccionada = ref("");
-const tipoClimaSeleccionado = ref("");
-
+const opcionesTabla = ["Todos", "Climas", "Fechas"];
+const tiposDeClima = [
+	"Soleado",
+	"Nublado",
+	"Lluvioso",
+	"Tormentoso",
+	"Ventoso",
+	"Nevado",
+	"Húmedo",
+	"Seco",
+	"Frío",
+	"Caluroso",
+];
+const fincas = ref([]);
+const empleados = ref([]);
 const rows = ref([]);
 const columns = ref([
-	{ name: "finca_id", label: "Finca ID", field: "finca_id", align: "center" },
+	{
+		name: "finca_id",
+		label: "Finca",
+		field: (row) => `${row.finca_id.nombre} (rut: ${row.finca_id.rut})`,
+		align: "center",
+		sortable: true,
+	},
 	{
 		name: "empleado_id",
-		label: "Empleado ID",
-		field: "empleado_id",
+		label: "Empleado",
+		field: (row) =>
+			`${row.empleado_id.nombre} (dni: ${row.empleado_id.documento})`,
 		align: "center",
 	},
 	{
 		name: "fecha",
 		label: "Fecha",
+		field: (row) => {
+			return row.fecha.split("T")[0];
+		},
 		align: "center",
-		field: (row) => format(new Date(row.fecha), "dd/MM/yyyy"),
+		sortable: true,
 	},
 	{
 		name: "tipoClima",
-		label: "Tipo de Clima",
+		label: "Clima",
 		field: "tipoClima",
 		align: "center",
 	},
 	{
 		name: "horaInicio",
-		label: "Hora de Inicio",
+		label: "Hora Inicial",
 		field: "horaInicio",
 		align: "center",
+		sortable: true,
 	},
 	{
 		name: "horaFinal",
 		label: "Hora Final",
 		field: "horaFinal",
 		align: "center",
+		sortable: true,
 	},
 	{
 		name: "temperaturaMaxima",
-		label: "Temperatura Máxima",
+		label: "Temperatura Maxima",
 		field: "temperaturaMaxima",
 		align: "center",
+		sortable: true,
 	},
 	{
 		name: "temperaturaMinima",
-		label: "Temperatura Mínima",
+		label: "Temperatura Minima",
 		field: "temperaturaMinima",
 		align: "center",
+		sortable: true,
 	},
-	{ name: "opciones", label: "Opciones", field: "opciones", align: "center" },
+	{
+		name: "opciones",
+		label: "Opciones",
+		field: "opciones",
+		align: "center",
+	},
 ]);
+
+// Variables necesarias en el formulario
+const fincaClima = ref("");
+const empleadoClima = ref("");
+const fechaClima = ref("");
+const tipoClima = ref("");
+const horaInicioClima = ref("");
+const horaFinClima = ref("");
+const temperaturaMaximaClima = ref("");
+const temperaturaMinimaClima = ref("");
+
+// Varibale que controla lo que se mostrara en la tabla
+const opcionTabla = ref("Todos");
+
+const clima = ref("");
+const fecha = ref("");
+
+// Variable que contiene los datos de la persona al editar
+const datos = ref([]);
+
+// Variables que controlar no que se va a mostrar en la pantalla
+const mostraInput = ref(false);
+const mostrarSelectClimas = ref(false);
+const mostrarInputFecha = ref(false);
+const mostrarFormularioClima = ref(false);
+const mostrarBotonEditar = ref(false);
+const loading = ref(true);
+
+const opcionesFincas = computed(() => {
+	return fincas.value.map((f) => {
+		return { label: `${f.nombre} (rut: ${f.rut})`, id: `${f._id}` };
+	});
+});
+
+const opcionesEmpleados = computed(() => {
+	return empleados.value.map((emp) => {
+		return { label: `${emp.nombre} (dni: ${emp.documento})`, id: emp._id };
+	});
+});
+
+async function listarFincas() {
+	try {
+		loading.value = true;
+		const r = await useClima.getFincas();
+		fincas.value = r.data.fincas;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function listarEmpleados() {
+	try {
+		loading.value = true;
+		const r = await useClima.getEmpleados();
+		empleados.value = r.data.empleados;
+	} finally {
+		loading.value = false;
+	}
+}
 
 async function listarClimas() {
 	try {
-		const response = await useClima.getClimas();
-		rows.value = response.data;
+		const r = await useClima.getClimas();
+		rows.value = r.data.climas;
 	} catch (error) {
-		console.error("Error al listar climas:", error);
-		rows.value = [];
+		console.log(error.message);
 	}
 }
 
-async function agregarClima() {
-	const nuevoClima = {
-		finca_id: finca_id.value,
-		empleado_id: empleado_id.value,
-		fecha: fecha.value,
-		tipoClima: tipoClima.value,
-		horaInicio: horaInicio.value,
-		horaFinal: horaFinal.value,
-		temperaturaMaxima: temperaturaMaxima.value,
-		temperaturaMinima: temperaturaMinima.value,
-	};
-
+async function listarClimasPorClima() {
 	try {
-		const response = await useClima.postClima(nuevoClima);
-		if (response.status === 200) {
-			listarClimas();
-			mostrarFormularioAgregarClima.value = false;
-			limpiarCampos();
-		} else {
-			console.error("Error al agregar clima:", response);
-		}
-	} catch (error) {
-		console.error("Error al agregar clima:", error);
+		loading.value;
+		const r = await useClima.getClimasPorClimas(clima.value);
+		rows.value = r.data.climas;
+	} finally {
+		loading.value;
 	}
 }
 
-function cargarClimaParaEdicion(clima) {
-	idClimaSeleccionado.value = clima._id;
-	finca_id.value = clima.finca_id;
-	empleado_id.value = clima.empleado_id;
-	fecha.value = clima.fecha;
-	tipoClima.value = clima.tipoClima;
-	horaInicio.value = clima.horaInicio;
-	horaFinal.value = clima.horaFinal;
-	temperaturaMaxima.value = clima.temperaturaMaxima;
-	temperaturaMinima.value = clima.temperaturaMinima;
-	mostrarFormularioEditarClima.value = true;
-}
-
-async function editarClima() {
-	const climaActualizado = {
-		finca_id: finca_id.value,
-		empleado_id: empleado_id.value,
-		fecha: fecha.value,
-		tipoClima: tipoClima.value,
-		horaInicio: horaInicio.value,
-		horaFinal: horaFinal.value,
-		temperaturaMaxima: temperaturaMaxima.value,
-		temperaturaMinima: temperaturaMinima.value,
-	};
-
+async function listarClimasFechas() {
 	try {
-		const response = await useClima.putClima(
-			idClimaSeleccionado.value,
-			climaActualizado
-		);
-		if (response.status === 200) {
-			listarClimas();
-			mostrarFormularioEditarClima.value = false;
-			limpiarCampos();
-		} else {
-			console.error("Error al editar clima:", response);
-		}
-	} catch (error) {
-		console.error("Error al editar clima:", error);
+		loading.value;
+		const r = await useClima.getClimasFechas(fecha.value);
+		rows.value = r.data.climas;
+	} finally {
+		loading.value;
 	}
 }
 
-async function eliminarClima(id) {
-	try {
-		const response = await useClima.deleteClima(id);
-		if (response.status === 200) {
-			listarClimas();
-		} else {
-			console.error("Error al eliminar clima:", response);
+async function registrar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				finca_id: fincaClima.value.id,
+				empleado_id: empleadoClima.value.id,
+				fecha: fechaClima.value,
+				tipoClima: tipoClima.value,
+				horaInicio: horaInicioClima.value,
+				horaFinal: horaFinClima.value,
+				temperaturaMaxima: temperaturaMaximaClima.value,
+				temperaturaMinima: temperaturaMinimaClima.value,
+			};
+
+			const r = await useClima.postClimas(info);
+			if (r.status == 200) {
+				mostrarFormularioClima.value = false;
+				listarClimas();
+			}
+		} finally {
+			loading.value = false;
 		}
-	} catch (error) {
-		console.error("Error al eliminar clima:", error);
 	}
 }
 
-function cancelarClima() {
-	mostrarFormularioAgregarClima.value = false;
-	mostrarFormularioEditarClima.value = false;
-	limpiarCampos();
+async function editar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				finca_id: fincaClima.value.id,
+				empleado_id: empleadoClima.value.id,
+				fecha: fechaClima.value,
+				tipoClima: tipoClima.value,
+				horaInicio: horaInicioClima.value,
+				horaFinal: horaFinClima.value,
+				temperaturaMaxima: temperaturaMaximaClima.value,
+				temperaturaMinima: temperaturaMinimaClima.value,
+			};
+			console.log(info);
+
+			const r = await useClima.putClimas(datos.value._id, info);
+			if (r.status == 200) {
+				mostrarFormularioClima.value = false;
+				listarClimas();
+			}
+		} finally {
+			loading.value = false;
+		}
+	}
 }
 
-function limpiarCampos() {
-	finca_id.value = "";
-	empleado_id.value = "";
-	fecha.value = "";
-	tipoClima.value = "";
-	horaInicio.value = "";
-	horaFinal.value = "";
-	temperaturaMaxima.value = "";
-	temperaturaMinima.value = "";
-	idClimaSeleccionado.value = null;
-}
+function validarDatos() {
+	let validacion = true;
 
-const filteredRows = computed(() => {
-	if (selectedOption.value === "fecha" && fechaSeleccionada.value) {
-		return rows.value.filter(
-			(row) => row.fecha === fechaSeleccionada.value
-		);
-	} else if (
-		selectedOption.value === "tipoClima" &&
-		tipoClimaSeleccionado.value
+	if (
+		!fincaClima.value &&
+		!empleadoClima.value &&
+		!fechaClima.value &&
+		!tipoClima.value &&
+		!horaInicioClima.value &&
+		!horaFinClima.value &&
+		!temperaturaMaximaClima.value.trim() &&
+		!temperaturaMinimaClima.value.trim()
 	) {
-		return rows.value.filter((row) =>
-			row.tipoClima
-				.toLowerCase()
-				.includes(tipoClimaSeleccionado.value.toLowerCase())
-		);
-	}
-	return rows.value;
-});
+		$q.notify({
+			type: "negative",
+			message: "Llena todos los campos",
+			position: "bottom",
+		});
 
-function selectAllText(event) {
-	event.target.select();
+		validacion = false;
+	} else {
+		if (!fincaClima.value) {
+			$q.notify({
+				type: "negative",
+				message: "La finca esta vacia",
+				position: "bottom",
+			});
+
+			validacion = false;
+		}
+		if (!empleadoClima.value) {
+			$q.notify({
+				type: "negative",
+				message: "El empleado esta vacio",
+				position: "bottom",
+			});
+
+			validacion = false;
+		}
+		if (!fechaClima.value) {
+			$q.notify({
+				type: "negative",
+				message: "La fecha esta vacia",
+				position: "bottom",
+			});
+
+			validacion = false;
+		}
+		if (!tipoClima.value) {
+			$q.notify({
+				type: "negative",
+				message: "El tipo del clima esta vacio",
+				position: "bottom",
+			});
+
+			validacion = false;
+		}
+		if (!horaInicioClima.value) {
+			$q.notify({
+				type: "negative",
+				message: "La hora inicio esta vacia",
+				position: "bottom",
+			});
+
+			validacion = false;
+		}
+		if (!horaFinClima.value) {
+			$q.notify({
+				type: "negative",
+				message: "La hora fin esta vacia",
+				position: "bottom",
+			});
+
+			validacion = false;
+		}
+		if (!temperaturaMaximaClima.value) {
+			$q.notify({
+				type: "negative",
+				message: "La temperatura maxima esta vacia",
+				position: "bottom",
+			});
+
+			validacion = false;
+		}
+		if (!temperaturaMinimaClima.value) {
+			$q.notify({
+				type: "negative",
+				message: "La temperatura minima esta vacia",
+				position: "bottom",
+			});
+
+			validacion = false;
+		}
+	}
+
+	return validacion;
+}
+
+function controlFormulario(obj, boolean) {
+	fincaClima.value = "";
+	empleadoClima.value = "";
+	fechaClima.value = "";
+	tipoClima.value = "";
+	horaInicioClima.value = "";
+	horaFinClima.value = "";
+	temperaturaMaximaClima.value = "";
+	temperaturaMinimaClima.value = "";
+
+	datos.value = obj;
+	mostrarBotonEditar.value = false;
+	if (obj != null && boolean == true) {
+		fincaClima.value = opcionesFincas.value.find(
+			(f) => f.id == datos.value.finca_id._id
+		);
+		empleadoClima.value = opcionesEmpleados.value.find(
+			(e) => e.id == datos.value.empleado_id._id
+		);
+		fechaClima.value = datos.value.fecha.split("T")[0];
+		tipoClima.value = datos.value.tipoClima;
+		horaInicioClima.value = datos.value.horaInicio;
+		horaFinClima.value = datos.value.horaFinal;
+		temperaturaMaximaClima.value = datos.value.temperaturaMaxima;
+		temperaturaMinimaClima.value = datos.value.temperaturaMinima;
+
+		mostrarBotonEditar.value = true;
+	}
+	mostrarFormularioClima.value = boolean;
+}
+
+function estadoTabla() {
+	if (opcionTabla.value == "Climas") {
+		mostrarInputFecha.value = false;
+		mostrarSelectClimas.value = true;
+		mostraInput.value = true;
+	} else if (opcionTabla.value == "Fechas") {
+		mostrarSelectClimas.value = false;
+		mostrarInputFecha.value = true;
+		mostraInput.value = true;
+	} else {
+		mostrarSelectClimas.value = false;
+		mostrarInputFecha.value = false;
+		mostraInput.value = false;
+		listarClimas();
+	}
 }
 
 onMounted(() => {
+	listarFincas();
+	listarEmpleados();
 	listarClimas();
-}); */
+});
 </script>
 
 <template>
-	<div class="q-pa-md">
-		<!-- <div>
-			<div>
-				<h3 style="text-align: center; margin: 10px">Clima</h3>
-				<hr style="width: 70%; height: 5px; background-color: green" />
-			</div>
-
-			<div
-				class="contSelect"
-				style="margin-left: 5%; text-align: end; margin-right: 5%">
+	<div>
+		<div>
+			<q-btn @click="controlFormulario(null, true)" label="Agregar" />
+		</div>
+		<q-table
+			flat
+			bordered
+			title="Climas"
+			:rows="rows"
+			:columns="columns"
+			row-key="id">
+			<template v-slot:top>
 				<q-select
-					background-color="green"
-					class="q-my-md"
-					v-model="selectedOption"
-					outlined
-					dense
-					emit-value
-					:options="options" />
-				<input
-					v-if="selectedOption === 'fecha'"
-					v-model="fechaSeleccionada"
-					class="q-my-md"
+					v-if="mostrarSelectClimas"
+					label="Responsable"
+					:options="tiposDeClima"
+					v-model="clima" />
+				<q-input
+					v-if="mostrarInputFecha"
+					label="Fecha"
 					type="date"
-					name="search"
-					id="search"
-					placeholder="Fecha"
-					@dblclick="selectAllText" />
-				<input
-					v-if="selectedOption === 'tipoClima'"
-					v-model="tipoClimaSeleccionado"
-					class="q-my-md"
-					type="text"
-					name="search"
-					id="search"
-					placeholder="Tipo de Clima"
-					@dblclick="selectAllText" />
-			</div>
-
-			<div
-				style="margin-left: 5%; text-align: end; margin-right: 5%"
-				class="q-my-md">
+					v-model="fecha" />
 				<q-btn
-					label="Agregar Clima"
-					@click="mostrarFormularioAgregarClima = true">
-					<q-tooltip> Agregar Clima </q-tooltip>
-				</q-btn>
-			</div>
-
-			<q-dialog v-model="mostrarFormularioAgregarClima">
-				<q-card>
-					<q-card-section>
-						<div class="text-h5">Agregar Clima</div>
-					</q-card-section>
-
-					<q-card-section>
-						<q-form @submit.prevent="agregarClima">
-							<q-input
-								v-model="finca_id"
-								label="ID de Finca"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="empleado_id"
-								label="ID de Empleado"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="fecha"
-								label="Fecha"
-								type="date"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="tipoClima"
-								label="Tipo de Clima"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="horaInicio"
-								label="Hora de Inicio"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="horaFinal"
-								label="Hora de Finalización"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="temperaturaMaxima"
-								label="Temperatura Máxima"
-								type="number"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="temperaturaMinima"
-								label="Temperatura Mínima"
-								type="number"
-								filled
-								required
-								class="q-mb-md" />
-
-							<div class="q-gutter-md row justify-center">
-								<q-btn
-									label="Agregar"
-									type="submit"
-									color="primary" />
-								<q-btn
-									label="Cancelar"
-									color="negative"
-									@click="cancelarClima" />
-							</div>
-						</q-form>
-					</q-card-section>
-				</q-card>
-			</q-dialog>
-
-			<q-dialog v-model="mostrarFormularioEditarClima">
-				<q-card>
-					<q-card-section>
-						<div class="text-h5">Editar Clima</div>
-					</q-card-section>
-
-					<q-card-section>
-						<q-form @submit.prevent="editarClima">
-							<q-input
-								v-model="finca_id"
-								label="ID de Finca"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="empleado_id"
-								label="ID de Empleado"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="fecha"
-								label="Fecha"
-								type="date"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="tipoClima"
-								label="Tipo de Clima"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="horaInicio"
-								label="Hora de Inicio"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="horaFinal"
-								label="Hora de Finalización"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="temperaturaMaxima"
-								label="Temperatura Máxima"
-								type="number"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model="temperaturaMinima"
-								label="Temperatura Mínima"
-								type="number"
-								filled
-								required
-								class="q-mb-md" />
-
-							<div class="q-gutter-md row justify-center">
-								<q-btn
-									label="Guardar"
-									type="submit"
-									color="primary" />
-								<q-btn
-									label="Cancelar"
-									color="negative"
-									@click="cancelarClima" />
-							</div>
-						</q-form>
-					</q-card-section>
-				</q-card>
-			</q-dialog>
-
-			<q-table
-				:rows="filteredRows"
-				:columns="columns"
-				row-key="_id"
-				flat
-				:rows-per-page-options="[10, 20, 30]">
-				<template v-slot:body-cell-opciones="props">
-					<q-td align="center">
+					v-if="mostraInput"
+					@click="
+						mostrarInputFecha
+							? listarClimasFechas()
+							: mostrarSelectClimas
+							? listarClimasPorClima()
+							: ''
+					"
+					label="Buscar" />
+				<q-select
+					standout="bg-green text-while"
+					:options="opcionesTabla"
+					v-model="opcionTabla"
+					@update:model-value="estadoTabla" />
+			</template>
+			<template v-slot:body-cell-opciones="props">
+				<q-td :props="props">
+					<q-btn @click="controlFormulario(props.row, true)">
+						✏️
+					</q-btn>
+				</q-td>
+			</template>
+		</q-table>
+		<q-dialog v-model="mostrarFormularioClima">
+			<q-card>
+				<q-form
+					@submit="mostrarBotonEditar ? editar() : registrar()"
+					class="q-gutter-md">
+					<q-select
+						standout="bg-green text-while"
+						:options="opcionesFincas"
+						option-label="label"
+						option-value="id"
+						label="Finca"
+						v-model="fincaClima" />
+					<q-select
+						standout="bg-green text-while"
+						:options="opcionesEmpleados"
+						option-label="label"
+						option-value="id"
+						label="Empleado"
+						v-model="empleadoClima" />
+					<q-input
+						standout="bg-green text-while"
+						type="date"
+						label="Fecha"
+						v-model="fechaClima" />
+					<q-select
+						standout="bg-green text-while"
+						:options="tiposDeClima"
+						label="Tipo de Clima"
+						v-model="tipoClima" />
+					<q-input
+						standout="bg-green text-while"
+						type="time"
+						label="Hora de Inicio"
+						v-model="horaInicioClima" />
+					<q-input
+						standout="bg-green text-while"
+						type="time"
+						label="Hora de Fin"
+						v-model="horaFinClima" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Temperatura Maxima"
+						v-model="temperaturaMaximaClima" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Temperatura Minima"
+						v-model="temperaturaMinimaClima" />
+					<div>
 						<q-btn
-							dense
-							round
-							icon="edit"
-							@click="cargarClimaParaEdicion(props.row)" />
+							unelevated
+							v-if="mostrarBotonEditar"
+							label="Editar"
+							type="submit"
+							color="positive" />
 						<q-btn
-							dense
-							round
-							icon="delete"
-							color="negative"
-							@click="eliminarClima(props.row._id)" />
-					</q-td>
-				</template>
-			</q-table>
-		</div> -->
+							unelevated
+							v-else
+							label="Registrar"
+							type="submit"
+							color="positive" />
+						<q-btn
+							@click="controlFormulario(null, false)"
+							flat
+							label="Cerrar"
+							type="button" />
+					</div>
+				</q-form>
+			</q-card>
+		</q-dialog>
 	</div>
 </template>
 
 <style scoped>
-.contSelect .q-select__inner {
-	background-color: green;
+.q-card {
+	background-color: rgb(255, 255, 255);
+	padding: 40px 30px 40px 30px;
+	border-radius: 1pc;
+	width: 30rem;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	border: 0;
 }
-.q-my-md {
-	margin-top: 10px;
-	margin-bottom: 10px;
+
+.q-form .q-input,
+.q-form .q-select {
+	margin-bottom: 15px;
 }
 </style>

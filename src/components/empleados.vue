@@ -1,169 +1,363 @@
 <script setup>
-import { ref } from 'vue';
-import { useQuasar } from 'quasar';
+import { ref, onMounted, computed } from "vue";
+import { useStoreEmpleados } from "../stores/empleados.js";
+import { useQuasar } from "quasar";
 
 const $q = useQuasar();
 
-// Datos de los empleados
-let filas = ref([
-  {
-    nombre: 'Jorge Martínez',
-    direccion: 'Cañaveral #23-123',
-    telefono: 23454364565,
-    estudios: 'Ingeniería Agrícola',
-    descripcion: 'Responsabilidad',
-    estado: 1
-  },
-  {
-    nombre: 'Yolanda Contreras',
-    direccion: 'La Rosaleda, Carrera 32 #84A-32',
-    telefono: 5676867546,
-    estudios: 'Recursos Humanos',
-    descripcion: 'Organización',
-    estado: 0
-  },
+const useEmpleado = useStoreEmpleados();
+
+const opcionesTabla = ["Todos", "Activos", "Inactivos"];
+const rows = ref([]);
+const columns = ref([
+	{
+		name: "nombre",
+		label: "Nombre",
+		field: "nombre",
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "direccion",
+		label: "Direccion",
+		field: "direccion",
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "telefono",
+		label: "Telefono",
+		field: "telefono",
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "estudios",
+		label: "Estudios",
+		field: "estudios",
+		align: "center",
+		sortable: true,
+	},
+	{
+		name: "descripcion",
+		label: "Descripción",
+		field: "descripcion",
+		align: "center",
+		sortable: true,
+	},
+	{ name: "estado", label: "Estado", field: "estado", align: "center" },
+	{ name: "opciones", label: "Opciones", field: "opciones", align: "center" },
 ]);
 
-let columnas = ref([
-  { name: 'nombre', align: 'center', label: 'Nombre', field: 'nombre', sortable: true },
-  { name: 'direccion', align: 'center', label: 'Dirección', field: 'direccion', sortable: true },
-  { name: 'telefono', align: 'center', label: 'Teléfono', field: 'telefono', sortable: true },
-  { name: 'estudios', align: 'center', label: 'Estudios', field: 'estudios', sortable: true },
-  { name: 'descripcion', align: 'center', label: 'Descripción', field: 'descripcion', sortable: true },
-  { name: 'estado', align: 'center', label: 'Estado', field: 'estado', sortable: true },
-  { name: 'opciones', align: 'center', label: 'Opciones', field: 'opciones', sortable: true },
-]);
+// Variables necesarias en el formulario
+const nombreEmpleado = ref("");
+const direccionEmpleado = ref("");
+const telefonoEmpleado = ref("");
+const estudiosEmpleado = ref("");
+const descripcionEmpleado = ref("");
 
-// Datos del Empleado
-const Editando = ref(false);
-const empleadoActual = ref({
-  nombre: '',
-  direccion: '',
-  telefono: '',
-  estudios: '',
-  descripcion: '',
-  estado: 1
+// Varibale que controla lo que se mostrara en la tabla
+const opcionTabla = ref("Todos");
+
+// Variable que contiene los datos del empleado al editar
+const datos = ref([]);
+
+// Variables que controla no que se va a mostrar en la pantalla
+const mostrarFormularioEmpleado = ref(false);
+const mostrarBotonEditar = ref(false);
+const loading = ref(true);
+
+async function listarEmpleado() {
+	try {
+		loading.value = true;
+		const r = await useEmpleado.getEmpleados();
+		rows.value = r.data.empleados;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function listarEmpleadoActivo() {
+	try {
+		loading.value = true;
+		const r = await useEmpleado.getEmpleadosActivos();
+		rows.value = r.data.empleados;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function listarEmpleadoInactivo() {
+	try {
+		loading.value = true;
+		const r = await useEmpleado.getEmpleadosInactivos();
+		rows.value = r.data.empleados;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function editarEstado(elemento) {
+	try {
+		loading.value = true;
+		if (elemento.estado === 1) {
+			const res = await useEmpleado.putEmpleadosInactivar(elemento._id);
+		} else if (elemento.estado === 0) {
+			const res = await useEmpleado.putEmpleadosActivar(elemento._id);
+		}
+		listarEmpleado();
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function registrar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				nombre: nombreEmpleado.value,
+				direccion: direccionEmpleado.value,
+				telefono: telefonoEmpleado.value,
+				estudios: estudiosEmpleado.value,
+				descripcion: descripcionEmpleado.value,
+			};
+
+			const res = await useEmpleado.postEmpleados(info);
+			mostrarFormularioEmpleado.value = false;
+			listarEmpleado();
+		} finally {
+			loading.value = false;
+		}
+	}
+}
+
+async function editar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				nombre: nombreEmpleado.value,
+				direccion: direccionEmpleado.value,
+				telefono: telefonoEmpleado.value,
+				estudios: estudiosEmpleado.value,
+				descripcion: descripcionEmpleado.value,
+			};
+
+			const res = await useEmpleado.putEmpleados(datos.value._id, info);
+			mostrarFormularioEmpleado.value = false;
+			listarEmpleado();
+		} finally {
+			loading.value = false;
+		}
+	}
+}
+
+function validarDatos() {
+	let validacion = true;
+	if (
+		!nombreEmpleado.value.trim() &&
+		!direccionEmpleado.value.trim() &&
+		!telefonoEmpleado.value.trim() &&
+		!estudiosEmpleado.value.trim() &&
+		!descripcionEmpleado.value.trim()
+	) {
+		$q.notify({
+			type: "negative",
+			message: "Llena todos los campos",
+			position: "bottom",
+		});
+		validacion = false;
+	} else {
+		if (!nombreEmpleado.value.trim()) {
+			$q.notify({
+				type: "negative",
+				message: "El nombre está vacío",
+				position: "bottom",
+			});
+			validacion = false;
+		}
+		if (!direccionEmpleado.value.trim()) {
+			$q.notify({
+				type: "negative",
+				message: "La direccion está vacía",
+				position: "bottom",
+			});
+			validacion = false;
+		}
+		if (!telefonoEmpleado.value.trim()) {
+			$q.notify({
+				type: "negative",
+				message: "El teléfono está vacío",
+				position: "bottom",
+			});
+			validacion = false;
+		}
+		if (!estudiosEmpleado.value.trim()) {
+			$q.notify({
+				type: "negative",
+				message: "El campo estudios está vacía",
+				position: "bottom",
+			});
+			validacion = false;
+		}
+		if (!descripcionEmpleado.value.trim()) {
+			$q.notify({
+				type: "negative",
+				message: "El campo descripción está vacía",
+				position: "bottom",
+			});
+			validacion = false;
+		}
+	}
+	return validacion;
+}
+
+function controlFormulario(obj, boolean) {
+	nombreEmpleado.value = "";
+	direccionEmpleado.value = "";
+	telefonoEmpleado.value = "";
+	estudiosEmpleado.value = "";
+	descripcionEmpleado.value = "";
+
+	datos.value = obj;
+	mostrarBotonEditar.value = false;
+	if (obj != null && boolean == true) {
+		nombreEmpleado.value = datos.value.nombre;
+		direccionEmpleado.value = datos.value.direccion;
+		telefonoEmpleado.value = datos.value.telefono;
+		estudiosEmpleado.value = datos.value.estudios;
+		descripcionEmpleado.value = datos.value.descripcion;
+		mostrarBotonEditar.value = true;
+	}
+	mostrarFormularioEmpleado.value = boolean;
+}
+
+function estadoTabla() {
+	console.log(opcionTabla.value);
+
+	if (opcionTabla.value == "Activos") {
+		listarEmpleadoActivo();
+	} else if (opcionTabla.value == "Inactivos") {
+		listarEmpleadoInactivo();
+	} else {
+		listarEmpleado();
+	}
+}
+
+onMounted(() => {
+	listarEmpleado();
 });
-
-// Función para cambiar el estado entre activo e inactivo
-function cambiarEstado(empleado) {
-  empleado.estado = empleado.estado === 1 ? 0 : 1;
-}
-
-// Función para abrir la card para editar el empleado
-function abrirModalEdicion(empleado) {
-  empleadoActual.value = { ...empleado };
-  Editando.value = true;
-}
-
-// Función para guardar los cambios realizados
-function guardarCambios() {
-  const indice = filas.value.findIndex(emp => emp.nombre === empleadoActual.value.nombre);
-  if (indice !== -1) {
-    filas.value[indice] = { ...empleadoActual.value };
-    $q.notify({
-      type: 'positive',
-      message: 'Cambios guardados exitosamente.'
-    });
-  }
-  Editando.value = false;
-}
-
-// Función para cerrar la card de para editar el empleado
-function cancelarEdicion() {
-  Editando.value = false;
-}
 </script>
 
 <template>
-  <div class="container">
-    <div class="title text-h2 text-center">Empleados</div>
-    <hr class="divider">
-
-    <!-- Tabla de empleados -->
-    <q-table flat bordered title="Lista de Empleados" :rows="filas" :columns="columnas" row-key="nombre" class="table">
-      <template v-slot:body-cell-opciones="props">
-        <q-td :props="props" class="actions-cell">
-          <q-btn @click="abrirModalEdicion(props.row)" class="btn-editar">✏️</q-btn>
-          <q-btn v-if="props.row.estado === 1" @click="cambiarEstado(props.row)" class="btn-inactivar">❌</q-btn>
-          <q-btn v-else @click="cambiarEstado(props.row)" class="btn-activar">✅</q-btn>
-        </q-td>
-      </template>
-      <template v-slot:body-cell-estado="props">
-        <q-td :props="props" class="status-cell">
-          <p v-if="props.row.estado === 1" class="status-activo">Activo</p>
-          <p v-else class="status-inactivo">Inactivo</p>
-        </q-td>
-      </template>
-    </q-table>
-
-    <!-- Tabla de edición del empleado -->
-    <q-dialog v-model="Editando">
-      <q-card>
-        <q-card-section>
-          <q-input v-model="empleadoActual.nombre" label="Nombre"></q-input>
-          <q-input v-model="empleadoActual.direccion" label="Dirección"></q-input>
-          <q-input v-model="empleadoActual.telefono" label="Teléfono" type="number"></q-input>
-          <q-input v-model="empleadoActual.estudios" label="Estudios"></q-input>
-          <q-input v-model="empleadoActual.descripcion" label="Descripción"></q-input>
-        </q-card-section>
-        <q-card-actions>
-          <q-btn @click="guardarCambios" color="primary">Guardar</q-btn>
-          <q-btn @click="cancelarEdicion" color="secondary">Cancelar</q-btn>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-  </div>
+	<div>
+		<div>
+			<q-btn @click="controlFormulario(null, true)" label="Agregar" />
+		</div>
+		<q-table
+			flat
+			bordered
+			title="Empleado"
+			:rows="rows"
+			:columns="columns"
+			row-key="id">
+			<template v-slot:top>
+				<q-select
+					standout="bg-green text-while"
+					:options="opcionesTabla"
+					v-model="opcionTabla"
+					@update:model-value="estadoTabla" />
+			</template>
+			<template v-slot:body-cell-estado="props">
+				<q-td :props="props">
+					<p v-if="props.row.estado == 1" style="color: green">
+						Activo
+					</p>
+					<p v-else style="color: red">Inactivo</p>
+				</q-td>
+			</template>
+			<template v-slot:body-cell-opciones="props">
+				<q-td :props="props">
+					<q-btn @click="controlFormulario(props.row, true)">
+						✏️
+					</q-btn>
+					<q-btn
+						v-if="props.row.estado == 1"
+						@click="editarEstado(props.row)">
+						❌
+					</q-btn>
+					<q-btn v-else @click="editarEstado(props.row)"> ✅ </q-btn>
+				</q-td>
+			</template>
+		</q-table>
+		<q-dialog v-model="mostrarFormularioEmpleado">
+			<q-card>
+				<q-form
+					@submit="mostrarBotonEditar ? editar() : registrar()"
+					class="q-gutter-md">
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Nombre"
+						v-model="nombreEmpleado" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Dirección"
+						v-model="direccionEmpleado" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Teléfono"
+						v-model="telefonoEmpleado" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Estudios"
+						v-model="estudiosEmpleado" />
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Descripción"
+						v-model="descripcionEmpleado" />
+					<div>
+						<q-btn
+							unelevated
+							v-if="mostrarBotonEditar"
+							label="Editar"
+							type="submit"
+							color="positive" />
+						<q-btn
+							unelevated
+							v-else
+							label="Registrar"
+							type="submit"
+							color="positive" />
+						<q-btn
+							@click="controlFormulario(null, false)"
+							flat
+							label="Cerrar"
+							type="button" />
+					</div>
+				</q-form>
+			</q-card>
+		</q-dialog>
+	</div>
 </template>
 
 <style scoped>
-.container {
-  padding: 20px;
-  background-color: #f5f5f5;
-  border-radius: 10px;
+.q-card {
+	background-color: rgb(255, 255, 255);
+	padding: 40px 30px 40px 30px;
+	border-radius: 1pc;
+	width: 30rem;
+	z-index: 3;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	border: 0;
 }
-.title {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  color: #333;
-}
-.divider {
-  height: 5px;
-  background-color: #007bff;
-  border: none;
-  margin: 20px 0;
-}
-.table {
-  margin-top: 40px;
-  border-radius: 10px;
-  overflow: hidden;
-}
-.actions-cell {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-}
-.btn-editar, .btn-inactivar, .btn-activar {
-  font-size: 1pc;
-  margin: 5px 5px;
-}
-.btn-editar {
-  color: #007bff;
-}
-.btn-inactivar {
-  color: #e74c3c;
-}
-.btn-activar {
-  color: #2ecc71;
-}
-.status-cell p {
-  margin: 0;
-  font-weight: bold;
-}
-.status-activo {
-  color: #2ecc71;
-}
-.status-inactivo {
-  color: #e74c3c;
+
+#faDialogo {
+	z-index: 2;
 }
 </style>
