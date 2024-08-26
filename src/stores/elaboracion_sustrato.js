@@ -5,8 +5,8 @@ import { useStoreAdmins } from "./admin.js";
 export const useStoreElaboracion_sustrato = defineStore(
 	"Elaboracion_sustrato",
 	() => {
-		const url = "http://localhost:3000";
-		// const url = "https://b-proyectoadso-production.up.railway.app";
+		// const url = "http://localhost:3000";
+		const url = "https://b-proyectoadso-production.up.railway.app";
 		const useUsuario = useStoreAdmins();
 
 		const getElaboracion_sustrato = async () => {

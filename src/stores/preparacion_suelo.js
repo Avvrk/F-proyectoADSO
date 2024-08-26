@@ -5,8 +5,8 @@ import { useStoreAdmins } from "./admin.js";
 export const useStorePreparacion_suelo = defineStore(
 	"Preparacion_suelo",
 	() => {
-		const url = "http://localhost:3000";
-		// const url = "https://b-proyectoadso-production.up.railway.app";
+		// const url = "http://localhost:3000";
+		const url = "https://b-proyectoadso-production.up.railway.app";
 		const useAdmin = useStoreAdmins();
 
 		const getPreparacion_suelo = async () => {

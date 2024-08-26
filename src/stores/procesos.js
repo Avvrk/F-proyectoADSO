@@ -7,8 +7,8 @@ import { notifyErrorRequest, notifySuccessRequest } from "../routes/routes.js";
 export const useStoreProcesos = defineStore(
 	"Procesos",
 	() => {
-		const url = "http://localhost:3000";
-		// const url = "https://b-proyectoadso-production.up.railway.app";
+		// const url = "http://localhost:3000";
+		const url = "https://b-proyectoadso-production.up.railway.app";
 		let loading = ref(false);
 		const useUAdmin = useStoreAdmins();
 

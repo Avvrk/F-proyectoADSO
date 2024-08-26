@@ -3,8 +3,8 @@ import axios from "axios";
 import { useStoreAdmins } from "./admin.js";
 
 export const useStoreInventario = defineStore("Inventario", () => {
-	const url = "http://localhost:3000";
-	// const url = "https://b-proyectoadso-production.up.railway.app";
+	// const url = "http://localhost:3000";
+	const url = "https://b-proyectoadso-production.up.railway.app";
 	const useAdmin = useStoreAdmins();
 
 	const getSemillas = async () => {

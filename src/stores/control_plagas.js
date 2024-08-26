@@ -5,8 +5,8 @@ import { useStoreAdmins } from "./admin.js";
 export const useStoreControl_plagas = defineStore(
 	"Control_plagas",
 	() => {
-		const url = "http://localhost:3000";
-		// const url = "https://b-proyectoadso-production.up.railway.app";
+		// const url = "http://localhost:3000";
+		const url = "https://b-proyectoadso-production.up.railway.app";
 		const useUsuario = useStoreAdmins();
 
 		const getControl_plagas = async () => {

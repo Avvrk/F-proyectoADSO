@@ -5,8 +5,8 @@ import { useStoreAdmins } from "../stores/admin.js";
 export const useStoreCultivos = defineStore(
 	"cultivos",
 	() => {
-		const url = "http://localhost:3000";
-		// const url = "https://b-proyectoadso-production.up.railway.app";
+		// const url = "http://localhost:3000";
+		const url = "https://b-proyectoadso-production.up.railway.app";
 		const useUsuario = useStoreAdmins();
 
 		const getCultivos = async () => {

@@ -6,8 +6,8 @@ import axios from "axios";
 export const useStoreEmpleados = defineStore(
 	"Empleados",
 	() => {
-		const url = "http://localhost:3000";
-		// const url = "https://b-proyectoadso-production.up.railway.app";
+		// const url = "http://localhost:3000";
+		const url = "https://b-proyectoadso-production.up.railway.app";
 		const useAdmin = useStoreAdmins();
 
 		const getEmpleados = async () => {

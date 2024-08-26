@@ -5,8 +5,8 @@ import { useStoreAdmins } from "./admin.js";
 export const useStoreInsumos = defineStore(
 	"Insumos",
 	() => {
-		const url = "http://localhost:3000";
-		// const url = "https://b-proyectoadso-production.up.railway.app";
+		// const url = "http://localhost:3000";
+		const url = "https://b-proyectoadso-production.up.railway.app";
 		const useUsuario = useStoreAdmins();
 
 		const getInsumos = async () => {
