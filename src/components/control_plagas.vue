@@ -1,42 +1,39 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useStoreControl_plagas } from "../stores/control_plagas.js";
+import { Loading, useQuasar } from "quasar";
+
+const $q = useQuasar();
 
 const useControlPlaga = useStoreControl_plagas();
 
-const rows = ref([
-	{
-		_id: "66b4ab7e2c2ef260f94c2f17",
-		id_cultivo: "66b4a789806c1caa749bc229",
-		empleado_id: "66a9879724a00ac422a763ab",
-		fecha: "2024-08-10T00:00:00Z",
-		tipoCultivo: "Hortaliza",
-		nombre: "Tratamiento contra pulgones",
-		tipo: "fitosanitario",
-		ingredientesActivo: ["Aceite de neem", "Pirimetanil"],
-		dosis: 50,
-		operario: "Julio",
-		observaciones: "Aplicar en la mañana para evitar el sol fuerte.",
-	},
-]);
+const opcionesTabla = [
+    "Todos",
+    "Fechas",
+    "Tipo",
+    "Operario",
+];
+const cultivos = ref([]);
+const empleados = ref([]);
+const rows = ref([]);
 const columns = ref([
 	{
 		name: "id_cultivo",
 		label: "Cultivo",
-		field: "id_cultivo",
+		field: (row) => `${row.id_cultivo.nombre} (tipo: ${row.id_cultivo.tipo})`,
 		align: "center",
 		sortable: true,
 	},
 	{
 		name: "empleado_id",
 		label: "Empleado",
-		field: "empleado_id",
+		field: (row) => `${row.empleado_id.nombre} (dni: ${row.empleado_id.documento})`,
 		align: "center",
 	},
 	{
 		name: "fecha",
 		label: "Fecha",
-		field: "fecha",
+		field: (row) => { return row.fecha.split("T")[0] },
 		align: "center",
 		sortable: true,
 	},
@@ -110,12 +107,41 @@ const columns = ref([
 	},
 ]);
 
+const cultivoControlPlagas = ref("");
+const empleadoControlPlagas = ref("");
+const fechaControlPlagas = ref("");
+const tipoCultivoControlPlagas = ref("");
+const nombreControlPlagas = ref("");
+const tipoControlPlagas = ref("");
+const ingredientesActivoControlPlagas = ref("");
+const dosisControlPlagas = ref("");
+const numeroLoteComercial = ref("");
+const totalControlPlagas = ref("");
+const operarioControlPlagas = ref("");
+const observacionesControlPlagas = ref("");
+
+
+const loading = ref(false);
+
+const opcionesCultivos = computed(() => {
+	return cultivos.value.map((c) => {
+		return { label: `${c.nombre} (tipo: ${c.tipo})`}
+	})
+})
+
+const opcionesEmpleados = computed(() => {
+	return empleados.value.map((c) => {
+		return { label: `${c.nombre} (dni: ${c.documento})`}
+	})
+})
+
 async function listarControlPlagas() {
 	try {
+		loading.value = true;
 		const r = await useControlPlaga.getControlPlagas();
-		rows.value = r.data.climas;
-	} catch (error) {
-		console.log(error.message);
+		rows.value = r.data.plagas;
+	} finally {
+		loading.value = false;
 	}
 }
 
@@ -126,16 +152,19 @@ onMounted(() => {
 
 <template>
 	<div>
+		<div>
+            <q-btn @click="controlFormulario(null, true)" label="Agregar" />
+        </div>
 		<q-table
 			flat
 			bordered
-			title="Climas"
+			title="Control Plagas"
 			:rows="rows"
 			:columns="columns"
 			row-key="id">
 			<template v-slot:body-cell-opciones="props">
 				<q-td :props="props">
-					<q-btn> ✏️ </q-btn>
+					<q-btn @click="controlFormulario(props.row, true)"> ✏️ </q-btn>
 					<q-btn v-if="props.row.estado == 1"> ❌ </q-btn>
 					<q-btn v-else> ✅ </q-btn>
 				</q-td>
