@@ -2,16 +2,61 @@ import { defineStore } from "pinia";
 import axios from "axios";
 import { useStoreAdmins } from "./admin.js";
 
-export const useStorePreparacion_suelo = defineStore(
-	"Preparacion_suelo",
+export const useStorePreparacionSuelos = defineStore(
+	"preparacion_suelo",
 	() => {
-		// const url = "http://localhost:3000";
 		const url = "https://b-proyectoadso-production.up.railway.app";
 		const useAdmin = useStoreAdmins();
 
-		const getPreparacion_suelo = async () => {
+		const getPreparacionSuelos = async () => {
 			try {
-				const r = await axios.get(`${url}/Preparacion_suelo`, {
+				const r = await axios.get(`${url}/preparacionSuelos`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				console.log(r.data);
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
+		const getParcelas = async () => {
+			try {
+				const r = await axios.get(`${url}/Parcelas`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				console.log(r.data);
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
+		const getEmpleados = async () => {
+			console.log(useAdmin.token);
+			try {
+				const r = await axios.get(`${url}/empleados`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				console.log(r.data);
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
+		const getPreparacionSueloById = async (id) => {
+			try {
+				const r = await axios.get(`${url}/preparacionSuelos/${id}`, {
 					headers: {
 						token: useAdmin.token,
 					},
@@ -23,9 +68,42 @@ export const useStorePreparacion_suelo = defineStore(
 			}
 		};
 
-		const getPreparacion_sueloId = async (id) => {
+		const getPreparacionSuelosActivos = async () => {
 			try {
-				const r = await axios.get(`${url}/Preparacion_suelo/${id}`, {
+				const r = await axios.get(`${url}/preparacionSuelos/activos`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				console.log(r.data);
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
+		const getPreparacionSuelosInactivos = async () => {
+			try {
+				const r = await axios.get(
+					`${url}/preparacionSuelos/inactivos`,
+					{
+						headers: {
+							token: useAdmin.token,
+						},
+					}
+				);
+				console.log(r.data);
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
+		const postPreparacionSuelo = async (datos) => {
+			try {
+				const r = await axios.post(`${url}/preparacionSuelos`, datos, {
 					headers: {
 						token: useAdmin.token,
 					},
@@ -37,24 +115,10 @@ export const useStorePreparacion_suelo = defineStore(
 			}
 		};
 
-		const postPreparacion_suelo = async (datos) => {
-			try {
-				const r = await axios.post(`${url}/Preparacion_suelo/`, datos, {
-					headers: {
-						token: useAdmin.token,
-					},
-				});
-				return r;
-			} catch (error) {
-				console.log(error);
-				return error;
-			}
-		};
-
-		const putPreparacion_suelo = async (id, datos) => {
+		const putPreparacionSuelo = async (id, datos) => {
 			try {
 				const r = await axios.put(
-					`${url}/Preparacion_suelo/${id}`,
+					`${url}/preparacionSuelos/${id}`,
 					datos,
 					{
 						headers: {
@@ -69,14 +133,37 @@ export const useStorePreparacion_suelo = defineStore(
 			}
 		};
 
-		return {
-			getPreparacion_suelo,
-			getPreparacion_sueloId,
-			postPreparacion_suelo,
-			putPreparacion_suelo,
+		const putPreparacionSueloEstado = async (id, estado) => {
+			try {
+				const r = await axios.put(
+					`${url}/preparacionSuelos${
+						estado === 0 ? "inactivar" : "activar"
+					}/${id}`,
+					{},
+					{
+						headers: {
+							token: useAdmin.token,
+						},
+					}
+				);
+				console.log(r.data);
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
 		};
-	},
-	{
-		persist: true,
+
+		return {
+			getPreparacionSuelos,
+            getEmpleados,
+			getParcelas,
+			getPreparacionSueloById,
+			getPreparacionSuelosActivos,
+			getPreparacionSuelosInactivos,
+			postPreparacionSuelo,
+			putPreparacionSuelo,
+			putPreparacionSueloEstado,
+		};
 	}
 );

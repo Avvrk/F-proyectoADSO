@@ -26,7 +26,7 @@ const columns = ref([
     {
         name: "id_parcela",
         label: "Parcela",
-        field: "id_parcela",
+        field: (row) => `${row.id_parcela.numero} (finca: ${row.id_parcela.id_fincas.nombre} - ${row.id_parcela.id_fincas.rut})`,
         align: "center",
         sortable: true,
     },
@@ -216,7 +216,7 @@ function controlFormulario(obj, boolean) {
         nombreCultivo.value = datos.value.nombre;
         tipoCultivo.value = datos.value.tipo;
         parcelaCultivo.value = opcionesParcelas.value.find(
-            (p) => p.id == datos.value.id_parcela
+            (p) => p.id == datos.value.id_parcela._id
         );
         mostrarBotonEditar.value = true;
     }

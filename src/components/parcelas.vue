@@ -1,224 +1,456 @@
 <script setup>
-import { ref, onMounted } from "vue";
-import { useQuasar } from "quasar";
-const $q = useQuasar();
-// Variables para el funcionamiento de la tabla
-let rows = ref([
-	{
-		id_fincas: "6f9a7e7620",
-		numero: 1,
-		ubicacionGeografica: "4.5678,-74.3456",
-		cultivoAnterior: "Maíz",
-		cultivoActual: "Soja",
-		detalle: "Parcela ubicada cerca del arroyo",
-		area: 40,
-		asistenteTecnico: "Juan Pérez",
-	},
+import { ref, onMounted, computed } from "vue";
+import { useStoreParcelas } from "../stores/parcelas.js";
+import { Notify } from "quasar";
 
-	{
-		id_fincas: "d6eee9a7e7",
-		numero: 2,
-		ubicacionGeografica: "6.5721,-73.1123",
-		cultivoAnterior: "Café",
-		cultivoActual: "Frijoles",
-		detalle: "Parcela con buen acceso al agua",
-		area: 12,
-		asistenteTecnico: "Esperanza Gómez",
-	},
+// Variables usadas en el filtro
+const opcionesTabla = ["Todos", "Fechas", "Fincas"];
+const opcion = ref("Todos");
+const mostrarSelectFincas = ref(false);
+const mostrarInputFechas = ref(false);
+const mostrarInput = ref(false);
+const finca = ref("");
+const fechaInicio = ref("");
+const fechaFin = ref("");
 
-	{
-		id_fincas: "20df867f",
-		numero: 3,
-		ubicacionGeografica: "4.5647,-74.3356",
-		cultivoAnterior: "Maíz",
-		cultivoActual: "Soya",
-		detalle: "Parcela con riego automático",
-		area: 30,
-		asistenteTecnico: "Juan Pérez",
-	},
+const storeParcelas = useStoreParcelas();
 
-	{
-		id_fincas: "66ad6eee9",
-		numero: 4,
-		ubicacionGeografica: "6.5698,-73.1081",
-		cultivoAnterior: "Arroz",
-		cultivoActual: "Café",
-		detalle: "Parcela en pendiente con control de erosión",
-		area: 11.5,
-		asistenteTecnico: "Alejo Gonzalez",
-	},
-]);
-let columns = ref([
-	{
-		name: "id_fincas",
-		align: "center",
-		label: "Id Finca",
-		field: "id_fincas",
-		sortable: true,
-	},
-	{
-		name: "numero",
-		align: "center",
-		label: "Número",
-		field: "numero",
-		sortable: true,
-	},
+const loading = ref(false);
+const dialogEditParcela = ref(false);
+const dialogAddParcela = ref(false);
+const editParcela = ref({});
+const newParcela = ref({
+	numero: "",
+	ubicacionGeografica: "",
+	cultivoAnterior: "",
+	cultivoActual: "",
+	detalle: "",
+	estado: 1,
+	area: 0,
+	id_finca: "", // Asegúrate de que esto sea un valor válido
+});
+const parcelas = ref([]);
+const fincas = ref([]);
+
+const columns = [
+	{ name: "numero", label: "Número", align: "center", field: "numero" },
 	{
 		name: "ubicacionGeografica",
-		align: "center",
 		label: "Ubicación Geográfica",
+		align: "left",
 		field: "ubicacionGeografica",
-		sortable: true,
 	},
 	{
 		name: "cultivoAnterior",
-		align: "center",
 		label: "Cultivo Anterior",
+		align: "left",
 		field: "cultivoAnterior",
-		sortable: true,
 	},
 	{
 		name: "cultivoActual",
-		align: "center",
 		label: "Cultivo Actual",
+		align: "left",
 		field: "cultivoActual",
-		sortable: true,
 	},
-	{
-		name: "detalle",
-		align: "center",
-		label: "Detalle",
-		field: "detalle",
-		sortable: true,
-	},
+	{ name: "detalle", label: "Detalle", align: "left", field: "detalle" },
 	{
 		name: "area",
-		align: "center",
 		label: "Área",
+		align: "center",
 		field: "area",
-		sortable: true,
+		format: (val) => `${val} m²`,
 	},
 	{
-		name: "asistenteTecnico",
+		name: "id_finca",
+		label: "Finca",
 		align: "center",
-		label: "Asistente Técnico",
-		field: "asistenteTecnico",
-		sortable: true,
+		field: (row) => (row.id_finca ? row.id_finca.nombre : "Sin Finca"),
 	},
 	{
 		name: "estado",
-		align: "center",
 		label: "Estado",
-		field: "estado",
-		sortable: true,
-	},
-	{
-		name: "opciones",
 		align: "center",
-		label: "Opciones",
-		field: "opciones",
-		sortable: true,
+		field: "estado" /* field: (row) => row.estado === 1 ? "Activo" : "Inactivo" */,
 	},
-]);
-onMounted(() => {});
+	{ name: "actions", label: "Acciones", align: "center" },
+];
+
+const opcionesFinca = computed(() => {
+	return fincas.value.map((f) => ({
+		label: f.nombre,
+		value: f._id, // Usar 'value' en lugar de 'id'
+	}));
+});
+
+const loadParcelas = async () => {
+	loading.value = true;
+	try {
+		const response = await storeParcelas.getParcelas();
+		parcelas.value = response.data.parcelas;
+	} catch (error) {
+		Notify.create({
+			type: "negative",
+			message: "Error al cargar las parcelas.",
+		});
+	} finally {
+		loading.value = false;
+	}
+};
+
+const loadFincas = async () => {
+	try {
+		const response = await storeParcelas.getFincas();
+		fincas.value = response.data.fincas; // Verifica los datos
+	} catch (error) {
+		Notify.create({
+			type: "negative",
+			message: "Error al cargar las fincas.",
+		});
+	}
+};
+
+const addParcela = async () => {
+	try {
+		if (
+			!newParcela.value.numero ||
+			!newParcela.value.ubicacionGeografica ||
+			!newParcela.value.cultivoActual ||
+			!newParcela.value.area ||
+			!newParcela.value.id_finca
+		) {
+			Notify.create({
+				type: "negative",
+				message: "Por favor, completa todos los campos.",
+			});
+			return;
+		}
+
+		const parcelaData = {
+			numero: newParcela.value.numero,
+			ubicacionGeografica: newParcela.value.ubicacionGeografica,
+			cultivoAnterior: newParcela.value.cultivoAnterior,
+			cultivoActual: newParcela.value.cultivoActual,
+			detalle: newParcela.value.detalle,
+			area: newParcela.value.area,
+			id_finca: newParcela.value.id_finca, // Asegúrate de que este valor sea válido
+			estado: newParcela.value.estado,
+		};
+
+		await storeParcelas.postParcela(parcelaData);
+		await loadParcelas();
+		dialogAddParcela.value = false;
+		Notify.create({
+			type: "positive",
+			message: "Parcela agregada con éxito.",
+		});
+	} catch (error) {
+		console.error(error);
+		Notify.create({
+			type: "negative",
+			message: "Error al agregar la parcela.",
+		});
+	}
+};
+
+const editParcelaData = async (parcela) => {
+	try {
+		// Cargar los datos de la parcela seleccionada en el formulario de edición
+		editParcela.value = {
+			...parcela,
+			id_finca: opcionesFinca.value.find(
+				(f) => f.value === parcela.id_finca
+			), // Usar 'value'
+		};
+		dialogEditParcela.value = true;
+	} catch (error) {
+		Notify.create({
+			type: "negative",
+			message: "Error al cargar la parcela para edición.",
+		});
+	}
+};
+
+const updateParcela = async () => {
+	try {
+		await storeParcelas.putParcela(editParcela.value._id, {
+			...editParcela.value,
+			id_finca: editParcela.value.id_finca.value, // Asegurarse de enviar solo el ID de la finca
+		});
+		await loadParcelas();
+		dialogEditParcela.value = false;
+		Notify.create({
+			type: "positive",
+			message: "Parcela actualizada con éxito.",
+		});
+	} catch (error) {
+		console.error(error);
+		Notify.create({
+			type: "negative",
+			message: "Error al actualizar la parcela.",
+		});
+	}
+};
+
+const changeParcelaState = async (id, estado) => {
+	try {
+		const newState = estado === 1 ? 0 : 1;
+		await storeParcelas.putParcelaEstado(id, newState);
+		await loadParcelas();
+		Notify.create({
+			type: "positive",
+			message: `Parcela ${
+				newState === 1 ? "activada" : "inactivada"
+			} con éxito.`,
+		});
+	} catch (error) {
+		Notify.create({
+			type: "negative",
+			message: "Error al cambiar el estado de la parcela.",
+		});
+	}
+};
+
+async function listarParcelasFechas() {
+	if (fechaInicio.value && fechaFin.value) {
+		const inicio = new Date(fechaInicio.value);
+		const fin = new Date(fechaFin.value);
+
+		if (inicio > fin) {
+			Notify.create({
+				type: "negative",
+				message:
+					"La fecha de inicio no puede ser mayor que la fecha de fin.",
+				position: "bottom",
+			});
+			return;
+		}
+		try {
+			loading.value = true;
+			const r = await storeParcelas.getParcelasFechas(
+				fechaInicio.value,
+				fechaFin.value
+			);
+			parcelas.value = r.data.parcelas;
+		} finally {
+			loading.value = false;
+		}
+	} else {
+		Notify.create({
+			type: "negative",
+			message: "Llena los campos",
+			position: "bottom",
+		});
+	}
+}
+
+async function listarParcelasFinca() {
+	try {
+		if (finca.value) {
+			loading.value = true;
+			const r = await storeParcelas.getParcelasFinca(finca.value);
+			parcelas.value = r.data.parcelas;
+		} else {
+			Notify.create({
+				type: "negative",
+				message: "Complete el campo",
+				position: "bottom",
+			});
+		}
+	} finally {
+		loading.value = false;
+	}
+}
+
+function estadoTabla() {
+	if (opcion.value === "Fechas") {
+		mostrarSelectFincas.value = false;
+		mostrarInputFechas.value = true;
+		mostrarInput.value = true;
+	} else if (opcion.value === "Fincas") {
+		mostrarInputFechas.value = false;
+		mostrarSelectFincas.value = true;
+		mostrarInput.value = true;
+	} else {
+		mostrarInputFechas.value = false;
+		mostrarSelectFincas.value = false;
+		mostrarInput.value = false;
+		loadParcelas();
+	}
+}
+
+onMounted(() => {
+	loadParcelas();
+	loadFincas();
+});
 </script>
 
 <template>
-	<div class="container">
-		<div class="title text-h2 text-center">Parcelas</div>
-		<hr class="divider" />
-		<q-table
-			v-if="!loading"
-			flat
-			bordered
-			title="Lista de Parcelas"
-			:rows="rows"
-			:columns="columns"
-			row-key="id"
-			class="table">
-			<template v-slot:body-cell-opciones="props">
-				<q-td :props="props" class="actions-cell">
-					<q-btn
-						@click="editarVistaFondo(true, props.row, false)"
-						class="btn-editar">
-						✏️
-					</q-btn>
-					<q-btn
-						v-if="props.row.estado == 1"
-						@click="editarEstado(props.row)"
-						class="btn-inactivar">
-						❌
-					</q-btn>
-					<q-btn
-						v-else
-						@click="editarEstado(props.row)"
-						class="btn-activar">
-						✅
-					</q-btn>
-				</q-td>
-			</template>
-			<template v-slot:body-cell-estado="props">
-				<q-td :props="props" class="status-cell">
-					<p v-if="props.row.estado == 1" class="status-activo">
-						Activo
-					</p>
-					<p v-else class="status-inactivo">Inactivo</p>
-				</q-td>
-			</template>
-		</q-table>
-	</div>
-</template>
+	<q-page>
+		<q-card>
+			<q-card-section>
+				<q-btn
+					@click="dialogAddParcela = true"
+					label="Agregar Parcela"
+					color="positive" />
+			</q-card-section>
 
-<style scoped>
-.container {
-	padding: 20px;
-	background-color: #f5f5f5;
-	border-radius: 10px;
-}
-.title {
-	margin-top: 20px;
-	margin-bottom: 20px;
-	color: #333;
-}
-.divider {
-	height: 5px;
-	background-color: #007bff;
-	border: none;
-	margin: 20px 0;
-}
-.table {
-	margin-top: 40px;
-	border-radius: 10px;
-	overflow: hidden;
-}
-.actions-cell {
-	display: flex;
-	justify-content: space-around;
-	align-items: center;
-}
-.btn-editar,
-.btn-inactivar,
-.btn-activar {
-	font-size: 1pc;
-	margin: 5px 5px;
-}
-.btn-editar {
-	color: #007bff;
-}
-.btn-inactivar {
-	color: #e74c3c;
-}
-.btn-activar {
-	color: #2ecc71;
-}
-.status-cell p {
-	margin: 0;
-	font-weight: bold;
-}
-.status-activo {
-	color: #2ecc71;
-}
-.status-inactivo {
-	color: #e74c3c;
-}
-</style>
+			<q-table
+				:rows="parcelas"
+				:columns="columns"
+				row-key="_id"
+				:loading="loading">
+				<template v-slot:top>
+					<q-select
+						v-if="mostrarSelectFincas"
+						:options="opcionesFinca"
+						v-model="finca" />
+					<q-input
+						v-if="mostrarInputFechas"
+						type="date"
+						label="Fecha Inicio"
+						v-model="fechaInicio" />
+					<q-input
+						v-if="mostrarInputFechas"
+						type="date"
+						label="Fecha Fin"
+						v-model="fechaFin" />
+					<q-btn
+						v-if="mostrarInput"
+						label="Buscar"
+						@click="
+							mostrarInputFechas
+								? listarParcelasFechas()
+								: mostrarSelectFincas
+								? listarParcelasFinca()
+								: ''
+						" />
+					<q-select
+						standout="bg-green text-white"
+						:options="opcionesTabla"
+						v-model="opcion"
+						@update:model-value="estadoTabla" />
+				</template>
+				<template v-slot:loading>
+					<q-inner-loading :showing="loading" />
+				</template>
+				<template v-slot:body-cell-actions="props">
+					<q-td :props="props">
+						<q-btn
+							@click="editParcelaData(props.row)"
+							icon="edit"
+							color="primary" />
+						<q-btn
+							@click="
+								changeParcelaState(
+									props.row._id,
+									props.row.estado
+								)
+							"
+							:icon="
+								props.row.estado === 1
+									? 'toggle_off'
+									: 'toggle_on'
+							"
+							color="secondary" />
+					</q-td>
+				</template>
+			</q-table>
+
+			<!-- Diálogo para editar parcela -->
+			<q-dialog v-model="dialogEditParcela" persistent>
+				<q-card>
+					<q-card-section>
+						<q-input
+							v-model="editParcela.numero"
+							label="Número"
+							type="number" />
+						<q-input
+							v-model="editParcela.ubicacionGeografica"
+							label="Ubicación Geográfica" />
+						<q-input
+							v-model="editParcela.cultivoAnterior"
+							label="Cultivo Anterior" />
+						<q-input
+							v-model="editParcela.cultivoActual"
+							label="Cultivo Actual" />
+						<q-input
+							v-model="editParcela.detalle"
+							label="Detalle" />
+						<q-input
+							v-model="editParcela.area"
+							label="Área"
+							type="number" />
+						<q-select
+							v-model="editParcela.id_finca"
+							:options="opcionesFinca"
+							label="Finca" />
+						<q-select
+							v-model="editParcela.estado"
+							:options="[
+								{ label: 'Activo', value: 1 },
+								{ label: 'Inactivo', value: 0 },
+							]"
+							label="Estado" />
+					</q-card-section>
+					<q-card-actions>
+						<q-btn
+							@click="updateParcela"
+							label="Guardar"
+							color="primary" />
+						<q-btn
+							@click="dialogEditParcela = false"
+							label="Cancelar"
+							color="secondary" />
+					</q-card-actions>
+				</q-card>
+			</q-dialog>
+
+			<!-- Diálogo para agregar parcela -->
+			<q-dialog v-model="dialogAddParcela" persistent>
+				<q-card>
+					<q-card-section>
+						<q-input
+							v-model="newParcela.numero"
+							label="Número"
+							type="number" />
+						<q-input
+							v-model="newParcela.ubicacionGeografica"
+							label="Ubicación Geográfica" />
+						<q-input
+							v-model="newParcela.cultivoAnterior"
+							label="Cultivo Anterior" />
+						<q-input
+							v-model="newParcela.cultivoActual"
+							label="Cultivo Actual" />
+						<q-input v-model="newParcela.detalle" label="Detalle" />
+						<q-input
+							v-model="newParcela.area"
+							label="Área"
+							type="number" />
+						<q-select
+							v-model="newParcela.id_finca"
+							:options="opcionesFinca"
+							label="Finca" />
+						<q-select
+							v-model="newParcela.estado"
+							:options="[
+								{ label: 'Activo', value: 1 },
+								{ label: 'Inactivo', value: 0 },
+							]"
+							label="Estado" />
+					</q-card-section>
+					<q-card-actions>
+						<q-btn
+							@click="addParcela"
+							label="Agregar"
+							color="primary" />
+						<q-btn
+							@click="dialogAddParcela = false"
+							label="Cancelar"
+							color="secondary" />
+					</q-card-actions>
+				</q-card>
+			</q-dialog>
+		</q-card>
+	</q-page>
+</template>

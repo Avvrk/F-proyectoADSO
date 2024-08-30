@@ -9,6 +9,36 @@ export const useStoreControl_plagas = defineStore(
 		// const url = "https://b-proyectoadso-production.up.railway.app";
 		const useAdmin = useStoreAdmins();
 
+		const getEmpleados = async () => {
+			try {
+				const r = await axios.get(`${url}/empleados`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				console.log(r.data);
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
+		const getCultivos = async () => {
+			try {
+				const r = await axios.get(`${url}/Cultivos`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				console.log(r.data);
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
 		const getControlPlagas = async () => {
 			try {
 				const r = await axios.get(`${url}/controlPlagas`, {
@@ -16,6 +46,7 @@ export const useStoreControl_plagas = defineStore(
 						token: useAdmin.token,
 					},
 				});
+				console.log(r.data);
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -30,6 +61,7 @@ export const useStoreControl_plagas = defineStore(
 						token: useAdmin.token,
 					},
 				});
+				console.log(r.data);
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -44,6 +76,7 @@ export const useStoreControl_plagas = defineStore(
 						token: useAdmin.token,
 					}
 				})
+				console.log(r.data);
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -58,6 +91,7 @@ export const useStoreControl_plagas = defineStore(
 						token: useAdmin.token,
 					}
 				})
+				console.log(r.data);
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -72,6 +106,7 @@ export const useStoreControl_plagas = defineStore(
 						token: useAdmin.token,
 					}
 				})
+				console.log(r.data);
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -86,6 +121,7 @@ export const useStoreControl_plagas = defineStore(
 						token: useAdmin.token,
 					},
 				});
+				console.log(r.data);
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -104,6 +140,7 @@ export const useStoreControl_plagas = defineStore(
 						},
 					}
 				);
+				console.log(r.data);
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -112,6 +149,8 @@ export const useStoreControl_plagas = defineStore(
 		};
 
 		return {
+			getEmpleados,
+			getCultivos,
 			getControlPlagas,
 			getControlPlagasID,
 			getControlPlagasFechas,

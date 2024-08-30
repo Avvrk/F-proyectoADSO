@@ -51,7 +51,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useStoreAdmins } from "../stores/admin.js";
 import { useQuasar } from "quasar";
@@ -137,6 +137,13 @@ async function validarDatos() {
 	}
 	return validacion;
 }
+
+onMounted(() => {
+	const token = localStorage.getItem('token');
+	if (!token) {
+		router.push("/mio/Admin");
+	}
+})
 </script>
 <!-- background: linear-gradient(210deg, #abec8b, #004d00); -->
 <style scoped>
