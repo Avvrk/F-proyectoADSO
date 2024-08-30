@@ -7,15 +7,61 @@ export const useStoreCultivos = defineStore(
 	() => {
 		// const url = "http://localhost:3000";
 		const url = "https://b-proyectoadso-production.up.railway.app";
-		const useUsuario = useStoreAdmins();
+		const useAdmin = useStoreAdmins();
+
+		const getParcelas = async () => {
+			try {
+				const r = await axios.get(`${url}/parcelas`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				console.log(r.data)
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
 
 		const getCultivos = async () => {
 			try {
-				const r = await axios.get(`${url}/Cultivos`, {
+				const r = await axios.get(`${url}/cultivos`, {
 					headers: {
-						token: useUsuario.token,
+						token: useAdmin.token,
 					},
 				});
+				console.log(r.data)
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
+		const getCultivosParcelas = async (parcela) => {
+			try {
+				const r = await axios.get(`${url}/cultivos/parcelas/${parcela}`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				console.log(r.data)
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
+		const getCultivosTipo = async (tipo) => {
+			try {
+				const r = await axios.get(`${url}/cultivos/tipo/${tipo}`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				console.log(r.data)
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -25,11 +71,12 @@ export const useStoreCultivos = defineStore(
 
 		const getCultivosID = async (id) => {
 			try {
-				const r = await axios.get(`${url}/Cultivos/${id}`, {
+				const r = await axios.get(`${url}/cultivos/${id}`, {
 					headers: {
-						token: useUsuario.token,
+						token: useAdmin.token,
 					},
 				});
+				console.log(r.data)
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -39,11 +86,12 @@ export const useStoreCultivos = defineStore(
 
 		const postCultivos = async (datos) => {
 			try {
-				const r = await axios.post(`${url}/Cultivos/`, datos, {
+				const r = await axios.post(`${url}/cultivos`, datos, {
 					headers: {
-						token: useUsuario.token,
+						token: useAdmin.token,
 					},
 				});
+				console.log(r.data)
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -53,11 +101,12 @@ export const useStoreCultivos = defineStore(
 
 		const putCultivos = async (id, datos) => {
 			try {
-				const r = await axios.put(`${url}/Cultivos/${id}`, datos, {
+				const r = await axios.put(`${url}/cultivos/${id}`, datos, {
 					headers: {
-						token: useUsuario.token,
+						token: useAdmin.token,
 					},
 				});
+				console.log(r.data)
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -66,13 +115,13 @@ export const useStoreCultivos = defineStore(
 		};
 
 		return {
+			getParcelas,
 			getCultivos,
 			getCultivosID,
+			getCultivosParcelas,
+			getCultivosTipo,
 			postCultivos,
 			putCultivos,
 		};
-	},
-	{
-		persist: true,
 	}
 );
