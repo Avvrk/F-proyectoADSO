@@ -26,7 +26,8 @@ const columns = ref([
     {
         name: "id_parcela",
         label: "Parcela",
-        field: (row) => `${row.id_parcela.numero} (finca: ${row.id_parcela.id_fincas.nombre} - ${row.id_parcela.id_fincas.rut})`,
+        field: (row) =>
+            `${row.id_parcela.numero} (finca: ${row.id_parcela.id_fincas.nombre} - ${row.id_parcela.id_fincas.rut})`,
         align: "center",
         sortable: true,
     },
@@ -251,48 +252,53 @@ onMounted(() => {
         <div>
             <q-btn @click="controlFormulario(null, true)" label="Agregar" />
         </div>
-        <q-table
-            flat
-            bordered
-            title="Climas"
-            :rows="rows"
-            :columns="columns"
-            row-key="id">
-            <template v-slot:top>
-                <q-select
-                    v-if="mostrarSelectParcelas"
-                    label="Responsable"
-                    :options="opcionesParcelas"
-                    v-model="parcela" />
-                <q-input
-                    v-if="mostrarInputTipo"
-                    label="Tipo"
-                    type="text"
-                    v-model="tipo" />
-				<q-btn
-                    v-if="mostrarInput"
-                    @click="
-					mostrarInputTipo
-                            ? listarCultivosTipo()
-                            : mostrarSelectParcelas
-                            ? listarCultivosPacerla()
-                            : ''
-                    "
-                    label="Buscar" />
-                <q-select
-                    :options="opcionesTabla"
-                    v-model="opcionTabla"
-                    label="Filtro por"
-                    @update:model-value="estadoTabla" />
-            </template>
-            <template v-slot:body-cell-opciones="props">
-                <q-td :props="props">
-                    <q-btn @click="controlFormulario(props.row, true)">
-                        ✏️
-                    </q-btn>
-                </q-td>
-            </template>
-        </q-table>
+        <div class="q-pa-xl">
+            <q-table
+                flat
+                bordered
+                title="Climas"
+                :rows="rows"
+                :columns="columns"
+                row-key="id">
+                <template v-slot:top>
+                    <div>
+                        <q-select
+                            v-if="mostrarSelectParcelas"
+                            label="Responsable"
+                            :options="opcionesParcelas"
+                            v-model="parcela" />
+                        <q-input
+                            v-if="mostrarInputTipo"
+                            label="Tipo"
+                            type="text"
+                            v-model="tipo" />
+                        <q-btn
+                            v-if="mostrarInput"
+                            @click="
+                                mostrarInputTipo
+                                    ? listarCultivosTipo()
+                                    : mostrarSelectParcelas
+                                    ? listarCultivosPacerla()
+                                    : ''
+                            "
+                            label="Buscar" />
+                    </div>
+                    <q-space />
+                    <q-select
+                        :options="opcionesTabla"
+                        v-model="opcionTabla"
+                        label="Filtro por"
+                        @update:model-value="estadoTabla" />
+                </template>
+                <template v-slot:body-cell-opciones="props">
+                    <q-td :props="props">
+                        <q-btn @click="controlFormulario(props.row, true)">
+                            ✏️
+                        </q-btn>
+                    </q-td>
+                </template>
+            </q-table>
+        </div>
         <q-dialog v-model="mostrarFormularioCultivos">
             <q-card>
                 <q-form
@@ -338,4 +344,18 @@ onMounted(() => {
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.q-card {
+    background-color: rgb(255, 255, 255);
+    padding: 40px 30px 40px 30px;
+    border-radius: 1pc;
+    width: 30rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: 0;
+}
+
+.q-form .q-input,
+.q-form .q-select {
+    margin-bottom: 15px;
+}
+</style>

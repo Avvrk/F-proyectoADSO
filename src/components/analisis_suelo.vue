@@ -280,7 +280,7 @@ async function registrar() {
             if (res.status === 200) {
                 mostrarFormularioAnalisisSuelo.value = false;
                 listarAnalisisSuelo();
-				/* resultadosAnalisisSuelo = [] */
+                /* resultadosAnalisisSuelo = [] */
             }
         } finally {
             loading.value = false;
@@ -310,7 +310,7 @@ async function editar() {
             if (res.status === 200) {
                 mostrarFormularioAnalisisSuelo.value = false;
                 listarAnalisisSuelo();
-				/* resultadosAnalisisSuelo = [] */
+                /* resultadosAnalisisSuelo = [] */
             }
         } finally {
             loading.value = false;
@@ -394,7 +394,7 @@ function validarDatos() {
             });
             validacion = false;
         }
-    /*  if (!resultadosAnalisisSuelo.length) {
+        /*  if (!resultadosAnalisisSuelo.length) {
             $q.notify({
                 type: "negative",
                 message: "El resultado esta vacio",
@@ -427,12 +427,16 @@ function controlFormulario(obj, boolean) {
     datos.value = obj;
     mostrarBotonEditar.value = false;
     if (obj != null && boolean == true) {
-        const par = opcionesParcelas.value
-        const em = opcionesResponsables.value
+        const par = opcionesParcelas.value;
+        const em = opcionesResponsables.value;
 
         fechaAnalisisSuelo.value = datos.value.fecha.split("T")[0];
-        parcelaAnalisisSuelo.value = par.find((as) => as.id == datos.value.id_parcela._id);
-        empleadoAnalisisSuelo.value = em.find((as) => as.id == datos.value.empleado_id._id);
+        parcelaAnalisisSuelo.value = par.find(
+            (as) => as.id == datos.value.id_parcela._id
+        );
+        empleadoAnalisisSuelo.value = em.find(
+            (as) => as.id == datos.value.empleado_id._id
+        );
         muestraAnalisisSuelo.value = datos.value.muestra;
         cultivoAnalisisSuelo.value = datos.value.cultivo;
         laboratorioAnalisisSuelo.value = datos.value.laboratorio;
@@ -483,67 +487,74 @@ onMounted(() => {
         <div>
             <q-btn @click="controlFormulario(null, true)" label="Agregar" />
         </div>
-        <q-table
-            flat
-            bordered
-            title="Analisis Suelo"
-            :rows="rows"
-            :columns="columns"
-            row-key="id">
-            <template v-slot:top>
-                <q-select
-                    v-if="mostrarSelectResponsable"
-                    label="Responsable"
-                    :options="opcionesResponsables"
-                    v-model="responsable" />
-                <q-input
-                    v-if="mostrarInputFecha"
-                    label="Fecha Inicio"
-                    type="date"
-                    v-model="fechaInicio" />
-                <q-input
-                    v-if="mostrarInputFecha"
-                    label="Fecha Fin"
-                    type="date"
-                    v-model="fechaFin" />
-                <q-btn
-                    v-if="mostraInput"
-                    @click="
-                        mostrarInputFecha
-                            ? listarAnalisisSueloFechas()
-                            : mostrarSelectResponsable
-                            ? listarAnalisisSueloResponsable()
-                            : ''
-                    "
-                    label="Buscar" />
-                <q-select
-                    standout="bg-green text-while"
-                    :options="opcionesTabla"
-                    v-model="opcionTabla"
-                    @update:model-value="estadoTabla" />
-            </template>
-            <template v-slot:body-cell-estado="props">
-                <q-td :props="props">
-                    <p v-if="props.row.estado == 1" style="color: green">
-                        Activo
-                    </p>
-                    <p v-else style="color: red">Inactivo</p>
-                </q-td>
-            </template>
-            <template v-slot:body-cell-opciones="props">
-                <q-td :props="props">
-                    <q-btn @click="controlFormulario(props.row, true)">
-                        ✏️
-                    </q-btn>
-                    <q-btn
-                        v-if="props.row.estado == 1"
-                        @click="editarEstado(props.row)">
-                        ❌
-                    </q-btn>
-                    <q-btn v-else @click="editarEstado(props.row)"> ✅ </q-btn>
-                </q-td>
-            </template>
-        </q-table>
+        <div class="q-pa-xl">
+            <q-table
+                flat
+                bordered
+                title="Analisis Suelo"
+                :rows="rows"
+                :columns="columns"
+                row-key="id">
+                <template v-slot:top>
+                    <div class="row items-center q-gutter-md">
+                        <q-select
+                            v-if="mostrarSelectResponsable"
+                            label="Responsable"
+                            :options="opcionesResponsables"
+                            v-model="responsable" />
+                        <q-input
+                            v-if="mostrarInputFecha"
+                            label="Fecha Inicio"
+                            type="date"
+                            v-model="fechaInicio" />
+                        <q-input
+                            v-if="mostrarInputFecha"
+                            label="Fecha Fin"
+                            type="date"
+                            v-model="fechaFin" />
+                        <q-btn
+                            v-if="mostraInput"
+                            @click="
+                                mostrarInputFecha
+                                    ? listarAnalisisSueloFechas()
+                                    : mostrarSelectResponsable
+                                    ? listarAnalisisSueloResponsable()
+                                    : ''
+                            "
+                            label="Buscar" />
+                    </div>
+                    <q-space />
+                    <q-select
+                        standout="bg-green text-while"
+                        :options="opcionesTabla"
+                        v-model="opcionTabla"
+                        @update:model-value="estadoTabla" />
+                </template>
+                <template v-slot:body-cell-estado="props">
+                    <q-td :props="props">
+                        <p v-if="props.row.estado == 1" style="color: green">
+                            Activo
+                        </p>
+                        <p v-else style="color: red">Inactivo</p>
+                    </q-td>
+                </template>
+                <template v-slot:body-cell-opciones="props">
+                    <q-td :props="props">
+                        <q-btn @click="controlFormulario(props.row, true)">
+                            ✏️
+                        </q-btn>
+                        <q-btn
+                            v-if="props.row.estado == 1"
+                            @click="editarEstado(props.row)">
+                            ❌
+                        </q-btn>
+                        <q-btn v-else @click="editarEstado(props.row)">
+                            ✅
+                        </q-btn>
+                    </q-td>
+                </template>
+            </q-table>
+        </div>
         <q-dialog v-model="mostrarFormularioAnalisisSuelo">
             <q-card>
                 <q-form
