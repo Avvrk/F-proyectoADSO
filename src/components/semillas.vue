@@ -44,8 +44,8 @@ const total = ref("");
 const selectedOption = ref("Listar Semillas");
 const options = [
 	{ label: "Listar Semillas", value: "Listar Semillas" },
-	{ label: "Listar Semillas Activos", value: "Listar Semillas Activos" },
-	{ label: "Listar Semillas Inactivos", value: "Listar Semillas Inactivos" },
+	{ label: "Listar Semillas Activas", value: "Listar Semillas Activas" },
+	{ label: "Listar Semillas Inactivas", value: "Listar Semillas Inactivas" },
 	{
 		label: "Listar Semilla por Proveedor",
 		value: "Listar Semilla por Proveedor",
@@ -161,11 +161,11 @@ const actualizarListadoSemillas = async () => {
 	loadingg.value = true;
 	try {
 		const semillasPromise =
-			selectedOption.value === "Listar Semillas Activos"
+			selectedOption.value === "Listar Semillas Activas"
 				? useSemilla.getSemillasActivas()
-				: selectedOption.value === "Listar Semillas Inactivos"
-				? useSemilla.getSemillasInactivas()
-				: useSemilla.getSemillas();
+				: selectedOption.value === "Listar Semillas Inactivas"
+					? useSemilla.getSemillasInactivas()
+					: useSemilla.getSemillas();
 
 		rows.value = (await semillasPromise).data.semillas;
 		console.log("Semillas", rows.value);
@@ -186,8 +186,8 @@ const filteredRows = computed(() => {
 
 	return codigoInput
 		? rows.value.filter((item) =>
-				item.proveedor_id.nombre.toString().includes(codigoInput)
-		  )
+			item.proveedor_id.nombre.toString().includes(codigoInput)
+		)
 		: rows.value;
 });
 
@@ -242,13 +242,13 @@ async function editarSemilla() {
 
 	for (let pro of proveedores.value) {
 		if (pro.nombre === proveedor_id.value) {
-			if (pro.estado == 1) {
-				proveedorActual = pro._id;
-				break;
-			} else {
-				notifyErrorRequest("Proveedor seleccionado inactivo");
-				return;
-			}
+			// if (pro.estado == 1) {
+			proveedorActual = pro._id;
+			break;
+			// } else {
+			// 	notifyErrorRequest("Proveedor seleccionado inactivo");
+			// 	return;
+			// }
 		}
 	}
 
@@ -353,44 +353,24 @@ watch(selectedOption, () => actualizarListadoSemillas(), isLoading, loadingg);
 			<hr style="width: 70%; height: 5px; background-color: green" />
 		</div>
 
-		<div
-			class="contSelect"
-			style="margin-left: 5%; text-align: end; margin-right: 5%">
-			<q-select
-				background-color="green"
-				class="q-my-md"
-				v-model="selectedOption"
-				outlined
-				dense
-				options-dense
-				emit-value
-				:options="options" />
+		<div class="contSelect" style="margin-left: 5%; text-align: end; margin-right: 5%">
+			<q-select background-color="green" class="q-my-md" v-model="selectedOption" outlined dense options-dense
+				emit-value :options="options" />
 
-			<input
-				v-if="selectedOption === 'Listar Semilla por Proveedor'"
-				v-model="listarProveedor"
-				class="q-my-md"
-				type="text"
-				name="listarProveedor"
-				id="listarProveedor"
-				placeholder="Código del semilla" />
+			<input v-if="selectedOption === 'Listar Semilla por Proveedor'" v-model="listarProveedor" class="q-my-md"
+				type="text" name="listarProveedor" id="listarProveedor" placeholder="Proveedor" />
 		</div>
 
 		<div>
-			<div
-				style="margin-left: 5%; text-align: end; margin-right: 5%"
-				class="q-mb-md">
-				<q-btn
-					label="Agregar Semilla"
-					@click="mostrarFormularioAgregarSemillas = true">
+			<div style="margin-left: 5%; text-align: end; margin-right: 5%" class="q-mb-md">
+				<q-btn label="Agregar Semilla" @click="mostrarFormularioAgregarSemillas = true">
 					<q-tooltip> Agregar Semilla </q-tooltip>
 				</q-btn>
 				<!-- <q-btn label="Editar Semilla" @click="mostrarFormularioEditarSemillas = true" /> -->
 			</div>
 
 			<!-- Diálogo para agregar semilla -->
-			<q-dialog
-				v-model="mostrarFormularioAgregarSemillas"
+			<q-dialog v-model="mostrarFormularioAgregarSemillas"
 				v-bind="mostrarFormularioAgregarSemillas && limpiarCampos()">
 				<q-card>
 					<q-card-section>
@@ -401,15 +381,8 @@ watch(selectedOption, () => actualizarListadoSemillas(), isLoading, loadingg);
 
 					<q-card-section>
 						<q-form @submit.prevent="agregarSemilla">
-							<q-select
-								v-model="proveedor_id"
-								label="Proveedor"
-								filled
-								outlined
-								:options="proveedorOptions"
-								class="q-mb-md"
-								style="max-width: 100%"
-								required>
+							<q-select v-model="proveedor_id" label="Proveedor" filled outlined
+								:options="proveedorOptions" class="q-mb-md" style="max-width: 100%" required>
 								<template v-slot:no-option>
 									<q-item>
 										<q-item-section>
@@ -418,104 +391,37 @@ watch(selectedOption, () => actualizarListadoSemillas(), isLoading, loadingg);
 									</q-item>
 								</template>
 							</q-select>
-							<q-input
-								v-model="fechaCompra"
-								type="date"
-								label="Fecha de compra"
-								filled
-								required
+							<q-input v-model="fechaCompra" type="date" label="Fecha de compra" filled required
 								class="q-mb-md" />
-							<q-input
-								v-model="fechaVencimiento"
-								type="date"
-								label="Fecha de vencimiento"
-								filled
-								required
+							<q-input v-model="fechaVencimiento" type="date" label="Fecha de vencimiento" filled required
 								class="q-mb-md" />
-							<q-input
-								v-model.trim="especieVariedad"
-								label="Especie y variedad"
-								type="string"
-								filled
-								required
+							<q-input v-model.trim="especieVariedad" label="Especie y variedad" type="string" filled
+								required class="q-mb-md" />
+							<q-input v-model.trim="proveedorSemilla" label="Proveedor de la semilla" type="string"
+								filled required class="q-mb-md" />
+							<q-input v-model.trim="numeroLote" label="Número de Lote" type="string" filled required
 								class="q-mb-md" />
-							<q-input
-								v-model.trim="proveedorSemilla"
-								label="Proveedor de la semilla"
-								type="string"
-								filled
-								required
+							<q-input v-model.trim="origen" label="Origen" type="string" filled required
 								class="q-mb-md" />
-							<q-input
-								v-model.trim="numeroLote"
-								label="Número de Lote"
-								type="string"
-								filled
-								required
+							<q-input v-model.trim="poderGerminativo" label="Poder Germinativo" type="string" filled
+								required class="q-mb-md" />
+							<q-input v-model.trim="observaciones" label="Observaciones" type="string" filled required
 								class="q-mb-md" />
-							<q-input
-								v-model.trim="origen"
-								label="Origen"
-								type="string"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model.trim="poderGerminativo"
-								label="Poder Germinativo"
-								type="string"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model.trim="observaciones"
-								label="Observaciones"
-								type="string"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model.trim="unidad"
-								label="Unidad"
-								filled
-								class="q-mb-md"
-								required />
-							<q-input
-								v-model="total"
-								label="Total"
-								type="number"
-								filled
-								outlined
-								class="q-mb-md"
-								required
-								min="0" />
+							<q-input v-model.trim="unidad" label="Unidad" filled class="q-mb-md" required />
+							<q-input v-model="total" label="Total" type="number" filled outlined class="q-mb-md"
+								required min="0" />
 
-							<q-select
-								v-model="estadoSemilla"
-								label="Estado"
-								filled
-								outlined
-								:options="estadoOptions"
-								required
-								class="q-mb-md"
-								style="max-width: 100%" />
+							<q-select v-model="estadoSemilla" label="Estado" filled outlined :options="estadoOptions"
+								required class="q-mb-md" style="max-width: 100%" />
 							<!-- Botones de acción -->
 							<div class="q-mt-md">
-								<q-btn
-									@click="
-										mostrarFormularioAgregarSemillas = false
-									"
-									label="Cancelar"
-									color="negative"
-									class="q-mr-sm">
+								<q-btn @click="
+									mostrarFormularioAgregarSemillas = false
+									" label="Cancelar" color="negative" class="q-mr-sm">
 									<q-tooltip> Cancelar </q-tooltip>
 								</q-btn>
-								<q-btn
-									:loading="useSemilla.loading"
-									:disable="useSemilla.loading"
-									type="submit"
-									label="Guardar Semilla"
-									color="primary">
+								<q-btn :loading="useSemilla.loading" :disable="useSemilla.loading" type="submit"
+									label="Guardar Semilla" color="primary">
 									<q-tooltip> Guardar Semilla </q-tooltip>
 									<template v-slot:loading>
 										<q-spinner color="white" size="1em" />
@@ -538,15 +444,8 @@ watch(selectedOption, () => actualizarListadoSemillas(), isLoading, loadingg);
 
 					<q-card-section>
 						<q-form @submit.prevent="editarSemilla">
-							<q-select
-								v-model="proveedor_id"
-								label="Proveedor"
-								filled
-								outlined
-								:options="proveedorOptions"
-								class="q-mb-md"
-								style="max-width: 100%"
-								required>
+							<q-select v-model="proveedor_id" label="Proveedor" filled outlined
+								:options="proveedorOptions" class="q-mb-md" style="max-width: 100%" required>
 								<template v-slot:no-option>
 									<q-item>
 										<q-item-section>
@@ -555,96 +454,36 @@ watch(selectedOption, () => actualizarListadoSemillas(), isLoading, loadingg);
 									</q-item>
 								</template>
 							</q-select>
-							<q-input
-								v-model="fechaCompra"
-								type="date"
-								label="Fecha de compra"
-								filled
-								required
+							<q-input v-model="fechaCompra" type="date" label="Fecha de compra" filled required
 								class="q-mb-md" />
-							<q-input
-								v-model="fechaVencimiento"
-								type="date"
-								label="Fecha de vencimiento"
-								filled
-								required
+							<q-input v-model="fechaVencimiento" type="date" label="Fecha de vencimiento" filled required
 								class="q-mb-md" />
-							<q-input
-								v-model.trim="especieVariedad"
-								label="Especie y variedad"
-								type="string"
-								filled
-								required
+							<q-input v-model.trim="especieVariedad" label="Especie y variedad" type="string" filled
+								required class="q-mb-md" />
+							<q-input v-model.trim="proveedorSemilla" label="Proveedor de la semilla" type="string"
+								filled required class="q-mb-md" />
+							<q-input v-model.trim="numeroLote" label="Número de Lote" type="string" filled required
 								class="q-mb-md" />
-							<q-input
-								v-model.trim="proveedorSemilla"
-								label="Proveedor de la semilla"
-								type="string"
-								filled
-								required
+							<q-input v-model.trim="origen" label="Origen" type="string" filled required
 								class="q-mb-md" />
-							<q-input
-								v-model.trim="numeroLote"
-								label="Número de Lote"
-								type="string"
-								filled
-								required
+							<q-input v-model.trim="poderGerminativo" label="Poder Germinativo" type="string" filled
+								required class="q-mb-md" />
+							<q-input v-model.trim="observaciones" label="Observaciones" type="string" filled required
 								class="q-mb-md" />
-							<q-input
-								v-model.trim="origen"
-								label="Origen"
-								type="string"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model.trim="poderGerminativo"
-								label="Poder Germinativo"
-								type="string"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model.trim="observaciones"
-								label="Observaciones"
-								type="string"
-								filled
-								required
-								class="q-mb-md" />
-							<q-input
-								v-model.trim="unidad"
-								label="Unidad"
-								filled
-								class="q-mb-md"
-								required />
-							<q-input
-								v-model="total"
-								label="Total"
-								type="number"
-								filled
-								outlined
-								class="q-mb-md"
-								required
-								min="0" />
+							<q-input v-model.trim="unidad" label="Unidad" filled class="q-mb-md" required />
+							<q-input v-model="total" label="Total" type="number" filled outlined class="q-mb-md"
+								required min="0" />
 
 							<!-- style="padding: 10px 0 0 25px;" -->
 							<!-- Botones de acción -->
 							<div class="q-mt-md">
-								<q-btn
-									@click="
-										mostrarFormularioEditarSemillas = false
-									"
-									label="Cancelar"
-									color="negative"
-									class="q-mr-sm">
+								<q-btn @click="
+									mostrarFormularioEditarSemillas = false
+									" label="Cancelar" color="negative" class="q-mr-sm">
 									<q-tooltip> Cancelar </q-tooltip>
 								</q-btn>
-								<q-btn
-									:loading="useSemilla.loading"
-									:disable="useSemilla.loading"
-									type="submit"
-									label="Guardar Cambios"
-									color="primary">
+								<q-btn :loading="useSemilla.loading" :disable="useSemilla.loading" type="submit"
+									label="Guardar Cambios" color="primary">
 									<q-tooltip> Guardar Cambios </q-tooltip>
 									<template v-slot:loading>
 										<q-spinner color="white" size="1em" />
@@ -656,24 +495,15 @@ watch(selectedOption, () => actualizarListadoSemillas(), isLoading, loadingg);
 				</q-card>
 			</q-dialog>
 		</div>
-		<q-table
-			flat
-			bordered
-			title="Semillas"
-			title-class="text-green text-weight-bolder text-h5"
-			:rows="filteredRows"
-			:columns="columns"
-			row-key="id"
-			:loading="loadingg">
+		<q-table flat bordered title="Semillas" title-class="text-green text-weight-bolder text-h5" :rows="filteredRows"
+			:columns="columns" row-key="id" :loading="loadingg">
 			<template v-slot:body-cell-opciones="props">
 				<q-td :props="props">
 					<q-btn @click="cargarSemillaParaEdicion(props.row)">
 						✏️
 						<q-tooltip> Editar Semilla </q-tooltip>
 					</q-btn>
-					<q-btn
-						v-if="props.row.estado == 1"
-						@click="editarEstado(props.row)">
+					<q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)">
 						❌
 						<q-tooltip> Inactivar Semilla </q-tooltip>
 					</q-btn>
@@ -684,13 +514,12 @@ watch(selectedOption, () => actualizarListadoSemillas(), isLoading, loadingg);
 				</q-td>
 			</template>
 
-			<template class="a" v-slot:body-cell-estado="props">
-				<q-td class="b" :props="props">
-					<p
-						:style="{
-							color: props.row.estado === 1 ? 'green' : 'red',
-							margin: 0,
-						}">
+			<template v-slot:body-cell-estado="props">
+				<q-td :props="props">
+					<p :style="{
+						color: props.row.estado === 1 ? 'green' : 'red',
+						margin: 0,
+					}">
 						{{ props.row.estado === 1 ? "Activo" : "Inactivo" }}
 					</p>
 				</q-td>
@@ -699,35 +528,26 @@ watch(selectedOption, () => actualizarListadoSemillas(), isLoading, loadingg);
 			<!-- Observaciones Column -->
 			<template v-slot:body-cell-observaciones="props">
 				<q-td :props="props" class="relative">
-					<div
-						class="truncated-text"
-						@mouseover="
-							checkAndShowTooltip(
-								$event,
-								props.row.observaciones,
-								20
-							)
-						"
-						@mouseleave="hideTooltip">
+					<div class="truncated-text" @mouseover="
+						checkAndShowTooltip(
+							$event,
+							props.row.observaciones,
+							20
+						)
+						" @mouseleave="hideTooltip">
 						{{ truncateText(props.row.observaciones, 20) }}
 					</div>
 				</q-td>
 			</template>
 
 			<template v-slot:loading>
-				<q-inner-loading
-					:showing="loadingg"
-					label="Por favor espere..."
-					label-class="text-teal"
+				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal"
 					label-style="font-size: 1.1em">
 				</q-inner-loading>
 			</template>
 		</q-table>
 	</div>
-	<q-inner-loading
-		:showing="isLoading"
-		label="Por favor espere..."
-		label-class="text-teal"
+	<q-inner-loading :showing="isLoading" label="Por favor espere..." label-class="text-teal"
 		label-style="font-size: 1.1em" />
 </template>
 

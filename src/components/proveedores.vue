@@ -90,7 +90,7 @@ const columns = ref([
 		field: "estado",
 		align: "center",
 	},
-	{ name: "opciones", label: "Opciones", field: "opciones", align: "center" },
+	{ name: "opciones", label: "Opciones", field: "opciones", align: "center" }
 ]);
 
 async function actualizarListadoProveedores() {
@@ -100,8 +100,8 @@ async function actualizarListadoProveedores() {
 			selectedOption.value === "Listar Proveedores Activos"
 				? useProveedor.getProveedoresActivos()
 				: selectedOption.value === "Listar Proveedores Inactivos"
-				? useProveedor.getProveedoresInactivos()
-				: useProveedor.getProveedores();
+					? useProveedor.getProveedoresInactivos()
+					: useProveedor.getProveedores();
 
 		rows.value = (await proveedoresPromise).data.proveedores;
 		console.log("Proveedores", rows.value);
@@ -142,21 +142,16 @@ const filtrarFilas = computed(() => {
 
 	// Filtrar por rango de fechas
 	if (listarFechasOne.value && listarFechasTwo.value) {
-		const normalizeDate = (date) =>
-			new Date(date).toISOString().slice(0, 10);
+		const normalizeDate = date => new Date(date).toISOString().slice(0, 10);
 
 		const startDate = normalizeDate(listarFechasOne.value);
 		const endDate = normalizeDate(listarFechasTwo.value);
 
-		if (startDate === endDate) {
-			proveedoresFiltradas = proveedoresFiltradas.filter((compra) => {
-				const compraDate = normalizeDate(compra.createdAt);
-				return compraDate === startDate;
-			});
-			// notifySuccessRequest('Proveedores listadas por fechas exitosamente.');
-		} else {
-			// notifyErrorRequest('Fechas inválidas o inconsistentes.');
-		}
+		proveedoresFiltradas = proveedoresFiltradas.filter(proveedor => {
+			const proveedorDate = normalizeDate(proveedor.createdAt);
+			return proveedorDate >= startDate && proveedorDate <= endDate;
+		});
+		// notifySuccessRequest('Proveedores listados por rango de fechas exitosamente.');
 	}
 
 	return proveedoresFiltradas;
@@ -234,38 +229,20 @@ watch(selectedOption, () => {
 </script>
 
 <template>
-	<div>
-		<div class="q-pa-md" v-if="!visible">
+	<div class="q-pa-md" v-if="!visible">
+		<div>
 			<h3 style="text-align: center; margin: 10px">Proveedores</h3>
 			<hr style="width: 70%; height: 5px; background-color: green" />
 		</div>
 
-		<div
-			class="contSelect"
-			style="margin-left: 5%; text-align: end; margin-right: 5%">
-			<q-select
-				background-color="green"
-				class="q-my-md"
-				id="q-select"
-				v-model="selectedOption"
-				outlined
-				dense
-				options-dense
-				emit-value
-				:options="options" />
+		<div class="contSelect" style="margin-left: 5%; text-align: end; margin-right: 5%">
+			<q-select background-color="green" class="q-my-md" id="q-select" v-model="selectedOption" outlined dense
+				options-dense emit-value :options="options" />
 
-			<input
-				v-if="selectedOption === 'Listar Proveedores por Nombre'"
-				v-model="listarProducto"
-				class="q-my-md"
-				type="text"
-				name="search"
-				id="search"
-				placeholder="Ingrese el producto" />
+			<input v-if="selectedOption === 'Listar Proveedores por Nombre'" v-model="listarProducto" class="q-my-md"
+				type="text" name="search" id="search" placeholder="Proveedor" />
 
-			<div
-				v-if="selectedOption === 'Listar Proveedores por fechas'"
-				style="
+			<div v-if="selectedOption === 'Listar Proveedores por fechas'" style="
 					display: flex;
 					flex-direction: row;
 					text-align: center;
@@ -274,120 +251,53 @@ watch(selectedOption, () => {
 					top: 150px;
 					left: 240px;
 				">
-				<label
-					for="listarFechasOne"
-					style="height: 100%; line-height: 88px; margin-left: 40px"
-					>De:</label
-				>
-				<q-input
-					v-model="listarFechasOne"
-					class="q-my-md"
-					type="date"
-					name="search"
-					id="listarFechasOne"
+				<label for="listarFechasOne" style="height: 100%; line-height: 88px; margin-left: 40px">De:</label>
+				<q-input v-model="listarFechasOne" class="q-my-md" type="date" name="search" id="listarFechasOne"
 					placeholder="Ingrese la fecha" />
 
-				<label
-					for="listarFechasTwo"
-					style="height: 100%; line-height: 88px; margin-left: 40px"
-					>A:</label
-				>
-				<q-input
-					v-model="listarFechasTwo"
-					class="q-my-md"
-					type="date"
-					name="search"
-					id="listarFechasTwo"
+				<label for="listarFechasTwo" style="height: 100%; line-height: 88px; margin-left: 40px">A:</label>
+				<q-input v-model="listarFechasTwo" class="q-my-md" type="date" name="search" id="listarFechasTwo"
 					placeholder="Ingrese la fecha" />
 			</div>
 		</div>
 
 		<div>
-			<div
-				style="margin-left: 5%; text-align: end; margin-right: 5%"
-				class="q-mb-md">
-				<q-btn
-					label="Agregar Proveedor"
-					@click="mostrarFormularioAgregarProveedor = true">
+			<div style="margin-left: 5%; text-align: end; margin-right: 5%" class="q-mb-md">
+				<q-btn label="Agregar Proveedor" @click="mostrarFormularioAgregarProveedor = true">
 					<q-tooltip> Agregar Proveedor </q-tooltip>
 				</q-btn>
 			</div>
 
 			<!-- Formulario para agregar proveedor -->
-			<q-dialog
-				v-model="mostrarFormularioAgregarProveedor"
+			<q-dialog v-model="mostrarFormularioAgregarProveedor"
 				v-bind="mostrarFormularioAgregarProveedor && limpiarCampos()">
-				<q-card style="width: 340px">
+				<q-card>
 					<q-card-section>
-						<div class="text-h6" style="padding: 10px 0 0 15px">
+						<div class="text-h6">
 							Agregar Proveedor
 						</div>
 					</q-card-section>
-					<q-card-section style="padding: 10px 25px">
+					<q-card-section>
 						<q-form @submit.prevent="agregarProveedor">
-							<q-input
-								v-model.trim="nombre"
-								label="Nombre"
-								filled
-								outlined
-								class="q-mb-md"
+							<q-input v-model.trim="nombre" label="Nombre" filled outlined class="q-mb-md" required />
+							<q-input v-model.trim="direccion" label="Dirección" filled class="q-mb-md" required />
+							<q-input v-model.trim="telefono" label="Teléfono" type="number" filled outlined
+								class="q-mb-md" required />
+							<q-input v-model.trim="email" label="Email" type="email" filled outlined class="q-mb-md"
 								required />
-							<q-input
-								v-model.trim="direccion"
-								label="Dirección"
-								filled
-								class="q-mb-md"
-								required />
-							<q-input
-								v-model.trim="telefono"
-								label="Teléfono"
-								type="number"
-								filled
-								outlined
-								class="q-mb-md"
-								required />
-							<q-input
-								v-model.trim="email"
-								label="Email"
-								type="email"
-								filled
-								outlined
-								class="q-mb-md"
-								required />
-							<q-select
-								v-model="estado"
-								label="Estado"
-								:options="[
-									{ label: 'Activo' },
-									{ label: 'Inactivo' },
-								]"
-								filled
-								outlined
-								class="q-mb-md"
-								required
-								style="max-width: 100%" />
-							<div
-								class="q-mt-md"
-								style="
-									display: flex;
-									justify-content: flex-end;
-								">
-								<q-btn
-									label="Cancelar"
-									color="negative"
-									class="q-ma-sm"
-									@click="
-										mostrarFormularioAgregarProveedor = false
+							<q-select v-model="estado" label="Estado" :options="[
+								{ label: 'Activo' },
+								{ label: 'Inactivo' },
+							]" filled outlined class="q-mb-md" required style="max-width: 100%" />
+
+							<div class="q-mt-md">
+								<q-btn label="Cancelar" color="negative" class="q-ma-sm" @click="
+									mostrarFormularioAgregarProveedor = false
 									">
 									<q-tooltip> Cancelar </q-tooltip>
 								</q-btn>
-								<q-btn
-									:loading="useProveedor.loading"
-									:disable="useProveedor.loading"
-									type="submit"
-									label="Guardar Proveedor"
-									color="primary"
-									class="q-ma-sm">
+								<q-btn :loading="useProveedor.loading" :disable="useProveedor.loading" type="submit"
+									label="Guardar Proveedor" color="primary" class="q-ma-sm">
 									<q-tooltip> Guardar Proveedor </q-tooltip>
 									<template v-slot:loading>
 										<q-spinner color="white" size="1em" />
@@ -405,60 +315,23 @@ watch(selectedOption, () => {
 					<q-card-section>
 						<div class="text-h6">Editar Proveedor</div>
 					</q-card-section>
-					<q-card-section style="padding: 10px 25px">
+					<q-card-section>
 						<q-form @submit.prevent="editarProveedor">
-							<q-input
-								v-model.trim="nombre"
-								label="Nombre"
-								filled
-								outlined
-								class="q-mb-md"
-								required />
-							<q-input
-								v-model.trim="direccion"
-								label="Dirección"
-								filled
-								class="q-mb-md"
-								required />
-							<q-input
-								v-model.trim="telefono"
-								label="Teléfono"
-								type="number"
-								filled
-								outlined
-								class="q-mb-md"
-								required />
-							<q-input
-								v-model.trim="email"
-								label="Email"
-								type="email"
-								filled
-								outlined
-								class="q-mb-md"
+							<q-input v-model.trim="nombre" label="Nombre" filled outlined class="q-mb-md" required />
+							<q-input v-model.trim="direccion" label="Dirección" filled class="q-mb-md" required />
+							<q-input v-model.trim="telefono" label="Teléfono" type="number" filled outlined
+								class="q-mb-md" required />
+							<q-input v-model.trim="email" label="Email" type="email" filled outlined class="q-mb-md"
 								required />
 
-							<div
-								class="q-mt-md"
-								style="
-									display: flex;
-									justify-content: flex-end;
-								">
-								<q-btn
-									label="Cancelar"
-									color="negative"
-									class="q-ma-sm"
-									@click="
-										mostrarFormularioEditarProveedor = false
+							<div class="q-mt-md">
+								<q-btn label="Cancelar" color="negative" class="q-ma-sm" @click="
+									mostrarFormularioEditarProveedor = false
 									">
 									<q-tooltip> Cancelar </q-tooltip>
 								</q-btn>
-								<q-btn
-									:loading="useProveedor.loading"
-									:disable="useProveedor.loading"
-									type="submit"
-									label="Guardar Cambios"
-									color="primary"
-									class="q-ma-sm">
+								<q-btn :loading="useProveedor.loading" :disable="useProveedor.loading" type="submit"
+									label="Guardar Cambios" color="primary" class="q-ma-sm">
 									<q-tooltip> Guardar Cambios </q-tooltip>
 									<template v-slot:loading>
 										<q-spinner color="white" size="1em" />
@@ -471,24 +344,15 @@ watch(selectedOption, () => {
 			</q-dialog>
 		</div>
 
-		<q-table
-			flat
-			bordered
-			title="Proveedores"
-			title-class="text-green text-weight-bolder text-h5"
-			:rows="filtrarFilas"
-			:columns="columns"
-			row-key="id"
-			:loading="loadingg">
+		<q-table flat bordered title="Proveedores" title-class="text-green text-weight-bolder text-h5"
+			:rows="filtrarFilas" :columns="columns" row-key="id" :loading="loadingg" style="text-align: center">
 			<template v-slot:body-cell-opciones="props">
 				<q-td :props="props">
 					<q-btn @click="cargarProveedorParaEdicion(props.row)">
 						✏️
 						<q-tooltip> Editar Proveedor </q-tooltip>
 					</q-btn>
-					<q-btn
-						v-if="props.row.estado == 1"
-						@click="editarEstado(props.row)">
+					<q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)">
 						❌
 						<q-tooltip> Inactivar Proveedor </q-tooltip>
 					</q-btn>
@@ -499,32 +363,25 @@ watch(selectedOption, () => {
 				</q-td>
 			</template>
 
-			<template class="a" v-slot:body-cell-estado="props">
-				<q-td class="b" :props="props">
-					<p
-						:style="{
-							color: props.row.estado === 1 ? 'green' : 'red',
-							margin: 0,
-						}">
+			<template v-slot:body-cell-estado="props">
+				<q-td :props="props">
+					<p :style="{
+						color: props.row.estado === 1 ? 'green' : 'red',
+						margin: 0,
+					}">
 						{{ props.row.estado === 1 ? "Activo" : "Inactivo" }}
 					</p>
 				</q-td>
 			</template>
 
 			<template v-slot:loading>
-				<q-inner-loading
-					:showing="loadingg"
-					label="Por favor espere..."
-					label-class="text-teal"
+				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal"
 					label-style="font-size: 1.1em">
 				</q-inner-loading>
 			</template>
 		</q-table>
 	</div>
-	<q-inner-loading
-		:showing="isLoading"
-		label="Por favor espere..."
-		label-class="text-teal"
+	<q-inner-loading :showing="isLoading" label="Por favor espere..." label-class="text-teal"
 		label-style="font-size: 1.1em" />
 </template>
 

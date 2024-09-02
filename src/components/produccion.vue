@@ -25,7 +25,7 @@ const mostrarFormularioEditarProduccion = ref(false);
 const useCultivo = useStoreCultivos();
 const useProduccion = useStoreProduccion();
 
-const nombreMaquinaProduccion = ref("");
+const nombreCultivoProduccion = ref("");
 const fecha1 = ref("");
 const fecha2 = ref("");
 
@@ -41,19 +41,19 @@ const cultivosOptions = computed(() => {
 	return cultivos.value
 		.filter((cultivo) => cultivo.estado != 0)
 		.map((cultivo) => ({
-			label: cultivo.especie,
+			label: cultivo.nombre,
 			id: cultivo._id,
 		}));
 });
 
-const selectedMachine = ref(null);
+const idProduccionSeleccionado = ref("");
+const cultivo_id = ref("");
 const fecha = ref("");
 const especie = ref("");
 const numeroLote = ref("");
 const cantidad = ref("");
 const cantidadTrabajadores = ref("");
 const observaciones = ref("");
-const idProduccionSeleccionado = ref(null);
 
 const estadoOptions = [{ label: "Activo" }, { label: "Inactivo" }];
 const estadoM = ref("Activo");
@@ -62,8 +62,8 @@ const selectedOption = ref("Listar Producciones"); // Establecer 'Listar Producc
 const options = [
 	{ label: "Listar Producciones", value: "Listar Producciones" },
 	{
-		label: "Listar Produccion de la Máquina por su Nombre",
-		value: "Listar Produccion de la Máquina por su Nombre",
+		label: "Listar Producción por su Cultivo",
+		value: "Listar Producción por su Cultivo",
 	},
 	{
 		label: "Listar Producciones Activos",
@@ -83,7 +83,7 @@ let rows = ref([]);
 const columns = ref([
 	{
 		name: "cultivo_id",
-		label: "Máquina",
+		label: "Cultivo",
 		field: (row) => row.cultivo_id.nombre,
 		align: "center",
 	},
@@ -152,8 +152,8 @@ async function actualizarListadoProducciones() {
 			selectedOption.value === "Listar Producciones Activos"
 				? useProduccion.getProduccionActivas()
 				: selectedOption.value === "Listar Producciones Inactivos"
-				? useProduccion.getProduccionInactivas()
-				: useProduccion.getProduccion();
+					? useProduccion.getProduccionInactivas()
+					: useProduccion.getProduccion();
 
 		rows.value = (await produccionesPromise).data.producciones;
 		console.log("Producciones", rows.value);
@@ -168,46 +168,39 @@ const filtrarFilas = computed(() => {
 		return []; // Retorna una lista vacía mientras se está cargando
 	}
 
-	const searchTermNombreMaquina = nombreMaquinaProduccion.value || "";
-	const fecha1Value = fecha1.value ? new Date(fecha1.value) : null;
-	const fecha2Value = fecha2.value ? new Date(fecha2.value) : null;
-
 	return rows.value.filter((produccion) => {
 		switch (selectedOption.value) {
-			case "Listar Produccion de la Máquina por su Nombre":
-				if (
-					produccion.cultivo_id.nombre.includes(
-						searchTermNombreMaquina
-					)
-				) {
-					// notifySuccessRequest('Listado correctamente por nombre de máquina.');
-					return true;
-				}
-				return false;
+			case "Listar Producción por su Cultivo":
+				return produccion.cultivo_id.nombre.includes(nombreCultivoProduccion.value);
 
 			case "Listar Producciones por Fechas":
-				if (!fecha1Value || !fecha2Value) return true; // No hay filtro aplicado si no hay fechas seleccionadas
-				const fechaProduccion = new Date(produccion.fecha);
-				if (
-					fechaProduccion >= fecha1Value &&
-					fechaProduccion <= fecha2Value
-				) {
-					// notifySuccessRequest('Producciones listados por fechas exitosamente.');
-					return true;
-				} else {
-					// notifyErrorRequest('Fechas inválidas o inconsistentes.');
-					return false;
+				if (fecha1.value && fecha2.value) {
+					const normalizeDate = date => new Date(date).toISOString().slice(0, 10);
+					const startDate = normalizeDate(fecha1.value);
+					const endDate = normalizeDate(fecha2.value);
+
+					const produccionDate = normalizeDate(produccion.fecha);
+					const isWithinDateRange = produccionDate >= startDate && produccionDate <= endDate;
+
+					if (isWithinDateRange) {
+						return true;
+					}
+
+					// No data available for the selected date range
+					console.log('No data available for the selected date range.');
+					return false; // Exclude this production as it does not match the date range
 				}
+				return rows.value; // Retorna todos los producciones si no se proporcionan fechas válidas
 
 			default:
-				return true;
+				return true; // No filtra si la opción seleccionada no coincide
 		}
 	});
 });
 
 const cargarProduccionParaEdicion = (produccion) => {
 	idProduccionSeleccionado.value = produccion._id;
-	selectedMachine.value = produccion.cultivo_id.nombre;
+	cultivo_id.value = produccion.cultivo_id.nombre;
 	fecha.value = produccion.fecha.split("T")[0];
 	numeroLote.value = produccion.numeroLote;
 	especie.value = produccion.especie;
@@ -233,7 +226,7 @@ async function validarDatosProduccion(produccion) {
 	const { cultivo_id } = produccion;
 
 	if (cultivo_id === undefined) {
-		notifyErrorRequest("La Máquina es requerida.");
+		notifyErrorRequest("El Cultivo es requerido.");
 		return false;
 	}
 
@@ -242,7 +235,7 @@ async function validarDatosProduccion(produccion) {
 
 const agregarProduccion = async () => {
 	const produccionData = {
-		cultivo_id: selectedMachine.value.id,
+		cultivo_id: cultivo_id.value.id,
 		fecha: fecha.value,
 		numeroLote: numeroLote.value,
 		especie: especie.value,
@@ -264,17 +257,18 @@ const agregarProduccion = async () => {
 };
 
 const editarProduccion = async () => {
-	let cultivo_idSeleccionada = selectedMachine.value.id;
+	let cultivo_idSeleccionada = cultivo_id.value.id;
 
 	for (let cultivo of cultivos.value) {
-		if (cultivo.especie == selectedMachine.value) {
-			if (cultivo.estado == 1) {
-				cultivo_idSeleccionada = cultivo._id;
-				break;
-			} else {
-				notifyErrorRequest("Máquina seleccionada inactiva");
-				return;
-			}
+		if (cultivo.nombre == cultivo_id.value) {
+			// if (cultivo.estado == 1) {
+			cultivo_idSeleccionada = cultivo._id;
+			break;
+			// }
+			// else {
+			// 	notifyErrorRequest("Cultivo seleccionado inactivo");
+			// 	return;
+			// }
 		}
 	}
 	const produccionEditado = {
@@ -301,7 +295,7 @@ const editarProduccion = async () => {
 };
 
 const limpiarCampos = () => {
-	selectedMachine.value = "";
+	cultivo_id.value = "";
 	fecha.value = "";
 	numeroLote.value = "";
 	especie.value = "";
@@ -360,35 +354,17 @@ watch(selectedOption, () => {
 			<hr style="width: 70%; height: 5px; background-color: green" />
 		</div>
 
-		<div
-			class="contSelect"
-			style="margin-left: 5%; text-align: end; margin-right: 5%">
-			<q-select
-				background-color="green"
-				class="q-my-md"
-				v-model="selectedOption"
-				outlined
-				dense
-				options-dense
-				emit-value
-				:options="options" />
+		<div class="contSelect" style="margin-left: 5%; text-align: end; margin-right: 5%">
+			<q-select background-color="green" class="q-my-md" v-model="selectedOption" outlined dense options-dense
+				emit-value :options="options" />
 
-			<input
-				v-if="
-					selectedOption ===
-					'Listar Produccion de la Máquina por su Nombre'
-				"
-				v-model="nombreMaquinaProduccion"
-				class="q-my-md"
-				type="text"
-				name="search"
-				id="searchMaquina"
-				@dblclick="selectAllText"
-				placeholder="Nombre de la Máquina" />
+			<input v-if="
+				selectedOption ===
+				'Listar Producción por su Cultivo'
+			" v-model="nombreCultivoProduccion" class="q-my-md" type="text" name="search" id="searchCultivo"
+				@dblclick="selectAllText" placeholder="Cultivo" />
 
-			<div
-				v-if="selectedOption === 'Listar Producciones por Fechas'"
-				style="
+			<div v-if="selectedOption === 'Listar Producciones por Fechas'" style="
 					display: flex;
 					flex-direction: row;
 					text-align: center;
@@ -397,47 +373,23 @@ watch(selectedOption, () => {
 					top: 147px;
 					left: 350px;
 				">
-				<label
-					for="fecha1"
-					style="height: 100%; line-height: 88px; margin-left: 40px"
-					>De:</label
-				>
-				<q-input
-					v-model="fecha1"
-					class="q-my-md"
-					type="date"
-					name="search"
-					id="fecha1" />
+				<label for="fecha1" style="height: 100%; line-height: 88px; margin-left: 40px">De:</label>
+				<q-input v-model="fecha1" class="q-my-md" type="date" name="search" id="fecha1" />
 
-				<label
-					for="fecha2"
-					style="height: 100%; line-height: 88px; margin-left: 40px"
-					>A:</label
-				>
-				<q-input
-					v-model="fecha2"
-					class="q-my-md"
-					type="date"
-					name="search"
-					id="fecha2" />
+				<label for="fecha2" style="height: 100%; line-height: 88px; margin-left: 40px">A:</label>
+				<q-input v-model="fecha2" class="q-my-md" type="date" name="search" id="fecha2" />
 			</div>
 		</div>
 
 		<div>
-			<div
-				style="margin-left: 5%; text-align: end; margin-right: 5%"
-				class="q-mb-md">
-				<q-btn
-					label="Agregar Produccion"
-					@click="mostrarFormularioAgregarProduccion = true">
+			<div style="margin-left: 5%; text-align: end; margin-right: 5%" class="q-mb-md">
+				<q-btn label="Agregar Produccion" @click="mostrarFormularioAgregarProduccion = true">
 					<!-- <q-btn label="Editar Produccion" @click="mostrarFormularioEditarProduccion = true" /> -->
 					<q-tooltip> Agregar Produccion </q-tooltip>
 				</q-btn>
 			</div>
 			<!-- Dialogo para agregar produccion -->
-			<q-dialog
-				v-model="mostrarFormularioAgregarProduccion"
-				n
+			<q-dialog v-model="mostrarFormularioAgregarProduccion" n
 				v-bind="mostrarFormularioAgregarProduccion && limpiarCampos()">
 				<q-card>
 					<q-card-section>
@@ -450,15 +402,9 @@ watch(selectedOption, () => {
 						<div class="q-pa-md">
 							<q-form @submit.prevent="agregarProduccion">
 								<!-- Campos del formulario de agregar produccion -->
-								<!-- Selección de máquina -->
-								<q-select
-									v-model="selectedMachine"
-									filled
-									outlined
-									label="Máquina"
-									:options="cultivosOptions"
-									class="q-mb-md"
-									style="max-width: 100%">
+								<!-- Selección de cultivo -->
+								<q-select v-model="cultivo_id" filled outlined label="Cultivo"
+									:options="cultivosOptions" class="q-mb-md" style="max-width: 100%">
 									<template v-slot:no-option>
 										<q-item>
 											<q-item-section>
@@ -467,86 +413,34 @@ watch(selectedOption, () => {
 										</q-item>
 									</template>
 								</q-select>
-								<q-input
-									v-model="fecha"
-									label="Fecha"
-									type="date"
-									filled
-									class="q-mb-md"
+								<q-input v-model="fecha" label="Fecha" type="date" filled class="q-mb-md" required />
+								<q-input v-model="numeroLote" label="Numero de Lote" type="number" filled
+									class="q-mb-md" required min="0" />
+								<q-input v-model.trim="especie" label="Especie" type="textarea" filled class="q-mb-md"
 									required />
-								<q-input
-									v-model="numeroLote"
-									label="Numero de Lote"
-									type="number"
-									filled
-									class="q-mb-md"
-									required
-									min="0" />
-								<q-input
-									v-model.trim="especie"
-									label="Especie"
-									type="textarea"
-									filled
-									class="q-mb-md"
+								<q-input v-model="cantidad" label="cantidad" type="number" filled class="q-mb-md"
+									required min="0" outlined />
+								<q-input v-model="cantidadTrabajadores" label="Cantidad de trabajadores" type="number"
+									filled class="q-mb-md" required min="0" outlined />
+								<q-input v-model.trim="observaciones" label="Observaciones" filled class="q-mb-md"
 									required />
-								<q-input
-									v-model="cantidad"
-									label="cantidad"
-									type="number"
-									filled
-									class="q-mb-md"
-									required
-									min="0"
-									outlined />
-								<q-input
-									v-model="cantidadTrabajadores"
-									label="Cantidad de trabajadores"
-									type="number"
-									filled
-									class="q-mb-md"
-									required
-									min="0"
-									outlined />
-								<q-input
-									v-model.trim="observaciones"
-									label="Observaciones"
-									filled
-									class="q-mb-md"
-									required />
-								<q-select
-									v-model="estadoM"
-									label="Estado"
-									outlined
-									:options="estadoOptions"
-									filled
-									class="q-mb-md"
-									style="max-width: 100%" />
+								<q-select v-model="estadoM" label="Estado" outlined :options="estadoOptions" filled
+									class="q-mb-md" style="max-width: 100%" />
 
 								<!-- Botón para agregar produccion -->
 								<div class="q-mt-md">
-									<q-btn
-										@click="
-											mostrarFormularioAgregarProduccion = false
-										"
-										label="Cancelar"
-										color="negative"
-										class="q-ma-sm">
+									<q-btn @click="
+										mostrarFormularioAgregarProduccion = false
+										" label="Cancelar" color="negative" class="q-ma-sm">
 										<q-tooltip> Cancelar </q-tooltip>
 									</q-btn>
-									<q-btn
-										:loading="useProduccion.loading"
-										:disable="useProduccion.loading"
-										type="submit"
-										label="Guardar Produccion"
-										color="primary"
-										class="q-ma-sm">
+									<q-btn :loading="useProduccion.loading" :disable="useProduccion.loading"
+										type="submit" label="Guardar Produccion" color="primary" class="q-ma-sm">
 										<q-tooltip>
 											Guardar Produccion
 										</q-tooltip>
 										<template v-slot:loading>
-											<q-spinner
-												color="white"
-												size="1em" />
+											<q-spinner color="white" size="1em" />
 										</template>
 									</q-btn>
 								</div>
@@ -569,15 +463,9 @@ watch(selectedOption, () => {
 						<div class="q-pa-md">
 							<q-form @submit.prevent="editarProduccion">
 								<!-- Campos del formulario de editar produccion -->
-								<!-- Selección de máquina -->
-								<q-select
-									v-model="selectedMachine"
-									filled
-									outlined
-									label="Máquina"
-									:options="cultivosOptions"
-									class="q-mb-md"
-									style="max-width: 100%">
+								<!-- Selección de cultivo -->
+								<q-select v-model="cultivo_id" filled outlined label="Cultivo"
+									:options="cultivosOptions" class="q-mb-md" style="max-width: 100%">
 									<template v-slot:no-option>
 										<q-item>
 											<q-item-section>
@@ -586,76 +474,30 @@ watch(selectedOption, () => {
 										</q-item>
 									</template>
 								</q-select>
-								<q-input
-									v-model="fecha"
-									label="Fecha"
-									type="date"
-									filled
-									class="q-mb-md"
+								<q-input v-model="fecha" label="Fecha" type="date" filled class="q-mb-md" required />
+								<q-input v-model="numeroLote" label="Numero de Lote" type="number" filled
+									class="q-mb-md" required min="0" />
+								<q-input v-model.trim="especie" label="Especie" type="textarea" filled class="q-mb-md"
 									required />
-								<q-input
-									v-model="numeroLote"
-									label="Numero de Lote"
-									type="number"
-									filled
-									class="q-mb-md"
-									required
-									min="0" />
-								<q-input
-									v-model.trim="especie"
-									label="Especie"
-									type="textarea"
-									filled
-									class="q-mb-md"
-									required />
-								<q-input
-									v-model="cantidad"
-									label="cantidad"
-									type="number"
-									filled
-									class="q-mb-md"
-									required
-									min="0"
-									outlined />
-								<q-input
-									v-model="cantidadTrabajadores"
-									label="Cantidad de trabajadores"
-									type="number"
-									filled
-									class="q-mb-md"
-									required
-									min="0"
-									outlined />
-								<q-input
-									v-model.trim="observaciones"
-									label="Observaciones"
-									filled
-									class="q-mb-md"
+								<q-input v-model="cantidad" label="cantidad" type="number" filled class="q-mb-md"
+									required min="0" outlined />
+								<q-input v-model="cantidadTrabajadores" label="Cantidad de trabajadores" type="number"
+									filled class="q-mb-md" required min="0" outlined />
+								<q-input v-model.trim="observaciones" label="Observaciones" filled class="q-mb-md"
 									required />
 
 								<!-- Botón para editar produccion -->
 								<div class="q-mt-md">
-									<q-btn
-										@click="
-											mostrarFormularioEditarProduccion = false
-										"
-										label="Cancelar"
-										color="negative"
-										class="q-ma-sm">
+									<q-btn @click="
+										mostrarFormularioEditarProduccion = false
+										" label="Cancelar" color="negative" class="q-ma-sm">
 										<q-tooltip> Cancelar </q-tooltip>
 									</q-btn>
-									<q-btn
-										:loading="useProduccion.loading"
-										:disable="useProduccion.loading"
-										type="submit"
-										label="Guardar Cambios"
-										color="primary"
-										class="q-ma-sm">
+									<q-btn :loading="useProduccion.loading" :disable="useProduccion.loading"
+										type="submit" label="Guardar Cambios" color="primary" class="q-ma-sm">
 										<q-tooltip> Guardar Cambios </q-tooltip>
 										<template v-slot:loading>
-											<q-spinner
-												color="white"
-												size="1em" />
+											<q-spinner color="white" size="1em" />
 										</template>
 									</q-btn>
 								</div>
@@ -666,24 +508,15 @@ watch(selectedOption, () => {
 			</q-dialog>
 		</div>
 
-		<q-table
-			flat
-			bordered
-			title="Producciones"
-			title-class="text-green text-weight-bolder text-h5"
-			:rows="filtrarFilas"
-			:columns="columns"
-			row-key="id"
-			:loading="loadingg">
+		<q-table flat bordered title="Producciones" title-class="text-green text-weight-bolder text-h5"
+			:rows="filtrarFilas" :columns="columns" row-key="id" :loading="loadingg">
 			<template v-slot:body-cell-opciones="props">
 				<q-td :props="props">
 					<q-btn @click="cargarProduccionParaEdicion(props.row)">
 						✏️
 						<q-tooltip> Editar Produccion </q-tooltip>
 					</q-btn>
-					<q-btn
-						v-if="props.row.estado == 1"
-						@click="editarEstado(props.row)">
+					<q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)">
 						❌
 						<q-tooltip> Inactivar Produccion </q-tooltip>
 					</q-btn>
@@ -694,13 +527,12 @@ watch(selectedOption, () => {
 				</q-td>
 			</template>
 
-			<template class="a" v-slot:body-cell-estado="props">
-				<q-td class="b" :props="props">
-					<p
-						:style="{
-							color: props.row.estado === 1 ? 'green' : 'red',
-							margin: 0,
-						}">
+			<template v-slot:body-cell-estado="props">
+				<q-td :props="props">
+					<p :style="{
+						color: props.row.estado === 1 ? 'green' : 'red',
+						margin: 0,
+					}">
 						{{ props.row.estado === 1 ? "Activo" : "Inactivo" }}
 					</p>
 				</q-td>
@@ -709,35 +541,26 @@ watch(selectedOption, () => {
 			<!-- Observaciones Column -->
 			<template v-slot:body-cell-observaciones="props">
 				<q-td :props="props" class="relative">
-					<div
-						class="truncated-text"
-						@mouseover="
-							checkAndShowTooltip(
-								$event,
-								props.row.observaciones,
-								20
-							)
-						"
-						@mouseleave="hideTooltip">
+					<div class="truncated-text" @mouseover="
+						checkAndShowTooltip(
+							$event,
+							props.row.observaciones,
+							20
+						)
+						" @mouseleave="hideTooltip">
 						{{ truncateText(props.row.observaciones, 20) }}
 					</div>
 				</q-td>
 			</template>
 
 			<template v-slot:loading>
-				<q-inner-loading
-					:showing="loadingg"
-					label="Por favor espere..."
-					label-class="text-teal"
+				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal"
 					label-style="font-size: 1.1em">
 				</q-inner-loading>
 			</template>
 		</q-table>
 	</div>
-	<q-inner-loading
-		:showing="isLoading"
-		label="Por favor espere..."
-		label-class="text-teal"
+	<q-inner-loading :showing="isLoading" label="Por favor espere..." label-class="text-teal"
 		label-style="font-size: 1.1em" />
 </template>
 

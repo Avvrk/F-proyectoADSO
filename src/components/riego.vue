@@ -179,22 +179,21 @@ const filtrarFilas = computed(() => {
 		// notifySuccessRequest('Riegos listadas por cultivo exitosamente.');
 	}
 
+	// Filtrar por rango de fechas
 	if (listarFechasOne.value && listarFechasTwo.value) {
-		const normalizeDate = (date) =>
-			new Date(date).toISOString().slice(0, 10);
+		const normalizeDate = date => {
+			const d = new Date(date);
+			return d.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+		};
 
 		const startDate = normalizeDate(listarFechasOne.value);
 		const endDate = normalizeDate(listarFechasTwo.value);
 
-		if (startDate === endDate) {
-			riegosFiltradas = riegosFiltradas.filter((riego) => {
-				const riegoDate = normalizeDate(riego.createdAt);
-				return riegoDate === startDate;
-			});
-			// notifySuccessRequest('Riegos listadas por fechas exitosamente.');
-		} else {
-			// notifyErrorRequest('Fechas inválidas o inconsistentes.');
-		}
+		riegosFiltradas = riegosFiltradas.filter(riego => {
+			const riegoDate = normalizeDate(riego.fecha); // Asegúrate de usar el campo correcto aquí
+			return riegoDate >= startDate && riegoDate <= endDate;
+		});
+		// notifySuccessRequest('Riegos listados por rango de fechas exitosamente.');
 	}
 
 	return riegosFiltradas;
@@ -207,8 +206,8 @@ async function actualizarListadoRiegos() {
 			selectedOption.value === "Listar Riegos Activos"
 				? useRiego.getRiegoActivos()
 				: selectedOption.value === "Listar Riegos Inactivos"
-				? useRiego.getRiegoInactivos()
-				: useRiego.getRiego();
+					? useRiego.getRiegoInactivos()
+					: useRiego.getRiego();
 
 		rows.value = (await riegoPromise).data.riegos;
 		console.log("Riegos", rows.value);
@@ -369,32 +368,14 @@ watch(selectedOption, () => {
 			<hr style="width: 70%; height: 5px; background-color: green" />
 		</div>
 
-		<div
-			class="contSelect"
-			style="margin-left: 5%; text-align: end; margin-right: 5%">
-			<q-select
-				background-color="green"
-				class="q-my-md"
-				id="q-select"
-				v-model="selectedOption"
-				outlined
-				dense
-				options-dense
-				emit-value
-				:options="options" />
+		<div class="contSelect" style="margin-left: 5%; text-align: end; margin-right: 5%">
+			<q-select background-color="green" class="q-my-md" id="q-select" v-model="selectedOption" outlined dense
+				options-dense emit-value :options="options" />
 
-			<input
-				v-if="selectedOption === 'Listar Riegos por Cultivo'"
-				v-model="listarCodigo"
-				class="q-my-md"
-				type="text"
-				name="search"
-				id="search"
-				placeholder="Ingrese el cultivo" />
+			<input v-if="selectedOption === 'Listar Riegos por Cultivo'" v-model="listarCodigo" class="q-my-md"
+				type="text" name="search" id="search" placeholder="Cultivo" />
 
-			<div
-				v-if="selectedOption === 'Listar Riegos por fechas'"
-				style="
+			<div v-if="selectedOption === 'Listar Riegos por fechas'" style="
 					display: flex;
 					flex-direction: row;
 					text-align: center;
@@ -403,64 +384,34 @@ watch(selectedOption, () => {
 					top: 150px;
 					left: 240px;
 				">
-				<label
-					for="listarFechasOne"
-					style="height: 100%; line-height: 88px; margin-left: 40px"
-					>De:</label
-				>
-				<q-input
-					v-model="listarFechasOne"
-					class="q-my-md"
-					type="date"
-					name="search"
-					id="listarFechasOne"
+				<label for="listarFechasOne" style="height: 100%; line-height: 88px; margin-left: 40px">De:</label>
+				<q-input v-model="listarFechasOne" class="q-my-md" type="date" name="search" id="listarFechasOne"
 					placeholder="Ingrese la fecha" />
 
-				<label
-					for="listarFechasTwo"
-					style="height: 100%; line-height: 88px; margin-left: 40px"
-					>A:</label
-				>
-				<q-input
-					v-model="listarFechasTwo"
-					class="q-my-md"
-					type="date"
-					name="search"
-					id="listarFechasTwo"
+				<label for="listarFechasTwo" style="height: 100%; line-height: 88px; margin-left: 40px">A:</label>
+				<q-input v-model="listarFechasTwo" class="q-my-md" type="date" name="search" id="listarFechasTwo"
 					placeholder="Ingrese la fecha" />
 			</div>
 		</div>
 
 		<div>
-			<div
-				style="margin-left: 5%; text-align: end; margin-right: 5%"
-				class="q-mb-md">
-				<q-btn
-					label="Agregar Riego"
-					@click="mostrarFormularioAgregarRiego = true">
+			<div style="margin-left: 5%; text-align: end; margin-right: 5%" class="q-mb-md">
+				<q-btn label="Agregar Riego" @click="mostrarFormularioAgregarRiego = true">
 					<!-- <q-btn label="Editar Riego" @click="mostrarFormularioEditarRiego = true" /> -->
 					<q-tooltip> Agregar Riego </q-tooltip>
 				</q-btn>
 			</div>
 
 			<!-- Formulario para agregar riego -->
-			<q-dialog
-				v-model="mostrarFormularioAgregarRiego"
-				v-bind="mostrarFormularioAgregarRiego && limpiarCampos()">
+			<q-dialog v-model="mostrarFormularioAgregarRiego" v-bind="mostrarFormularioAgregarRiego && limpiarCampos()">
 				<q-card>
 					<q-card-section>
 						<div class="text-h6">Agregar Riego</div>
 					</q-card-section>
 					<q-card-section>
 						<q-form @submit.prevent="agregarRiego">
-							<q-select
-								v-model="cultivo_id"
-								label="Cultivo"
-								filled
-								outlined
-								:options="cultivoOptions"
-								class="q-mb-md"
-								required>
+							<q-select v-model="cultivo_id" label="Cultivo" filled outlined :options="cultivoOptions"
+								class="q-mb-md" required>
 								<template v-slot:no-option>
 									<q-item>
 										<q-item-section>
@@ -469,14 +420,8 @@ watch(selectedOption, () => {
 									</q-item>
 								</template>
 							</q-select>
-							<q-select
-								v-model="empleado_id"
-								label="Empleado"
-								filled
-								outlined
-								:options="empleadoOptions"
-								class="q-mb-md"
-								required>
+							<q-select v-model="empleado_id" label="Empleado" filled outlined :options="empleadoOptions"
+								class="q-mb-md" required>
 								<template v-slot:no-option>
 									<q-item>
 										<q-item-section>
@@ -485,81 +430,27 @@ watch(selectedOption, () => {
 									</q-item>
 								</template>
 							</q-select>
-							<q-input
-								v-model="fecha"
-								label="Fecha"
-								type="date"
-								filled
-								class="q-mb-md"
+							<q-input v-model="fecha" label="Fecha" type="date" filled class="q-mb-md" required />
+							<q-input v-model="dias_transplante" label="Dias_transplante" type="number" filled
+								class="q-mb-md" required min="0" outlined />
+							<q-input v-model.trim="estado_fenologico"
+								label="Estado_fenologico (Inicial, Floracion o Cosecha)" filled class="q-mb-md"
 								required />
-							<q-input
-								v-model="dias_transplante"
-								label="Dias_transplante"
-								type="number"
-								filled
-								class="q-mb-md"
-								required
-								min="0"
-								outlined />
-							<q-input
-								v-model.trim="estado_fenologico"
-								label="Estado_fenologico (Inicial, Floracion o Cosecha)"
-								filled
-								class="q-mb-md"
+							<q-input v-model.trim="hora_inicio" label="Hora_inicio" filled class="q-mb-md" required />
+							<q-input v-model.trim="hora_fin" label="Hora_fin" filled class="q-mb-md" required />
+							<q-input v-model="dosis" label="Dosis" type="number" filled outlined class="q-mb-md" min="0"
 								required />
-							<q-input
-								v-model.trim="hora_inicio"
-								label="Hora_inicio"
-								filled
-								class="q-mb-md"
-								required />
-							<q-input
-								v-model.trim="hora_fin"
-								label="Hora_fin"
-								filled
-								class="q-mb-md"
-								required />
-							<q-input
-								v-model="dosis"
-								label="Dosis"
-								type="number"
-								filled
-								outlined
-								class="q-mb-md"
-								min="0"
-								required />
-							<q-input
-								v-model="cantidad_agua"
-								label="Cantidad de Agua"
-								type="number"
-								filled
-								outlined
-								class="q-mb-md"
-								min="0"
-								required />
-							<q-select
-								v-model="estado"
-								label="Estado"
-								outlined
-								:options="estadoOptions"
-								filled
-								class="q-mb-md"
-								style="max-width: 100%" />
+							<q-input v-model="cantidad_agua" label="Cantidad de Agua" type="number" filled outlined
+								class="q-mb-md" min="0" required />
+							<q-select v-model="estado" label="Estado" outlined :options="estadoOptions" filled
+								class="q-mb-md" style="max-width: 100%" />
 
-							<q-btn
-								label="Cancelar"
-								color="negative"
-								class="q-ma-sm"
+							<q-btn label="Cancelar" color="negative" class="q-ma-sm"
 								@click="mostrarFormularioAgregarRiego = false">
 								<q-tooltip> Cancelar </q-tooltip>
 							</q-btn>
-							<q-btn
-								:loading="useRiego.loading"
-								:disable="useRiego.loading"
-								type="submit"
-								label="Guardar Cultivo"
-								color="primary"
-								class="q-ma-sm">
+							<q-btn :loading="useRiego.loading" :disable="useRiego.loading" type="submit"
+								label="Guardar Cultivo" color="primary" class="q-ma-sm">
 								<q-tooltip> Guardar Cultivo </q-tooltip>
 								<template v-slot:loading>
 									<q-spinner color="white" size="1em" />
@@ -578,12 +469,7 @@ watch(selectedOption, () => {
 					</q-card-section>
 					<q-card-section>
 						<q-form @submit.prevent="editarRiego">
-							<q-select
-								v-model="cultivo_id"
-								label="Cultivo"
-								filled
-								outlined
-								:options="cultivoOptions"
+							<q-select v-model="cultivo_id" label="Cultivo" filled outlined :options="cultivoOptions"
 								class="q-mb-md">
 								<template v-slot:no-option>
 									<q-item>
@@ -593,12 +479,7 @@ watch(selectedOption, () => {
 									</q-item>
 								</template>
 							</q-select>
-							<q-select
-								v-model="empleado_id"
-								label="Empleado"
-								filled
-								outlined
-								:options="empleadoOptions"
+							<q-select v-model="empleado_id" label="Empleado" filled outlined :options="empleadoOptions"
 								class="q-mb-md">
 								<template v-slot:no-option>
 									<q-item>
@@ -608,72 +489,24 @@ watch(selectedOption, () => {
 									</q-item>
 								</template>
 							</q-select>
-							<q-input
-								v-model="fecha"
-								label="Fecha"
-								type="date"
-								filled
-								class="q-mb-md"
+							<q-input v-model="fecha" label="Fecha" type="date" filled class="q-mb-md" required />
+							<q-input v-model="dias_transplante" label="Dias_transplante" type="number" filled
+								class="q-mb-md" required min="0" outlined />
+							<q-input v-model.trim="estado_fenologico"
+								label="Estado_fenologico (Inicial, Floracion o Cosecha)" filled class="q-mb-md"
 								required />
-							<q-input
-								v-model="dias_transplante"
-								label="Dias_transplante"
-								type="number"
-								filled
-								class="q-mb-md"
-								required
-								min="0"
-								outlined />
-							<q-input
-								v-model.trim="estado_fenologico"
-								label="Estado_fenologico (Inicial, Floracion o Cosecha)"
-								filled
-								class="q-mb-md"
+							<q-input v-model.trim="hora_inicio" label="Hora_inicio" filled class="q-mb-md" required />
+							<q-input v-model.trim="hora_fin" label="Hora_fin" filled class="q-mb-md" required />
+							<q-input v-model="dosis" label="Dosis" type="number" filled outlined class="q-mb-md" min="0"
 								required />
-							<q-input
-								v-model.trim="hora_inicio"
-								label="Hora_inicio"
-								filled
-								class="q-mb-md"
-								required />
-							<q-input
-								v-model.trim="hora_fin"
-								label="Hora_fin"
-								filled
-								class="q-mb-md"
-								required />
-							<q-input
-								v-model="dosis"
-								label="Dosis"
-								type="number"
-								filled
-								outlined
-								class="q-mb-md"
-								min="0"
-								required />
-							<q-input
-								v-model="cantidad_agua"
-								label="Cantidad de Agua"
-								type="number"
-								filled
-								outlined
-								class="q-mb-md"
-								min="0"
-								required />
-							<q-btn
-								label="Cancelar"
-								color="negative"
-								class="q-ma-sm"
+							<q-input v-model="cantidad_agua" label="Cantidad de Agua" type="number" filled outlined
+								class="q-mb-md" min="0" required />
+							<q-btn label="Cancelar" color="negative" class="q-ma-sm"
 								@click="mostrarFormularioEditarRiego = false">
 								<q-tooltip> Cancelar </q-tooltip>
 							</q-btn>
-							<q-btn
-								:loading="useRiego.loading"
-								:disable="useRiego.loading"
-								type="submit"
-								label="Guardar Cambios"
-								color="primary"
-								class="q-ma-sm">
+							<q-btn :loading="useRiego.loading" :disable="useRiego.loading" type="submit"
+								label="Guardar Cambios" color="primary" class="q-ma-sm">
 								<q-tooltip> Guardar Cambios </q-tooltip>
 								<template v-slot:loading>
 									<q-spinner color="white" size="1em" />
@@ -685,24 +518,15 @@ watch(selectedOption, () => {
 			</q-dialog>
 		</div>
 
-		<q-table
-			flat
-			bordered
-			title="Riegos"
-			title-class="text-green text-weight-bolder text-h5"
-			:rows="filtrarFilas"
-			:columns="columns"
-			row-key="id"
-			:loading="loadingg">
+		<q-table flat bordered title="Riegos" title-class="text-green text-weight-bolder text-h5" :rows="filtrarFilas"
+			:columns="columns" row-key="id" :loading="loadingg">
 			<template v-slot:body-cell-opciones="props">
 				<q-td :props="props">
 					<q-btn @click="cargarRiegoParaEdicion(props.row)">
 						✏️
 						<q-tooltip> Editar Riego </q-tooltip>
 					</q-btn>
-					<q-btn
-						v-if="props.row.estado == 1"
-						@click="editarEstado(props.row)">
+					<q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)">
 						❌
 						<q-tooltip> Inactivar Cultivo </q-tooltip>
 					</q-btn>
@@ -713,32 +537,25 @@ watch(selectedOption, () => {
 				</q-td>
 			</template>
 
-			<template class="a" v-slot:body-cell-estado="props">
-				<q-td class="b" :props="props">
-					<p
-						:style="{
-							color: props.row.estado === 1 ? 'green' : 'red',
-							margin: 0,
-						}">
+			<template v-slot:body-cell-estado="props">
+				<q-td :props="props">
+					<p :style="{
+						color: props.row.estado === 1 ? 'green' : 'red',
+						margin: 0,
+					}">
 						{{ props.row.estado === 1 ? "Activo" : "Inactivo" }}
 					</p>
 				</q-td>
 			</template>
 
 			<template v-slot:loading>
-				<q-inner-loading
-					:showing="loadingg"
-					label="Por favor espere..."
-					label-class="text-teal"
+				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal"
 					label-style="font-size: 1.1em">
 				</q-inner-loading>
 			</template>
 		</q-table>
 	</div>
-	<q-inner-loading
-		:showing="isLoading"
-		label="Por favor espere..."
-		label-class="text-teal"
+	<q-inner-loading :showing="isLoading" label="Por favor espere..." label-class="text-teal"
 		label-style="font-size: 1.1em" />
 </template>
 
