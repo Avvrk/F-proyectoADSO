@@ -385,51 +385,60 @@ onMounted(() => {
 
 <template>
 	<div>
-		<div>
-			<q-btn @click="controlFormulario(null, true)" label="Agregar" />
+		<div class="q-pr-xl q-pt-xl row items-center">
+			<h1 class="text-h4 q-pl-xl">Climas</h1>
+			<q-space />
+			<q-btn
+				size="md"
+				@click="controlFormulario(null, true)"
+				label="Agregar" />
 		</div>
-		<q-table
-			flat
-			bordered
-			title="Climas"
-			:rows="rows"
-			:columns="columns"
-			row-key="id">
-			<template v-slot:top>
-				<q-select
-					v-if="mostrarSelectClimas"
-					label="Responsable"
-					:options="tiposDeClima"
-					v-model="clima" />
-				<q-input
-					v-if="mostrarInputFecha"
-					label="Fecha"
-					type="date"
-					v-model="fecha" />
-				<q-btn
-					v-if="mostraInput"
-					@click="
-						mostrarInputFecha
-							? listarClimasFechas()
-							: mostrarSelectClimas
-							? listarClimasPorClima()
-							: ''
-					"
-					label="Buscar" />
-				<q-select
-					standout="bg-green text-while"
-					:options="opcionesTabla"
-					v-model="opcionTabla"
-					@update:model-value="estadoTabla" />
-			</template>
-			<template v-slot:body-cell-opciones="props">
-				<q-td :props="props">
-					<q-btn @click="controlFormulario(props.row, true)">
-						✏️
-					</q-btn>
-				</q-td>
-			</template>
-		</q-table>
+		<div class="q-pa-lg">
+			<q-table
+				:rows="rows"
+				:columns="columns"
+				row-key="id"
+				:loading="loading">
+				<template v-slot:top>
+					<div class="row items-center q-gutter-md">
+						<q-select
+							v-if="mostrarSelectClimas"
+							label="Responsable"
+							:options="tiposDeClima"
+							v-model="clima" />
+						<q-input
+							v-if="mostrarInputFecha"
+							label="Fecha"
+							type="date"
+							v-model="fecha" />
+						<q-btn
+							v-if="mostraInput"
+							@click="
+								mostrarInputFecha
+									? listarClimasFechas()
+									: mostrarSelectClimas
+									? listarClimasPorClima()
+									: ''
+							"
+							label="Buscar" />
+					</div>
+					<q-space />
+					<q-select
+						standout="bg-green text-while"
+						:options="opcionesTabla"
+						v-model="opcionTabla"
+						label="Filtro por"
+						@update:model-value="estadoTabla" />
+				</template>
+				<template v-slot:body-cell-opciones="props">
+					<q-td :props="props">
+						<q-btn @click="controlFormulario(props.row, true)">
+							✏️
+						</q-btn>
+					</q-td>
+				</template>
+			</q-table>
+		</div>
 		<q-dialog v-model="mostrarFormularioClima">
 			<q-card>
 				<q-form

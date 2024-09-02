@@ -290,45 +290,54 @@ onMounted(() => {
 
 <template>
 	<div>
-		<div>
-			<q-btn @click="controlFormulario(null, true)" label="Agregar" />
+		<div class="q-pr-xl q-pt-xl row items-center">
+			<h1 class="text-h4 q-pl-xl">Administrador</h1>
+			<q-space />
+			<q-btn
+				size="md"
+				@click="controlFormulario(null, true)"
+				label="Agregar" />
 		</div>
-		<q-table
-			flat
-			bordered
-			title="Administrador"
-			:rows="rows"
-			:columns="columns"
-			row-key="id">
-			<template v-slot:top>
-				<q-select
-					standout="bg-green text-while"
-					:options="opcionesTabla"
-					v-model="opcionTabla"
-					@update:model-value="estadoTabla" />
-			</template>
-			<template v-slot:body-cell-estado="props">
-				<q-td :props="props">
-					<p v-if="props.row.estado == 1" style="color: green">
-						Activo
-					</p>
-					<p v-else style="color: red">Inactivo</p>
-				</q-td>
-			</template>
-			<template v-slot:body-cell-opciones="props">
-				<q-td :props="props">
-					<q-btn @click="controlFormulario(props.row, true)">
-						✏️
-					</q-btn>
-					<q-btn
-						v-if="props.row.estado == 1"
-						@click="editarEstado(props.row)">
-						❌
-					</q-btn>
-					<q-btn v-else @click="editarEstado(props.row)"> ✅ </q-btn>
-				</q-td>
-			</template>
-		</q-table>
+		<div class="q-pa-lg">
+			<q-table
+				:rows="rows"
+				:columns="columns"
+				row-key="id"
+				:loading="loading">
+				<template v-slot:top>
+					<q-space />
+					<q-select
+						standout="bg-green text-while"
+						:options="opcionesTabla"
+						v-model="opcionTabla"
+						label="Filtro por"
+						@update:model-value="estadoTabla" />
+				</template>
+				<template v-slot:body-cell-estado="props">
+					<q-td :props="props">
+						<p v-if="props.row.estado == 1" style="color: green">
+							Activo
+						</p>
+						<p v-else style="color: red">Inactivo</p>
+					</q-td>
+				</template>
+				<template v-slot:body-cell-opciones="props">
+					<q-td :props="props">
+						<q-btn @click="controlFormulario(props.row, true)">
+							✏️
+						</q-btn>
+						<q-btn
+							v-if="props.row.estado == 1"
+							@click="editarEstado(props.row)">
+							❌
+						</q-btn>
+						<q-btn v-else @click="editarEstado(props.row)">
+							✅
+						</q-btn>
+					</q-td>
+				</template>
+			</q-table>
+		</div>
 		<q-dialog v-model="mostrarFormularioAdmin">
 			<q-card>
 				<q-form
