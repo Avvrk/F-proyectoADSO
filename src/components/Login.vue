@@ -139,6 +139,8 @@ async function validarDatos() {
 }
 
 onMounted(() => {
+	const token = localStorage.getItem('Admin');
+	
 	if (token) {
 		router.push("/mio/Admin");
 	}
