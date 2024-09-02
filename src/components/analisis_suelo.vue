@@ -301,19 +301,19 @@ async function editar() {
 				recomendaciones: recomendacionesAnalisisSuelo.value,
 			};
 
-<<<<<<< HEAD
-            const res = await useAnalisisSuelo.putAnalisisSuelo(
-                datos.value._id,
-                info
-            );
-            if (res.status === 200) {
-                mostrarFormularioAnalisisSuelo.value = false;
-                listarAnalisisSuelo();
-                /* resultadosAnalisisSuelo = [] */
-            }
-        } finally {
-            loading.value = false;
-        }
+			const res = await useAnalisisSuelo.putAnalisisSuelo(
+				datos.value._id,
+				info
+			);
+			if (res.status === 200) {
+				mostrarFormularioAnalisisSuelo.value = false;
+				listarAnalisisSuelo();
+			}
+		} finally {
+			loading.value = false;
+		}
+	}
+}
 
 function validarDatos() {
 	let validacion = true;
@@ -400,38 +400,9 @@ function validarDatos() {
 		}
 	}
 	return validacion;
->>>>>>> 8c8fd209a4e2f8009cd76c5bcf4936ccb0c65489
 }
 
 function controlFormulario(obj, boolean) {
-	fechaAnalisisSuelo.value = "";
-	parcelaAnalisisSuelo.value = "";
-	empleadoAnalisisSuelo.value = "";
-	muestraAnalisisSuelo.value = "";
-	cultivoAnalisisSuelo.value = "";
-	laboratorioAnalisisSuelo.value = "";
-	resultadosAnalisisSuelo.value = "";
-	recomendacionesAnalisisSuelo.value = "";
-
-    datos.value = obj;
-    mostrarBotonEditar.value = false;
-    if (obj != null && boolean == true) {
-        const par = opcionesParcelas.value;
-        const em = opcionesResponsables.value;
-
-        fechaAnalisisSuelo.value = datos.value.fecha.split("T")[0];
-        parcelaAnalisisSuelo.value = par.find(
-            (as) => as.id == datos.value.id_parcela._id
-        );
-        empleadoAnalisisSuelo.value = em.find(
-            (as) => as.id == datos.value.empleado_id._id
-        );
-        muestraAnalisisSuelo.value = datos.value.muestra;
-        cultivoAnalisisSuelo.value = datos.value.cultivo;
-        laboratorioAnalisisSuelo.value = datos.value.laboratorio;
-        resultadosAnalisisSuelo.value = datos.value.resultados;
-        recomendacionesAnalisisSuelo.value = datos.value.recomendaciones;
-=======
 	datos.value = obj;
 	mostrarBotonEditar.value = false;
 	if (obj != null && boolean == true) {
@@ -450,7 +421,6 @@ function controlFormulario(obj, boolean) {
 		laboratorioAnalisisSuelo.value = datos.value.laboratorio;
 		resultadosAnalisisSuelo.value = datos.value.resultados;
 		recomendacionesAnalisisSuelo.value = datos.value.recomendaciones;
->>>>>>> 8c8fd209a4e2f8009cd76c5bcf4936ccb0c65489
 
 		mostrarBotonEditar.value = true;
 	}
