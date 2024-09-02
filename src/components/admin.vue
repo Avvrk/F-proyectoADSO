@@ -299,13 +299,18 @@ onMounted(() => {
 				label="Agregar" />
 		</div>
 		<div class="q-pa-lg">
-			<q-table :rows="rows" :columns="columns" row-key="id">
+			<q-table
+				:rows="rows"
+				:columns="columns"
+				row-key="id"
+				:loading="loading">
 				<template v-slot:top>
 					<q-space />
 					<q-select
 						standout="bg-green text-while"
 						:options="opcionesTabla"
 						v-model="opcionTabla"
+						label="Filtro por"
 						@update:model-value="estadoTabla" />
 				</template>
 				<template v-slot:body-cell-estado="props">
