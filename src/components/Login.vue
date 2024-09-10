@@ -300,6 +300,8 @@ a {
 }
 
 .input-field {
+	background-color: #e8e8e8;
+	border-radius: 5px;
 	display: flex;
 	align-items: center;
 	width: 65%;
