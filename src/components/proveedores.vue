@@ -56,7 +56,7 @@ let rows = ref([]);
 const columns = ref([
 	{
 		name: "createdAt",
-		label: "Fecha",
+		label: "Fecha de Creación",
 		field: (row) => format(new Date(row.createdAt), "dd/MM/yyyy"),
 		align: "center",
 	},
