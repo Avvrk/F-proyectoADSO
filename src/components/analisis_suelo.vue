@@ -464,7 +464,6 @@ onMounted(() => {
 <template>
 	<div>
 		<div class="q-pr-xl q-pt-xl row items-center">
-			<h1 class="text-h4 q-pl-xl">Analisi del Suelo</h1>
 			<q-space />
 			<q-btn
 				size="md"
@@ -478,6 +477,7 @@ onMounted(() => {
 				row-key="id"
 				:loading="loading">
 				<template v-slot:top>
+					<h1 class="text-h4 q-pl-xl">Analisi del Suelo</h1>
 					<div class="row items-center q-gutter-md">
 						<q-select
 							v-if="mostrarSelectResponsable"

@@ -484,7 +484,6 @@ onMounted(() => {
 <template>
 	<div>
 		<div class="q-pr-xl q-pt-xl row items-center">
-			<h1 class="text-h4 q-pl-xl">Comprador</h1>
 			<q-space />
 			<q-btn
 				size="md"
@@ -498,23 +497,24 @@ onMounted(() => {
 				row-key="id"
 				:loading="loading">
 				<template v-slot:top>
+                    <h1 class="text-h4 q-pl-xl text-green-7">Comprador</h1>
 					<div class="row items-center q-gutter-md">
-						<q-select
+						<q-select standout
 							v-if="mostrarSelectDocumento"
 							label="Responsable"
 							:options="opcionesDocumento"
 							v-model="documento" />
-						<q-input
+						<q-input standout
 							v-if="mostrarInputFecha"
 							label="Fecha Inicio"
 							type="date"
 							v-model="fechaInicio" />
-						<q-input
+						<q-input standout
 							v-if="mostrarInputFecha"
 							label="Fecha Fin"
 							type="date"
 							v-model="fechaFin" />
-						<q-btn
+						<q-btn unelevated style="background-color: #EDEDED"
 							v-if="mostraInput"
 							@click="
 								mostrarInputFecha
@@ -527,6 +527,7 @@ onMounted(() => {
 					</div>
 					<q-space />
 					<q-select
+                        style="width: 200px;"
 						standout="bg-green text-while"
 						:options="opcionesTabla"
 						v-model="opcionTabla"
@@ -534,7 +535,7 @@ onMounted(() => {
 						@update:model-value="estadoTabla" />
 				</template>
 				<template v-slot:body-cell-opciones="props">
-					<q-td :props="props">
+					<q-td :props="props" class="row justify-center" style="gap: 20px;">
 						<q-btn @click="controlFormulario(props.row, true)">
 							✏️
 						</q-btn>
@@ -550,7 +551,7 @@ onMounted(() => {
 				</template>
 				<template v-slot:body-cell-estado="props">
 					<q-td :props="props">
-                        <q-badge :color="props.row.estado === 1 ? 'green' : 'red'" align="top" label="Estado" />
+                        <q-badge :color="props.row.estado === 1 ? 'green' : 'red'" align="top" :label="props.row.estado === 1 ? 'Activo' : 'Inactivo'" />
                     </q-td>
 				</template>
 			</q-table>
@@ -610,7 +611,7 @@ onMounted(() => {
 						type="text"
 						label="Total"
 						v-model="totalComprador" />
-					<div>
+					<div class="row justify-end" style="gap: 10px;">
 						<q-btn
 							unelevated
 							v-if="mostrarBotonEditar"
@@ -626,6 +627,7 @@ onMounted(() => {
 						<q-btn
 							@click="controlFormulario(null, false)"
 							flat
+                            class="bg-red text-white"
 							label="Cerrar"
 							type="button" />
 					</div>

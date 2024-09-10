@@ -290,8 +290,7 @@ onMounted(() => {
 
 <template>
 	<div>
-		<div class="q-pr-xl q-pt-xl row items-center">
-			<h1 class="text-h4 q-pl-xl">Administrador</h1>
+		<div class="q-pr-xl q-pt-lg row items-center">
 			<q-space />
 			<q-btn
 				size="md"
@@ -305,8 +304,10 @@ onMounted(() => {
 				row-key="id"
 				:loading="loading">
 				<template v-slot:top>
+					<h1 class="text-h4 q-pl-xl text-green-7">Administrador</h1>
 					<q-space />
 					<q-select
+						style="width: 200px;"
 						standout="bg-green text-while"
 						:options="opcionesTabla"
 						v-model="opcionTabla"
@@ -315,11 +316,11 @@ onMounted(() => {
 				</template>
 				<template v-slot:body-cell-estado="props">
 					<q-td :props="props">
-                        <q-badge :color="props.row.estado === 1 ? 'green' : 'red'" align="top" label="Estado" />
+                        <q-badge :color="props.row.estado === 1 ? 'green' : 'red'" align="top" :label="props.row.estado === 1 ? 'Activo' : 'Inactivo'" />
                     </q-td>
 				</template>
 				<template v-slot:body-cell-opciones="props">
-					<q-td :props="props">
+					<q-td :props="props" class="row justify-center" style="gap: 20px;">
 						<q-btn @click="controlFormulario(props.row, true)">
 							✏️
 						</q-btn>
@@ -340,6 +341,9 @@ onMounted(() => {
 				<q-form
 					@submit="mostrarBotonEditar ? editar() : registrar()"
 					class="q-gutter-md">
+					<p class="text-h5 text-center q-pb-md text-green">
+						{{ datos ? 'Editar' : 'Agregar' }} Administrador
+					</p>
 					<q-input
 						standout="bg-green text-while"
 						type="text"
@@ -377,7 +381,7 @@ onMounted(() => {
 						type="text"
 						label="Contraseña"
 						v-model="claveAdmin" />
-					<div>
+					<div class="row justify-end" style="gap: 10px;">
 						<q-btn
 							unelevated
 							v-if="mostrarBotonEditar"
@@ -393,6 +397,7 @@ onMounted(() => {
 						<q-btn
 							@click="controlFormulario(null, false)"
 							flat
+							class="bg-red text-white"
 							label="Cerrar"
 							type="button" />
 					</div>
