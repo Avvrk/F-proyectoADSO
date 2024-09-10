@@ -271,10 +271,7 @@ onMounted(() => {
 			</template>
 			<template v-slot:body-cell-estado="props">
 				<q-td :props="props">
-					<p v-if="props.row.estado == 1" style="color: green">
-						Activo
-					</p>
-					<p v-else style="color: red">Inactivo</p>
+					<q-badge :color="props.row.estado === 1 ? 'green' : 'red'" align="top" label="Estado" />
 				</q-td>
 			</template>
 			<template v-slot:body-cell-opciones="props">

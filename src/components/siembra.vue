@@ -577,12 +577,7 @@ watch(selectedOption, () => {
 
 			<template v-slot:body-cell-estado="props">
 				<q-td :props="props">
-					<p :style="{
-						color: props.row.estado === 1 ? 'green' : 'red',
-						margin: 0,
-					}">
-						{{ props.row.estado === 1 ? "Activo" : "Inactivo" }}
-					</p>
+					<q-badge :color="props.row.estado === 1 ? 'green' : 'red'" align="top" label="Estado" />
 				</q-td>
 			</template>
 
