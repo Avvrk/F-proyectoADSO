@@ -482,159 +482,182 @@ onMounted(() => {
 </script>
 
 <template>
-	<div>
-		<div class="q-pr-xl q-pt-xl row items-center">
-			<q-space />
-			<q-btn
-				size="md"
-				@click="controlFormulario(null, true)"
-				label="Agregar" />
-		</div>
-		<div class="q-pa-lg">
-			<q-table
-				:rows="rows"
-				:columns="columns"
-				row-key="id"
-				:loading="loading">
-				<template v-slot:top>
-                    <h1 class="text-h4 q-pl-xl text-green-7">Comprador</h1>
-					<div class="row items-center q-gutter-md">
-						<q-select standout
-							v-if="mostrarSelectDocumento"
-							label="Responsable"
-							:options="opcionesDocumento"
-							v-model="documento" />
-						<q-input standout
-							v-if="mostrarInputFecha"
-							label="Fecha Inicio"
-							type="date"
-							v-model="fechaInicio" />
-						<q-input standout
-							v-if="mostrarInputFecha"
-							label="Fecha Fin"
-							type="date"
-							v-model="fechaFin" />
-						<q-btn unelevated style="background-color: #EDEDED"
-							v-if="mostraInput"
-							@click="
-								mostrarInputFecha
-									? listarCompradorFechas()
-									: mostrarSelectDocumento
-									? listarCompradorDocumento()
-									: ''
-							"
-							label="Buscar" />
-					</div>
-					<q-space />
-					<q-select
-                        style="width: 200px;"
-						standout="bg-green text-while"
-						:options="opcionesTabla"
-						v-model="opcionTabla"
-						label="Filtro por"
-						@update:model-value="estadoTabla" />
-				</template>
-				<template v-slot:body-cell-opciones="props">
-					<q-td :props="props" class="row justify-center" style="gap: 20px;">
-						<q-btn @click="controlFormulario(props.row, true)">
-							✏️
-						</q-btn>
-						<q-btn
-							v-if="props.row.estado == 1"
-							@click="editarEstado(props.row)">
-							❌
-						</q-btn>
-						<q-btn v-else @click="editarEstado(props.row)">
-							✅
-						</q-btn>
-					</q-td>
-				</template>
-				<template v-slot:body-cell-estado="props">
-					<q-td :props="props">
-                        <q-badge :color="props.row.estado === 1 ? 'green' : 'red'" align="top" :label="props.row.estado === 1 ? 'Activo' : 'Inactivo'" />
+    <div>
+        <div class="q-pa-lg">
+            <q-table
+                :rows="rows"
+                :columns="columns"
+                row-key="id"
+                :loading="loading">
+                <template v-slot:top>
+                    <section class="column full-width q-pr-md">
+                        <div class="row items-center">
+                            <h1 class="text-h4 q-pl-xl text-green-7">
+                                Comprador
+                            </h1>
+                            <q-space />
+                            <q-btn
+                                size="md"
+                                @click="controlFormulario(null, true)"
+                                label="Agregar" />
+                        </div>
+                        <div class="row items-center q-pb-md">
+                            <q-space />
+                            <div class="row q-pr-xl q-gutter-lg">
+                                <q-select
+                                    standout
+                                    style="width: 300px"
+                                    v-if="mostrarSelectDocumento"
+                                    label="Responsable"
+                                    :options="opcionesDocumento"
+                                    v-model="documento" />
+                                <q-input
+                                    standout
+                                    v-if="mostrarInputFecha"
+                                    label="Fecha Inicio"
+                                    type="date"
+                                    v-model="fechaInicio" />
+                                <q-input
+                                    standout
+                                    v-if="mostrarInputFecha"
+                                    label="Fecha Fin"
+                                    type="date"
+                                    v-model="fechaFin" />
+                                <q-btn
+                                    unelevated
+                                    style="background-color: #ededed"
+                                    v-if="mostraInput"
+                                    @click="
+                                        mostrarInputFecha
+                                            ? listarCompradorFechas()
+                                            : mostrarSelectDocumento
+                                            ? listarCompradorDocumento()
+                                            : ''
+                                    "
+                                    label="Buscar" />
+                            </div>
+                            <q-select
+                                style="width: 200px"
+                                standout="bg-green text-while"
+                                :options="opcionesTabla"
+                                v-model="opcionTabla"
+                                label="Filtro por"
+                                @update:model-value="estadoTabla" />
+                        </div>
+                    </section>
+                </template>
+                <template v-slot:body-cell-opciones="props">
+                    <q-td
+                        :props="props"
+                        class="row justify-center"
+                        style="gap: 20px">
+                        <q-btn @click="controlFormulario(props.row, true)">
+                            ✏️
+                        </q-btn>
+                        <q-btn
+                            v-if="props.row.estado == 1"
+                            @click="editarEstado(props.row)">
+                            ❌
+                        </q-btn>
+                        <q-btn v-else @click="editarEstado(props.row)">
+                            ✅
+                        </q-btn>
                     </q-td>
-				</template>
-			</q-table>
-		</div>
-		<q-dialog v-model="mostrarFormularioComprador">
-			<q-card>
-				<q-form
-					@submit="mostrarBotonEditar ? editar() : registrar()"
-					class="q-gutter-md">
-					<q-select
-						standout="bg-green text-white"
-						:options="opcionesProduccion"
-						label="Produccion"
-						v-model="produccionComprador" />
-					<q-input
-						standout="bg-green text-while"
-						type="date"
-						label="Fecha"
-						v-model="fechaComprador" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Especie"
-						v-model="especieComprador" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Nombre"
-						v-model="nombreComprador" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Documento"
-						v-model="documentoComprador" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Telefono"
-						v-model="telefonoComprador" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Cantidad"
-						v-model="cantidadComprador" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Num Guia de Transporte"
-						v-model="numeroGuiaTransporteComprador" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Num Lote Comercial"
-						v-model="numeroLoteComercialComprador" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Total"
-						v-model="totalComprador" />
-					<div class="row justify-end" style="gap: 10px;">
-						<q-btn
-							unelevated
-							v-if="mostrarBotonEditar"
-							label="Editar"
-							type="submit"
-							color="positive" />
-						<q-btn
-							unelevated
-							v-else
-							label="Registrar"
-							type="submit"
-							color="positive" />
-						<q-btn
-							@click="controlFormulario(null, false)"
-							flat
+                </template>
+                <template v-slot:body-cell-estado="props">
+                    <q-td :props="props">
+                        <q-badge
+                            :color="props.row.estado === 1 ? 'green' : 'red'"
+                            align="top"
+                            :label="
+                                props.row.estado === 1 ? 'Activo' : 'Inactivo'
+                            " />
+                    </q-td>
+                </template>
+            </q-table>
+        </div>
+        <q-dialog v-model="mostrarFormularioComprador">
+            <q-card>
+                <q-form
+                    @submit="mostrarBotonEditar ? editar() : registrar()"
+                    class="q-gutter-sm">
+                    <p class="text-h5 text-center q-pb-md text-green">
+                        {{ datos ? "Editar" : "Agregar" }} Comprador
+                    </p>
+                    <q-select
+                        standout="bg-green text-white"
+                        :options="opcionesProduccion"
+                        label="Produccion"
+                        v-model="produccionComprador" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="date"
+                        label="Fecha"
+                        v-model="fechaComprador" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Especie"
+                        v-model="especieComprador" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Nombre"
+                        v-model="nombreComprador" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Documento"
+                        v-model="documentoComprador" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Telefono"
+                        v-model="telefonoComprador" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Cantidad"
+                        v-model="cantidadComprador" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Num Guia de Transporte"
+                        v-model="numeroGuiaTransporteComprador" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Num Lote Comercial"
+                        v-model="numeroLoteComercialComprador" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Total"
+                        v-model="totalComprador" />
+                    <div class="row justify-end" style="gap: 10px">
+                        <q-btn
+                            unelevated
+                            v-if="mostrarBotonEditar"
+                            label="Editar"
+                            type="submit"
+                            color="positive" />
+                        <q-btn
+                            unelevated
+                            v-else
+                            label="Registrar"
+                            type="submit"
+                            color="positive" />
+                        <q-btn
+                            @click="controlFormulario(null, false)"
+                            flat
                             class="bg-red text-white"
-							label="Cerrar"
-							type="button" />
-					</div>
-				</q-form>
-			</q-card>
-		</q-dialog>
-	</div>
+                            label="Cerrar"
+                            type="button" />
+                    </div>
+                </q-form>
+            </q-card>
+        </q-dialog>
+    </div>
 </template>
 
 <style scoped>

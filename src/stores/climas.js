@@ -1,11 +1,13 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 import { useStoreAdmins } from "./admin.js";
+import { useQuasar } from "quasar";
 
 export const useStoreClimas = defineStore("climas", () => {
 	// const url = "http://localhost:3000";
 	const url = "https://b-proyectoadso-production.up.railway.app";
 	const useAdmin = useStoreAdmins();
+	const $q = useQuasar();
 
 	const getFincas = async () => {
 		try {
@@ -133,6 +135,19 @@ export const useStoreClimas = defineStore("climas", () => {
 					token: useAdmin.token,
 				},
 			});
+			if (r.status !== 200) {
+				$q.notify({
+					type: "negative",
+					message: "Parece que hubo un error en el registro",
+					position: "bottom-right",
+				});
+			} else {
+				$q.notify({
+					type: "positive",
+					message: "El registro se ha realizado correctamente",
+					position: "bottom-right",
+				});
+			}
 			return r;
 		} catch (error) {
 			console.log(error);
@@ -147,6 +162,19 @@ export const useStoreClimas = defineStore("climas", () => {
 					token: useAdmin.token,
 				},
 			});
+			if (r.status !== 200) {
+				$q.notify({
+					type: "negative",
+					message: "Parece que hubo un error al editar",
+					position: "bottom-right",
+				});
+			} else {
+				$q.notify({
+					type: "positive",
+					message: "El editar se ha realizado correctamente",
+					position: "bottom-right",
+				});
+			}
 			return r;
 		} catch (error) {
 			console.log(error);

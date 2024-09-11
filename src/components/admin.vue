@@ -184,13 +184,14 @@ async function editar() {
 
 function validarDatos() {
     let validacion = true;
+
     if (
         !nombreAdmin.value.trim() &&
         !direccionAdmin.value.trim() &&
         !correoAdmin.value.trim() &&
         !telefonoAdmin.value.trim() &&
         !ciudadAdmin.value.trim() &&
-        !claveAdmin.value.trim()
+        (datos.value == null && !claveAdmin.value.trim())
     ) {
         $q.notify({
             type: "negative",
@@ -230,6 +231,13 @@ function validarDatos() {
                 position: "bottom",
             });
             validacion = false;
+        } else if (telefonoAdmin.value.length < 10) {
+            $q.notify({
+                type: "negative",
+                message: "El telefono debe tener minimo 10 caracteres",
+                position: "bottom",
+            });
+            validacion = false;
         }
         if (!ciudadAdmin.value.trim()) {
             $q.notify({
@@ -239,7 +247,7 @@ function validarDatos() {
             });
             validacion = false;
         }
-        if (!claveAdmin.value.trim()) {
+        if (datos === null && !claveAdmin.value.trim()) {
             $q.notify({
                 type: "negative",
                 message: "La contraseña esta vacia",
@@ -257,6 +265,7 @@ function controlFormulario(obj, boolean) {
     correoAdmin.value = "";
     telefonoAdmin.value = "";
     departamentoAdmin.value = "";
+    ciudadAdmin.value = "";
 
     datos.value = obj;
     mostrarBotonEditar.value = false;
@@ -265,7 +274,11 @@ function controlFormulario(obj, boolean) {
         direccionAdmin.value = datos.value.direccion;
         correoAdmin.value = datos.value.correo;
         telefonoAdmin.value = String(datos.value.telefono);
-        departamentoAdmin.value = datos.value.municipio;
+        departamentoAdmin.value = "";
+        departamentoAdmin.value = colombia.value.find((c) =>
+            c.ciudades.some((cc) => cc === datos.value.municipio)
+        );
+        ciudadAdmin.value = datos.value.municipio;
 
         mostrarBotonEditar.value = true;
     }
@@ -297,28 +310,28 @@ onMounted(() => {
                 row-key="id"
                 :loading="loading">
                 <template v-slot:top>
-					<section class="column full-width q-pr-md">
-						<div class="row items-center">
-							<h1 class="text-h4 q-pl-xl text-green-7">
-								Administrador
-							</h1>
-							<q-space />
-							<q-btn
-								size="md"
-								@click="controlFormulario(null, true)"
-								label="Agregar" />
-						</div>
-						<div class="row items-center q-pb-md">
-							<q-space />
-							<q-select
-								style="width: 200px"
-								standout="bg-green text-while"
-								:options="opcionesTabla"
-								v-model="opcionTabla"
-								label="Filtro por"
-								@update:model-value="estadoTabla" />
-						</div>
-					</section>
+                    <section class="column full-width q-pr-md">
+                        <div class="row items-center">
+                            <h1 class="text-h4 q-pl-xl text-green-7">
+                                Administrador
+                            </h1>
+                            <q-space />
+                            <q-btn
+                                size="md"
+                                @click="controlFormulario(null, true)"
+                                label="Agregar" />
+                        </div>
+                        <div class="row items-center q-pb-md">
+                            <q-space />
+                            <q-select
+                                style="width: 200px"
+                                standout="bg-green text-while"
+                                :options="opcionesTabla"
+                                v-model="opcionTabla"
+                                label="Filtro por"
+                                @update:model-value="estadoTabla" />
+                        </div>
+                    </section>
                 </template>
                 <template v-slot:body-cell-estado="props">
                     <q-td :props="props">
@@ -391,6 +404,7 @@ onMounted(() => {
                         label="Ciudad"
                         v-model="ciudadAdmin" />
                     <q-input
+                        v-if="datos == null"
                         standout="bg-green text-while"
                         type="text"
                         label="Contraseña"

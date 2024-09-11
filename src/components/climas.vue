@@ -384,133 +384,145 @@ onMounted(() => {
 </script>
 
 <template>
-	<div>
-		<div class="q-pr-xl q-pt-xl row items-center">
-			<h1 class="text-h4 q-pl-xl">Climas</h1>
-			<q-space />
-			<q-btn
-				size="md"
-				@click="controlFormulario(null, true)"
-				label="Agregar" />
-		</div>
-		<div class="q-pa-lg">
-			<q-table
-				:rows="rows"
-				:columns="columns"
-				row-key="id"
-				:loading="loading">
-				<template v-slot:top>
-					<div class="row items-center q-gutter-md">
-						<q-select
-							v-if="mostrarSelectClimas"
-							label="Responsable"
-							:options="tiposDeClima"
-							v-model="clima" />
-						<q-input
-							v-if="mostrarInputFecha"
-							label="Fecha"
-							type="date"
-							v-model="fecha" />
-						<q-btn
-							v-if="mostraInput"
-							@click="
-								mostrarInputFecha
-									? listarClimasFechas()
-									: mostrarSelectClimas
-									? listarClimasPorClima()
-									: ''
-							"
-							label="Buscar" />
-					</div>
-					<q-space />
-					<q-select
-						standout="bg-green text-while"
-						:options="opcionesTabla"
-						v-model="opcionTabla"
-						label="Filtro por"
-						@update:model-value="estadoTabla" />
-				</template>
-				<template v-slot:body-cell-opciones="props">
-					<q-td :props="props">
-						<q-btn @click="controlFormulario(props.row, true)">
-							✏️
-						</q-btn>
-					</q-td>
-				</template>
-			</q-table>
-		</div>
-		<q-dialog v-model="mostrarFormularioClima">
-			<q-card>
-				<q-form
-					@submit="mostrarBotonEditar ? editar() : registrar()"
-					class="q-gutter-md">
-					<q-select
-						standout="bg-green text-while"
-						:options="opcionesFincas"
-						option-label="label"
-						option-value="id"
-						label="Finca"
-						v-model="fincaClima" />
-					<q-select
-						standout="bg-green text-while"
-						:options="opcionesEmpleados"
-						option-label="label"
-						option-value="id"
-						label="Empleado"
-						v-model="empleadoClima" />
-					<q-input
-						standout="bg-green text-while"
-						type="date"
-						label="Fecha"
-						v-model="fechaClima" />
-					<q-select
-						standout="bg-green text-while"
-						:options="tiposDeClima"
-						label="Tipo de Clima"
-						v-model="tipoClima" />
-					<q-input
-						standout="bg-green text-while"
-						type="time"
-						label="Hora de Inicio"
-						v-model="horaInicioClima" />
-					<q-input
-						standout="bg-green text-while"
-						type="time"
-						label="Hora de Fin"
-						v-model="horaFinClima" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Temperatura Maxima"
-						v-model="temperaturaMaximaClima" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Temperatura Minima"
-						v-model="temperaturaMinimaClima" />
-					<div>
-						<q-btn
-							unelevated
-							v-if="mostrarBotonEditar"
-							label="Editar"
-							type="submit"
-							color="positive" />
-						<q-btn
-							unelevated
-							v-else
-							label="Registrar"
-							type="submit"
-							color="positive" />
-						<q-btn
-							@click="controlFormulario(null, false)"
-							flat
-							label="Cerrar"
-							type="button" />
-					</div>
-				</q-form>
-			</q-card>
-		</q-dialog>
-	</div>
+    <div>
+        <div class="q-pa-lg">
+            <q-table
+                :rows="rows"
+                :columns="columns"
+                row-key="id"
+                :loading="loading">
+                <template v-slot:top>
+                    <section class="column full-width q-pr-md">
+                        <div class="row items-center">
+                            <h1 class="text-h4 q-pl-xl text-green-7">Climas</h1>
+                            <q-space />
+                            <q-btn
+                                size="md"
+                                @click="controlFormulario(null, true)"
+                                label="Agregar" />
+                        </div>
+                        <div class="row items-center q-pb-md">
+                            <q-space />
+                            <div class="row q-pr-xl q-gutter-lg">
+                                <q-select
+                                    standout
+                                    style="width: 300px"
+                                    v-if="mostrarSelectClimas"
+                                    label="Responsable"
+                                    :options="tiposDeClima"
+                                    v-model="clima" />
+                                <q-input
+                                    standout
+                                    v-if="mostrarInputFecha"
+                                    label="Fecha"
+                                    type="date"
+                                    v-model="fecha" />
+                                <q-btn
+                                    v-if="mostraInput"
+                                    @click="
+                                        mostrarInputFecha
+                                            ? listarClimasFechas()
+                                            : mostrarSelectClimas
+                                            ? listarClimasPorClima()
+                                            : ''
+                                    "
+                                    label="Buscar" />
+                            </div>
+                            <q-select
+                                style="width: 200px"
+                                standout="bg-green text-while"
+                                :options="opcionesTabla"
+                                v-model="opcionTabla"
+                                label="Filtro por"
+                                @update:model-value="estadoTabla" />
+                        </div>
+                    </section>
+                </template>
+                <template v-slot:body-cell-opciones="props">
+                    <q-td :props="props">
+                        <q-btn @click="controlFormulario(props.row, true)">
+                            ✏️
+                        </q-btn>
+                    </q-td>
+                </template>
+            </q-table>
+        </div>
+        <q-dialog v-model="mostrarFormularioClima">
+            <q-card>
+                <q-form
+                    @submit="mostrarBotonEditar ? editar() : registrar()"
+                    class="q-gutter-sm">
+                    <p class="text-h5 text-center q-pb-md text-green">
+                        {{ datos ? "Editar" : "Agregar" }} Climas
+                    </p>
+                    <q-select
+                        standout="bg-green text-while"
+                        :options="opcionesFincas"
+                        option-label="label"
+                        option-value="id"
+                        label="Finca"
+                        v-model="fincaClima" />
+                    <q-select
+                        standout="bg-green text-while"
+                        :options="opcionesEmpleados"
+                        option-label="label"
+                        option-value="id"
+                        label="Empleado"
+                        v-model="empleadoClima" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="date"
+                        label="Fecha"
+                        v-model="fechaClima" />
+                    <q-select
+                        standout="bg-green text-while"
+                        :options="tiposDeClima"
+                        label="Tipo de Clima"
+                        v-model="tipoClima" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="time"
+                        label="Hora de Inicio"
+                        v-model="horaInicioClima" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="time"
+                        label="Hora de Fin"
+                        v-model="horaFinClima" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Temperatura Maxima"
+                        v-model="temperaturaMaximaClima" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Temperatura Minima"
+                        v-model="temperaturaMinimaClima" />
+                    <div class="row justify-end" style="gap: 10px">
+                        <q-btn
+                            unelevated
+                            v-if="mostrarBotonEditar"
+                            label="Editar"
+                            type="submit"
+                            color="positive" />
+                        <q-btn
+                            unelevated
+                            v-else
+                            label="Registrar"
+                            type="submit"
+                            color="positive" />
+                        <q-btn
+                            @click="controlFormulario(null, false)"
+                            flat
+                            class="bg-red text-white"
+                            label="Cerrar"
+                            type="button" />
+                    </div>
+                </q-form>
+            </q-card>
+        </q-dialog>
+    </div>
 </template>
 
 <style scoped>

@@ -102,7 +102,7 @@ async function login() {
 			}
 		} else {
 			if (r.data.status != 200) {
-				router.push("/mio/Admin");
+				router.push("/Admin");
 			}
 		}
 	}
@@ -141,8 +141,8 @@ async function validarDatos() {
 onMounted(() => {
 	const token = localStorage.getItem('Admin');
 	
-	if (token) {
-		router.push("/mio/Admin");
+	if (token == "") {
+		router.push("/Admin");
 	}
 })
 </script>

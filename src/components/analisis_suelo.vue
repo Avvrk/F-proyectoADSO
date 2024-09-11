@@ -612,7 +612,7 @@ onMounted(() => {
                             color="positive" />
                         <q-btn
                             @click="controlFormulario(null, false)"
-							flat
+                            flat
                             class="bg-red text-white"
                             label="Cerrar"
                             type="button" />
