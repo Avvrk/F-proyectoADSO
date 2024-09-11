@@ -354,7 +354,7 @@ onMounted(() => {
             <q-card>
                 <q-form
                     @submit="mostrarBotonEditar ? editar() : registrar()"
-                    class="q-gutter-md">
+                    class="q-gutter-sm">
                     <p class="text-h5 text-center q-pb-md text-green">
                         {{ datos ? "Editar" : "Agregar" }} Administrador
                     </p>
