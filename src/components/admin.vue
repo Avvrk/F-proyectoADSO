@@ -290,7 +290,6 @@ onMounted(() => {
 
 <template>
     <div>
-        
         <div class="q-pa-lg">
             <q-table
                 :rows="rows"
