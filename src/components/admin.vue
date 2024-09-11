@@ -10,51 +10,51 @@ const useAdmin = useStoreAdmins();
 const opcionesTabla = ["Todos", "Activos", "Inactivos"];
 const rows = ref([]);
 const columns = ref([
-	{
-		name: "nombre",
-		label: "Nombre",
-		field: "nombre",
-		align: "center",
-		sortable: true,
-	},
-	{
-		name: "direccion",
-		label: "Direccion",
-		field: "direccion",
-		align: "center",
-	},
-	{
-		name: "correo",
-		label: "Correo",
-		field: "correo",
-		align: "center",
-		sortable: true,
-	},
-	{
-		name: "telefono",
-		label: "Telefono",
-		field: "telefono",
-		align: "center",
-	},
-	{
-		name: "municipio",
-		label: "Municipio",
-		field: "municipio",
-		align: "center",
-		sortable: true,
-	},
-	{
-		name: "estado",
-		label: "Estado",
-		field: "estado",
-		align: "center",
-	},
-	{
-		name: "opciones",
-		label: "Opciones",
-		field: "opciones",
-		align: "center",
-	},
+    {
+        name: "nombre",
+        label: "Nombre",
+        field: "nombre",
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "direccion",
+        label: "Direccion",
+        field: "direccion",
+        align: "center",
+    },
+    {
+        name: "correo",
+        label: "Correo",
+        field: "correo",
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "telefono",
+        label: "Telefono",
+        field: "telefono",
+        align: "center",
+    },
+    {
+        name: "municipio",
+        label: "Municipio",
+        field: "municipio",
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "estado",
+        label: "Estado",
+        field: "estado",
+        align: "center",
+    },
+    {
+        name: "opciones",
+        label: "Opciones",
+        field: "opciones",
+        align: "center",
+    },
 ]);
 
 // Variables necesarias en el formulario
@@ -80,345 +80,360 @@ const mostrarBotonEditar = ref(false);
 const loading = ref(true);
 
 const ciudadOpciones = computed(() => {
-	const ciudad = colombia.value.find(
-		(m) => m.departamento == departamentoAdmin.value.departamento
-	);
-	return ciudad ? ciudad.ciudades : [];
+    const ciudad = colombia.value.find(
+        (m) => m.departamento == departamentoAdmin.value.departamento
+    );
+    return ciudad ? ciudad.ciudades : [];
 });
 
 async function listarMunicipio() {
-	const r = await useAdmin.getMunicipios();
-	colombia.value = r.data;
+    const r = await useAdmin.getMunicipios();
+    colombia.value = r.data;
 }
 
 async function listarAdmin() {
-	try {
-		loading.value = true;
-		const r = await useAdmin.getAdmin();
-		rows.value = r.data.admins;
-	} finally {
-		loading.value = false;
-	}
+    try {
+        loading.value = true;
+        const r = await useAdmin.getAdmin();
+        rows.value = r.data.admins;
+    } finally {
+        loading.value = false;
+    }
 }
 
 async function listarAdminActivo() {
-	try {
-		loading.value = true;
-		const r = await useAdmin.getAdminActivos();
-		rows.value = r.data.admins;
-	} finally {
-		loading.value = false;
-	}
+    try {
+        loading.value = true;
+        const r = await useAdmin.getAdminActivos();
+        rows.value = r.data.admins;
+    } finally {
+        loading.value = false;
+    }
 }
 
 async function listarAdminInactivo() {
-	try {
-		loading.value = true;
-		const r = await useAdmin.getAdminInactivos();
-		rows.value = r.data.admins;
-	} finally {
-		loading.value = false;
-	}
+    try {
+        loading.value = true;
+        const r = await useAdmin.getAdminInactivos();
+        rows.value = r.data.admins;
+    } finally {
+        loading.value = false;
+    }
 }
 
 async function editarEstado(elemento) {
-	try {
-		loading.value = true;
-		if (elemento.estado === 1) {
-			const res = await useAdmin.putAdminInactivar(elemento._id);
-		} else if (elemento.estado === 0) {
-			const res = await useAdmin.putAdminActivar(elemento._id);
-		}
-		listarAdmin();
-	} finally {
-		loading.value = false;
-	}
+    try {
+        loading.value = true;
+        if (elemento.estado === 1) {
+            const res = await useAdmin.putAdminInactivar(elemento._id);
+        } else if (elemento.estado === 0) {
+            const res = await useAdmin.putAdminActivar(elemento._id);
+        }
+        listarAdmin();
+    } finally {
+        loading.value = false;
+    }
 }
 
 async function registrar() {
-	if (validarDatos()) {
-		try {
-			loading.value = true;
-			const info = {
-				nombre: nombreAdmin.value,
-				direccion: direccionAdmin.value,
-				correo: correoAdmin.value,
-				telefono: telefonoAdmin.value,
-				municipio: ciudadAdmin.value,
-				password: claveAdmin.value,
-			};
+    if (validarDatos()) {
+        try {
+            loading.value = true;
+            const info = {
+                nombre: nombreAdmin.value,
+                direccion: direccionAdmin.value,
+                correo: correoAdmin.value,
+                telefono: telefonoAdmin.value,
+                municipio: ciudadAdmin.value,
+                password: claveAdmin.value,
+            };
 
-			const res = await useAdmin.postAdmin(info);
-			if (res.status === 200) {
-				mostrarFormularioAdmin.value = false;
-				listarAdmin();
-			}
-		} finally {
-			loading.value = false;
-		}
-	}
+            const res = await useAdmin.postAdmin(info);
+            if (res.status === 200) {
+                mostrarFormularioAdmin.value = false;
+                listarAdmin();
+            }
+        } finally {
+            loading.value = false;
+        }
+    }
 }
 
 async function editar() {
-	if (validarDatos()) {
-		try {
-			loading.value = true;
-			const info = {
-				nombre: nombreAdmin.value,
-				direccion: direccionAdmin.value,
-				correo: correoAdmin.value,
-				telefono: telefonoAdmin.value,
-				municipio: ciudadAdmin.value,
-			};
+    if (validarDatos()) {
+        try {
+            loading.value = true;
+            const info = {
+                nombre: nombreAdmin.value,
+                direccion: direccionAdmin.value,
+                correo: correoAdmin.value,
+                telefono: telefonoAdmin.value,
+                municipio: ciudadAdmin.value,
+            };
 
-			const res = await useAdmin.putAdmin(datos.value._id, info);
-			if (res.status === 200) {
-				mostrarFormularioAdmin.value = false;
-				listarAdmin();
-			}
-		} finally {
-			loading.value = false;
-		}
-	}
+            const res = await useAdmin.putAdmin(datos.value._id, info);
+            if (res.status === 200) {
+                mostrarFormularioAdmin.value = false;
+                listarAdmin();
+            }
+        } finally {
+            loading.value = false;
+        }
+    }
 }
 
 function validarDatos() {
-	let validacion = true;
-	if (
-		!nombreAdmin.value.trim() &&
-		!direccionAdmin.value.trim() &&
-		!correoAdmin.value.trim() &&
-		!telefonoAdmin.value.trim() &&
-		!ciudadAdmin.value.trim() &&
-		!claveAdmin.value.trim()
-	) {
-		$q.notify({
-			type: "negative",
-			message: "Llena todos los campos",
-			position: "bottom",
-		});
-		validacion = false;
-	} else {
-		if (!nombreAdmin.value.trim()) {
-			$q.notify({
-				type: "negative",
-				message: "El nombre esta vacio",
-				position: "bottom",
-			});
-			validacion = false;
-		}
-		if (!direccionAdmin.value.trim()) {
-			$q.notify({
-				type: "negative",
-				message: "La direccion esta vacia",
-				position: "bottom",
-			});
-			validacion = false;
-		}
-		if (!correoAdmin.value.trim()) {
-			$q.notify({
-				type: "negative",
-				message: "El correo esta vacio",
-				position: "bottom",
-			});
-			validacion = false;
-		}
-		if (!telefonoAdmin.value.trim()) {
-			$q.notify({
-				type: "negative",
-				message: "El telefono esta vacio",
-				position: "bottom",
-			});
-			validacion = false;
-		}
-		if (!ciudadAdmin.value.trim()) {
-			$q.notify({
-				type: "negative",
-				message: "La ciudad esta vacia",
-				position: "bottom",
-			});
-			validacion = false;
-		}
-		if (!claveAdmin.value.trim()) {
-			$q.notify({
-				type: "negative",
-				message: "La contraseña esta vacia",
-				position: "bottom",
-			});
-			validacion = false;
-		}
-	}
-	return validacion;
+    let validacion = true;
+    if (
+        !nombreAdmin.value.trim() &&
+        !direccionAdmin.value.trim() &&
+        !correoAdmin.value.trim() &&
+        !telefonoAdmin.value.trim() &&
+        !ciudadAdmin.value.trim() &&
+        !claveAdmin.value.trim()
+    ) {
+        $q.notify({
+            type: "negative",
+            message: "Llena todos los campos",
+            position: "bottom",
+        });
+        validacion = false;
+    } else {
+        if (!nombreAdmin.value.trim()) {
+            $q.notify({
+                type: "negative",
+                message: "El nombre esta vacio",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!direccionAdmin.value.trim()) {
+            $q.notify({
+                type: "negative",
+                message: "La direccion esta vacia",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!correoAdmin.value.trim()) {
+            $q.notify({
+                type: "negative",
+                message: "El correo esta vacio",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!telefonoAdmin.value.trim()) {
+            $q.notify({
+                type: "negative",
+                message: "El telefono esta vacio",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!ciudadAdmin.value.trim()) {
+            $q.notify({
+                type: "negative",
+                message: "La ciudad esta vacia",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!claveAdmin.value.trim()) {
+            $q.notify({
+                type: "negative",
+                message: "La contraseña esta vacia",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+    }
+    return validacion;
 }
 
 function controlFormulario(obj, boolean) {
-	nombreAdmin.value = "";
-	direccionAdmin.value = "";
-	correoAdmin.value = "";
-	telefonoAdmin.value = "";
-	departamentoAdmin.value = "";
+    nombreAdmin.value = "";
+    direccionAdmin.value = "";
+    correoAdmin.value = "";
+    telefonoAdmin.value = "";
+    departamentoAdmin.value = "";
 
-	datos.value = obj;
-	mostrarBotonEditar.value = false;
-	if (obj != null && boolean == true) {
-		nombreAdmin.value = datos.value.nombre;
-		direccionAdmin.value = datos.value.direccion;
-		correoAdmin.value = datos.value.correo;
-		telefonoAdmin.value = String(datos.value.telefono);
-		departamentoAdmin.value = datos.value.municipio;
+    datos.value = obj;
+    mostrarBotonEditar.value = false;
+    if (obj != null && boolean == true) {
+        nombreAdmin.value = datos.value.nombre;
+        direccionAdmin.value = datos.value.direccion;
+        correoAdmin.value = datos.value.correo;
+        telefonoAdmin.value = String(datos.value.telefono);
+        departamentoAdmin.value = datos.value.municipio;
 
-		mostrarBotonEditar.value = true;
-	}
-	mostrarFormularioAdmin.value = boolean;
+        mostrarBotonEditar.value = true;
+    }
+    mostrarFormularioAdmin.value = boolean;
 }
 
 function estadoTabla() {
-	if (opcionTabla.value == "Activos") {
-		listarAdminActivo();
-	} else if (opcionTabla.value == "Inactivos") {
-		listarAdminInactivo();
-	} else {
-		listarAdmin();
-	}
+    if (opcionTabla.value == "Activos") {
+        listarAdminActivo();
+    } else if (opcionTabla.value == "Inactivos") {
+        listarAdminInactivo();
+    } else {
+        listarAdmin();
+    }
 }
 
 onMounted(() => {
-	listarAdmin();
-	listarMunicipio();
+    listarAdmin();
+    listarMunicipio();
 });
 </script>
 
 <template>
-	<div>
-		<div class="q-pr-xl q-pt-lg row items-center">
-			<q-space />
-			<q-btn
-				size="md"
-				@click="controlFormulario(null, true)"
-				label="Agregar" />
-		</div>
-		<div class="q-pa-lg">
-			<q-table
-				:rows="rows"
-				:columns="columns"
-				row-key="id"
-				:loading="loading">
-				<template v-slot:top>
-					<h1 class="text-h4 q-pl-xl text-green-7">Administrador</h1>
-					<q-space />
-					<q-select
-						style="width: 200px;"
-						standout="bg-green text-while"
-						:options="opcionesTabla"
-						v-model="opcionTabla"
-						label="Filtro por"
-						@update:model-value="estadoTabla" />
-				</template>
-				<template v-slot:body-cell-estado="props">
-					<q-td :props="props">
-                        <q-badge :color="props.row.estado === 1 ? 'green' : 'red'" align="top" :label="props.row.estado === 1 ? 'Activo' : 'Inactivo'" />
+    <div>
+        
+        <div class="q-pa-lg">
+            <q-table
+                :rows="rows"
+                :columns="columns"
+                row-key="id"
+                :loading="loading">
+                <template v-slot:top>
+					<section class="column full-width q-pr-md">
+						<div class="row items-center">
+							<h1 class="text-h4 q-pl-xl text-green-7">
+								Administrador
+							</h1>
+							<q-space />
+							<q-btn
+								size="md"
+								@click="controlFormulario(null, true)"
+								label="Agregar" />
+						</div>
+						<div class="row items-center q-pb-md">
+							<q-space />
+							<q-select
+								style="width: 200px"
+								standout="bg-green text-while"
+								:options="opcionesTabla"
+								v-model="opcionTabla"
+								label="Filtro por"
+								@update:model-value="estadoTabla" />
+						</div>
+					</section>
+                </template>
+                <template v-slot:body-cell-estado="props">
+                    <q-td :props="props">
+                        <q-badge
+                            :color="props.row.estado === 1 ? 'green' : 'red'"
+                            align="top"
+                            :label="
+                                props.row.estado === 1 ? 'Activo' : 'Inactivo'
+                            " />
                     </q-td>
-				</template>
-				<template v-slot:body-cell-opciones="props">
-					<q-td :props="props" class="row justify-center" style="gap: 20px;">
-						<q-btn @click="controlFormulario(props.row, true)">
-							✏️
-						</q-btn>
-						<q-btn
-							v-if="props.row.estado == 1"
-							@click="editarEstado(props.row)">
-							❌
-						</q-btn>
-						<q-btn v-else @click="editarEstado(props.row)">
-							✅
-						</q-btn>
-					</q-td>
-				</template>
-			</q-table>
-		</div>
-		<q-dialog v-model="mostrarFormularioAdmin">
-			<q-card>
-				<q-form
-					@submit="mostrarBotonEditar ? editar() : registrar()"
-					class="q-gutter-md">
-					<p class="text-h5 text-center q-pb-md text-green">
-						{{ datos ? 'Editar' : 'Agregar' }} Administrador
-					</p>
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Nombre"
-						v-model="nombreAdmin" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Direccion"
-						v-model="direccionAdmin" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Correo"
-						v-model="correoAdmin" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Telefono"
-						v-model="telefonoAdmin" />
-					<q-select
-						standout="bg-green text-while"
-						:options="colombia"
-						option-label="departamento"
-						option-value="departamento"
-						label="Municipio"
-						v-model="departamentoAdmin" />
-					<q-select
-						standout="bg-green text-while"
-						:options="ciudadOpciones"
-						label="Ciudad"
-						v-model="ciudadAdmin" />
-					<q-input
-						standout="bg-green text-while"
-						type="text"
-						label="Contraseña"
-						v-model="claveAdmin" />
-					<div class="row justify-end" style="gap: 10px;">
-						<q-btn
-							unelevated
-							v-if="mostrarBotonEditar"
-							label="Editar"
-							type="submit"
-							color="positive" />
-						<q-btn
-							unelevated
-							v-else
-							label="Registrar"
-							type="submit"
-							color="positive" />
-						<q-btn
-							@click="controlFormulario(null, false)"
-							flat
-							class="bg-red text-white"
-							label="Cerrar"
-							type="button" />
-					</div>
-				</q-form>
-			</q-card>
-		</q-dialog>
-	</div>
+                </template>
+                <template v-slot:body-cell-opciones="props">
+                    <q-td
+                        :props="props"
+                        class="row justify-center"
+                        style="gap: 20px">
+                        <q-btn @click="controlFormulario(props.row, true)">
+                            ✏️
+                        </q-btn>
+                        <q-btn
+                            v-if="props.row.estado == 1"
+                            @click="editarEstado(props.row)">
+                            ❌
+                        </q-btn>
+                        <q-btn v-else @click="editarEstado(props.row)">
+                            ✅
+                        </q-btn>
+                    </q-td>
+                </template>
+            </q-table>
+        </div>
+        <q-dialog v-model="mostrarFormularioAdmin">
+            <q-card>
+                <q-form
+                    @submit="mostrarBotonEditar ? editar() : registrar()"
+                    class="q-gutter-md">
+                    <p class="text-h5 text-center q-pb-md text-green">
+                        {{ datos ? "Editar" : "Agregar" }} Administrador
+                    </p>
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Nombre"
+                        v-model="nombreAdmin" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Direccion"
+                        v-model="direccionAdmin" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Correo"
+                        v-model="correoAdmin" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Telefono"
+                        v-model="telefonoAdmin" />
+                    <q-select
+                        standout="bg-green text-while"
+                        :options="colombia"
+                        option-label="departamento"
+                        option-value="departamento"
+                        label="Municipio"
+                        v-model="departamentoAdmin" />
+                    <q-select
+                        standout="bg-green text-while"
+                        :options="ciudadOpciones"
+                        label="Ciudad"
+                        v-model="ciudadAdmin" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Contraseña"
+                        v-model="claveAdmin" />
+                    <div class="row justify-end" style="gap: 10px">
+                        <q-btn
+                            unelevated
+                            v-if="mostrarBotonEditar"
+                            label="Editar"
+                            type="submit"
+                            color="positive" />
+                        <q-btn
+                            unelevated
+                            v-else
+                            label="Registrar"
+                            type="submit"
+                            color="positive" />
+                        <q-btn
+                            @click="controlFormulario(null, false)"
+                            flat
+                            class="bg-red text-white"
+                            label="Cerrar"
+                            type="button" />
+                    </div>
+                </q-form>
+            </q-card>
+        </q-dialog>
+    </div>
 </template>
 
 <style scoped>
 .q-card {
-	background-color: rgb(255, 255, 255);
-	padding: 40px 30px 40px 30px;
-	border-radius: 1pc;
-	width: 30rem;
-	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-	border: 0;
+    background-color: rgb(255, 255, 255);
+    padding: 40px 30px 40px 30px;
+    border-radius: 1pc;
+    width: 30rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: 0;
 }
 
 .q-form .q-input,
 .q-form .q-select {
-	margin-bottom: 15px;
+    margin-bottom: 15px;
 }
 </style>
