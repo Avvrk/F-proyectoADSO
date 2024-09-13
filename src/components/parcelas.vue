@@ -236,35 +236,34 @@ async function listarAsistente() {
 }
 
 async function listarActivos() {
-        loading.value = true;
-        try {
-            const response = await storeParcelas.getParcelasActivos();
-            parcelas.value = response.data.parcelas;
-        } catch (error) {
-            Notify.create({
-                type: "negative",
-                message: "Error al listar los activos.",
-            });
-        } finally {
-            loading.value = false;
-        }
-    } 
+    loading.value = true;
+    try {
+        const response = await storeParcelas.getParcelasActivos();
+        parcelas.value = response.data.parcelas;
+    } catch (error) {
+        Notify.create({
+            type: "negative",
+            message: "Error al listar los activos.",
+        });
+    } finally {
+        loading.value = false;
+    }
+}
 
-    async function listarInactivos() {
-        loading.value = true;
-        try {
-            const response = await storeParcelas.getParcelasInactivos();
-            parcelas.value = response.data.parcelas;
-        } catch (error) {
-            Notify.create({
-                type: "negative",
-                message: "Error al listar los inactivos.",
-            });
-        } finally {
-            loading.value = false;
-        }
-    } 
-
+async function listarInactivos() {
+    loading.value = true;
+    try {
+        const response = await storeParcelas.getParcelasInactivos();
+        parcelas.value = response.data.parcelas;
+    } catch (error) {
+        Notify.create({
+            type: "negative",
+            message: "Error al listar los inactivos.",
+        });
+    } finally {
+        loading.value = false;
+    }
+}
 
 const estadoTabla = () => {
     if (opcionTabla.value === "activos") {
@@ -290,74 +289,73 @@ onMounted(async () => {
 </script>
 
 <template>
-    <q-page>
-        <q-card>
-            <q-card-section>
-                <q-btn @click="dialogAddParcela = true" label="Agregar Parcela" color="positive" />
-            </q-card-section>
-
+    <div>
+        <div class="q-pa-lg">
             <q-table :rows="parcelas" :columns="columns" row-key="id" :loading="loading">
                 <template v-slot:top>
-                    <q-input v-if="mostrarinputAsistentes" v-model="asistente" type="text" label="Filtrar por asistente" />
-                    <q-btn v-if="mostrarInput" @click="listarAsistente()" />
-                    <q-select :options="opcionesTabla" v-model="opcionTabla" @update:model-value="estadoTabla" />
-                </template>
-                <template v-slot:body-cell-actions="props">
-                    <q-td :props="props">
-                        <q-btn flat color="primary" @click="editParcelaData(props.row)" icon="edit" />
-                        <q-btn flat :color="props.row.estado === 1 ? 'negative' : 'positive'" @click="changeParcelaState(props.row._id, props.row.estado)" :icon="props.row.estado === 1 ? 'visibility_off' : 'visibility'" :label="props.row.estado === 1 ? 'Inactivar' : 'Activar'" />
-                    </q-td>
+                    <section class="column full-width q-pr-md">
+                        <div class="row items-center">
+                            <h1 class="text-h4 q-pl-xl text-green-7">parcelas</h1>
+                            <q-space />
+                            <q-btn size="md" @click="controlFormulario(null, true)" label="Agregar" />
+                        </div>
+                        <div class="row items-center q-pb-md">
+                            <q-space />
+                            <q-select style="width: 200px" standout="bg-green text-while" :options="opcionesTabla" v-model="opcionTabla" label="Filtro por" @update:model-value="estadoTabla" />
+                        </div>
+                    </section>
                 </template>
                 <template v-slot:body-cell-estado="props">
                     <q-td :props="props">
-                        <q-badge :color="props.row.estado === 1 ? 'green' : 'red'" align="top" label="Estado" />
+                        <q-badge :color="props.row.estado === 1 ? 'green' : 'red'" align="top" :label="props.row.estado === 1 ? 'Activo' : 'Inactivo'" />
+                    </q-td>
+                </template>
+                <template v-slot:body-cell-actions="props">
+                    <q-td :props="props" class="row justify-center" style="gap: 20px">
+                        <q-btn @click="editParcelaData(props.row, true)"> ✏️ </q-btn>
+                        <q-btn v-if="props.row.estado == 1" @click="changeParcelaState(props.row)"> ❌ </q-btn>
+                        <q-btn v-else @click="changeParcelaState(props.row)"> ✅ </q-btn>
                     </q-td>
                 </template>
             </q-table>
+        </div>
 
-            <!-- Dialogo para Editar Parcela -->
-            <q-dialog v-model="dialogEditParcela">
-                <q-card>
-                    <q-card-section>
-                        <q-input v-model="editParcela.numero" label="Número" filled />
-                        <q-input v-model="editParcela.ubicacionGeografica" label="Ubicación Geográfica" filled />
-                        <q-input v-model="editParcela.cultivoAnterior" label="Cultivo Anterior" filled />
-                        <q-input v-model="editParcela.cultivoActual" label="Cultivo Actual" filled />
-                        <q-input v-model="editParcela.detalle" label="Detalle" filled />
-                        <q-input v-model.number="editParcela.area" label="Área" filled type="number" />
-                        <q-select v-model="editParcela.id_finca" :options="opcionesFinca" label="Finca" />
-                    </q-card-section>
-                    <q-card-actions>
-                        <q-btn @click="dialogEditParcela = false" label="Cancelar" />
-                        <q-btn @click="updateParcela" color="primary" label="Actualizar" />
-                    </q-card-actions>
-                </q-card>
-            </q-dialog>
-
-            <!-- Dialogo para Agregar Parcela -->
-            <q-dialog v-model="dialogAddParcela">
-                <q-card>
-                    <q-card-section>
-                        <q-input v-model="newParcela.numero" label="Número" filled />
-                        <q-input v-model="newParcela.ubicacionGeografica" label="Ubicación Geográfica" filled />
-                        <q-input v-model="newParcela.cultivoAnterior" label="Cultivo Anterior" filled />
-                        <q-input v-model="newParcela.cultivoActual" label="Cultivo Actual" filled />
-                        <q-input v-model="newParcela.detalle" label="Detalle" filled />
-                        <q-input v-model.number="newParcela.area" label="Área" filled type="number" />
-                        <q-select v-model="newParcela.id_finca" :options="opcionesFinca" label="Finca" />
-                    </q-card-section>
-                    <q-card-actions>
-                        <q-btn @click="dialogAddParcela = false" label="Cancelar" />
-                        <q-btn @click="addParcela" color="primary" label="Agregar" />
-                    </q-card-actions>
-                </q-card>
-            </q-dialog>
-        </q-card>
-    </q-page>
+        <!-- Dialogo para Editar Parcela -->
+        <q-dialog v-model="dialogEditParcela">
+            <q-card>
+                <q-form @submit="mostrarBotonEditar ? editar() : registrar()" class="q-gutter-sm">
+                    <p class="text-h5 text-center q-pb-md text-green">{{ datos ? "Editar" : "Agregar" }} parcela</p>
+                    <q-input standout="bg-green text-while" type="text" label="Numero" v-model="nombreparcela" />
+                    <q-input standout="bg-green text-while" type="text" label="ubicacion Geografica" v-model="ubicacionGeografica" />
+                    <q-input standout="bg-green text-while" type="text" label="asistente tegnico    " v-model="asistenteTecnico" />
+                    <q-input standout="bg-green text-while" type="text" label="cultivo anterior" v-model="cultivoAnterior" />
+                    <q-input standout="bg-green text-while" type="text" label="cultivo actual   " v-model="cultivoActual" />
+                    <q-input standout="bg-green text-while" type="text" label="detalles  " v-model="detalle" />
+                    <q-input standout="bg-green text-while" type="text" label="area   " v-model="area" />
+                    <q-input standout="bg-green text-while" type="text" label="fincas   " v-model="fincas" />
+                    <div class="row justify-end" style="gap: 10px">
+                        <q-btn unelevated v-if="mostrarBotonEditar" label="Editar" type="submit" color="positive" />
+                        <q-btn unelevated v-else label="Registrar" type="submit" color="positive" />
+                        <q-btn @click="controlFormulario(null, false)" flat class="bg-red text-white" label="Cerrar" type="button" />
+                    </div>
+                </q-form>
+            </q-card>
+        </q-dialog>
+    </div>
 </template>
 
 <style scoped>
-.q-table {
-    min-height: 400px;
+.q-card {
+    background-color: rgb(255, 255, 255);
+    padding: 40px 30px 40px 30px;
+    border-radius: 1pc;
+    width: 30rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: 0;
+}
+
+.q-form .q-input,
+.q-form .q-select {
+    margin-bottom: 15px;
 }
 </style>

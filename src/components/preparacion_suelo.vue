@@ -5,17 +5,17 @@ import { Notify } from "quasar";
 
 const usePS = useStorePreparacionSuelos();
 
-// loading es el loading
+// loading es el indicador de carga
 const loading = ref(false);
 
-// Variable que contendra todos los datos al estar editando
+// Variable que contendrá todos los datos al estar editando
 const datos = ref([]);
 
 // Variables que manejan lo que se muestra en pantalla
 const mostrarFormularioPrepararSuelo = ref(false);
 const mostrarBotonEditar = ref(false);
 
-// Obj que contiene las claves vacias que se llenaran antes de ser enviado al backend
+// Objeto que contiene las claves vacías que se llenarán antes de ser enviado al backend
 const objPreparacionSuelo = ref({
     fecha: "",
     id_parcela: "",
@@ -28,10 +28,12 @@ const objPreparacionSuelo = ref({
     observaciones: "",
 });
 
+// Variables que contienen las listas de parcelas, empleados y filas de la tabla
 const parcelas = ref([]);
 const empleados = ref([]);
+const rows = ref([]);
 
-// Variables usadas para controlar la informacion de la tabla
+// Variables usadas para controlar la información de la tabla
 const preparacionSuelos = ref([]);
 const columns = [
     { name: "fecha", label: "Fecha", align: "center", field: "fecha" },
@@ -66,12 +68,21 @@ const columns = [
         align: "left",
         field: "responsable",
     },
+
+    
     {
         name: "observaciones",
         label: "Observaciones",
         align: "left",
         field: "observaciones",
     },
+
+    {name: "estado",
+        label: "Estado",
+        field: "estado",
+        align: "center",
+    },
+    
     {
         name: "actions",
         label: "Acciones",
@@ -79,37 +90,35 @@ const columns = [
         field: "actions",
         slots: { default: "actions" },
     },
+
+    
+
+
 ];
-// Variable que es usada en el select que esta en al tabla para filtrar los datos
-const opcionesTabla = ["Todos", "Fechas", "Parcelas"];
-// Variable que se encarga de tener el dato seleciconado por el select que filtra
+
+// Variables que contienen los datos a buscar o filtrar en la tabla
 const opcion = ref("Todos");
 
-// Variables que contiene los datos a buscar o filtrar en la tabla
-const parcela = ref("");
-const fechaInicio = ref("");
-const fechaFin = ref("");
-
-// Funcion computada que genera el array a mostrar en el formulario
+// Funciones computadas para generar el array a mostrar en el formulario
 const opcionesParcelas = computed(() => {
-  return parcelas.value.map((parcela) => {
-    return { label: `${parcela.numero} (rut: ${parcela.rut})`, id: parcela._id }
-  })
-})
+    return parcelas.value.map((parcela) => {
+        return { label: `${parcela.numero} (rut: ${parcela.rut})`, id: parcela._id }
+    })
+});
 
 const opcionesEmpleados = computed(() => {
-  return empleados.value.map((empleado) => {
-    return { label: `${empleado.nombre} (DNI: ${empleado.documento})`, id: empleado._id }
-  })
-})
+    return empleados.value.map((empleado) => {
+        return { label: `${empleado.nombre} (DNI: ${empleado.documento})`, id: empleado._id }
+    })
+});
 
-// Funcion flecha para mandar la peticion al backend
-// sobre listar todos los datos de preparacion suelos
+// Función para listar la preparación de suelos desde el backend
 const loadPreparacionSuelos = async () => {
     loading.value = true;
     try {
         const r = await usePS.getPreparacionSuelos();
         preparacionSuelos.value = r.data.preparaciones;
+        rows.value = preparacionSuelos.value;
     } catch (error) {
         Notify.create({
             type: "negative",
@@ -120,7 +129,7 @@ const loadPreparacionSuelos = async () => {
     }
 };
 
-// Funcion flecha que trae todas las parcelas
+// Funciones para cargar parcelas y empleados
 const loadParcelas = async () => {
     try {
         const r = await usePS.getParcelas();
@@ -140,16 +149,14 @@ const loadEmpleados = async () => {
     } catch (error) {
         Notify.create({
             type: "negative",
-            message: "Error al cargar los empledos.",
+            message: "Error al cargar los empleados.",
         });
     }
 };
 
-// Funcion flecha que valida y manda los datos al backend
+// Función para agregar una nueva preparación de suelo
 const addPreparacionSuelo = async () => {
     try {
-        console.log(objPreparacionSuelo.value);
-
         if (!objPreparacionSuelo.value.fecha || !objPreparacionSuelo.value.id_parcela || !objPreparacionSuelo.value.empleado_id || !objPreparacionSuelo.value.productos || !objPreparacionSuelo.value.ingredienteActivo || !objPreparacionSuelo.value.dosis || !objPreparacionSuelo.value.metodoAplicacion || !objPreparacionSuelo.value.responsable || !objPreparacionSuelo.value.observaciones) {
             Notify.create({
                 type: "negative",
@@ -177,18 +184,18 @@ const addPreparacionSuelo = async () => {
 
         Notify.create({
             type: "positive",
-            message: "preparacion agregada con éxito.",
+            message: "Preparación agregada con éxito.",
         });
     } catch (error) {
         console.error(error);
         Notify.create({
             type: "negative",
-            message: "Error al agregar la preparacion.",
+            message: "Error al agregar la preparación.",
         });
     }
 };
 
-// Funcion flecha que se encarga de validar y mandar los datos editados al backend
+// Función para actualizar una preparación de suelo
 const updatePreparacionSuelo = async () => {
     try {
         if (!objPreparacionSuelo.value.fecha || !objPreparacionSuelo.value.id_parcela || !objPreparacionSuelo.value.empleado_id || !objPreparacionSuelo.value.productos || !objPreparacionSuelo.value.ingredienteActivo || !objPreparacionSuelo.value.dosis || !objPreparacionSuelo.value.metodoAplicacion || !objPreparacionSuelo.value.responsable || !objPreparacionSuelo.value.observaciones) {
@@ -200,7 +207,7 @@ const updatePreparacionSuelo = async () => {
         }
 
         const preparacionSueloData = {
-            fecha: objPreparacionSuelo.value.fecha.split("T")[0],
+            fecha: objPreparacionSuelo.value.fecha,
             id_parcela: objPreparacionSuelo.value.id_parcela.id,
             empleado_id: objPreparacionSuelo.value.empleado_id.id,
             productos: objPreparacionSuelo.value.productos,
@@ -225,11 +232,10 @@ const updatePreparacionSuelo = async () => {
             type: "negative",
             message: "Error al actualizar la preparación de suelo.",
         });
-        console.error("Error al actualizar la preparación de suelo:", error);
     }
 };
 
-// Funcion flecha que se encarga de editar el estado
+// Función para cambiar el estado de una preparación de suelo
 const changePreparacionSueloState = async (id, estado) => {
     try {
         await usePS.putPreparacionSueloEstado(id, estado);
@@ -244,35 +250,11 @@ const changePreparacionSueloState = async (id, estado) => {
             type: "negative",
             message: "Error al cambiar el estado de la preparación de suelo.",
         });
-        console.error("Error al cambiar el estado de la preparación de suelo:", error);
     }
 };
 
-// Funcion mal hecha, piense
-const filtrarDatos = async () => {
-    if (opcion.value === "Fechas") {
-        await listarPreparacionSuelosFechas();
-    } else if (opcion.value === "Parcelas") {
-        await listarPreparacionSuelosParcela();
-    }
-};
-
-// Funcion flecha que hace el filtro por parcela creo:V
-/* const listarPreparacionSuelosParcela = async () => {
-	try {
-		const r = await usePS.getPreparacionSuelosParcela(parcela.value);
-		preparacionSuelos.value = r.data.preparaciones;
-	} catch (error) {
-		Notify.create({
-			type: "negative",
-			message: "Error al filtrar la preparación de suelos por parcela.",
-		});
-	}
-}; */
-
-// Funcion que administra lo que se ve en el formulario
+// Función que administra lo que se ve en el formulario
 function administrarFormulario(d, boolean) {
-    // Resetear el objeto de preparación de suelos
     objPreparacionSuelo.value = {
         fecha: "",
         id_parcela: "",
@@ -302,10 +284,10 @@ function administrarFormulario(d, boolean) {
         mostrarBotonEditar.value = true;
     }
 
-    mostrarFormularioPrepararSuelo.value = boolean;
+    mostrarFormularioPrepararSuelo.value = true;
 }
 
-
+// Cargamos los datos al montar el componente
 onMounted(() => {
     loadEmpleados();
     loadParcelas();
@@ -315,43 +297,134 @@ onMounted(() => {
 
 <template>
     <div>
-        <div>
-            <q-btn @click="administrarFormulario(null, true)" label="Agregar" color="primary" />
+        <div class="q-pa-lg">
+            <q-table
+                :rows="rows"
+                :columns="columns"
+                row-key="id"
+                :loading="loading">
+                <template v-slot:top>
+                    <section class="column full-width q-pr-md">
+                        <div class="row items-center">
+                            <h1 class="text-h4 q-pl-xl text-green-7">
+                                Preparación de suelos
+                            </h1>
+                            <q-space />
+                            <q-btn
+                                size="md"
+                                @click="administrarFormulario(null, true)"
+                                label="Agregar" />
+                        </div>
+                        <div class="row items-center q-pb-md">
+                            <q-space />
+                            <q-select
+                                style="width: 200px"
+                                standout="bg-green text-white"
+                                :options="['Todos', 'Fechas', 'Parcelas']"
+                                v-model="opcion"
+                                label="Filtrar por" />
+                        </div>
+                    </section>
+
+                    
+                </template>
+                
+
+                <template v-slot:body-cell-estado="props">
+                    <q-td :props="props">
+                        <q-badge
+                            :color="props.row.estado === 1 ? 'green' : 'red'"
+                            align="top"
+                            :label="props.row.estado === 1 ? 'Activo' : 'Inactivo'" />
+                    </q-td>
+                </template>
+
+                <template v-slot:body-cell-actions="props">
+                    <q-td :props="props" class="row justify-center" style="gap: 20px">
+                        <q-btn @click="c(props.row, true)">
+                            ✏️
+                        </q-btn>
+                        <q-btn v-if="props.row.estado == 1" @click="changePreparacionSueloState(props.row._id, 0)">
+                            ❌
+                        </q-btn>
+                        <q-btn v-else @click="changePreparacionSueloState(props.row._id, 1)">
+                            ✅
+                        </q-btn>
+                    </q-td>
+                </template>
+            </q-table>
         </div>
-        <q-table :rows="preparacionSuelos" :columns="columns" row-key="_id" :loading="loading">
-            <template v-slot:top>
-                <div class="q-mb-md">
-                    <q-select v-if="opcion.value === 'Parcelas'" :options="opcionesParcelas" v-model="parcela" label="Selecciona Parcela" />
-                    <q-input v-if="opcion.value === 'Fechas'" v-model="fechaInicio" label="Fecha Inicio" type="date" />
-                    <q-input v-if="opcion.value === 'Fechas'" v-model="fechaFin" label="Fecha Fin" type="date" />
-                    <q-btn v-if="opcion.value !== 'Todos'" label="Filtrar" @click="filtrarDatos" color="primary" />
-                </div>
-                <q-select v-model="opcion" :options="opcionesTabla" label="Opciones Tabla" />
-            </template>
-            <template v-slot:body-cell-actions="props">
-                <q-btn icon="edit" color="primary" @click="administrarFormulario(props.row, true)" />
-                <q-btn icon="delete" color="negative" @click="changePreparacionSueloState(props.row._id, props.row.estado)" />
-            </template>
-        </q-table>
-        <q-dialog v-model="mostrarFormularioPrepararSuelo">
+
+        <q-dialog v-model="administrarFormulario">
             <q-card>
-                <q-form>
-                    <q-input v-model="objPreparacionSuelo.fecha" label="Fecha" type="date" />
-                    <q-select :options="opcionesParcelas" v-model="objPreparacionSuelo.id_parcela" label="Parcela" />
-                    <q-select :options="opcionesEmpleados" v-model="objPreparacionSuelo.empleado_id" label="Empleado" />
-                    <q-input v-model="objPreparacionSuelo.productos" label="Productos" />
-                    <q-input v-model="objPreparacionSuelo.ingredienteActivo" label="Ingrediente Activo" />
-                    <q-input v-model="objPreparacionSuelo.dosis" label="Dosis" />
-                    <q-input v-model="objPreparacionSuelo.metodoAplicacion" label="Método de Aplicación" />
-                    <q-input v-model="objPreparacionSuelo.responsable" label="Responsable" />
-                    <q-input v-model="objPreparacionSuelo.observaciones" label="Observaciones" />
-                    <div>
-                        <q-btn @click="administrarFormulario(null, false)" label="Cancelar" />
-                        <q-btn v-if="!mostrarBotonEditar" @click="addPreparacionSuelo()" color="primary" label="Agregar" />
-                        <q-btn v-else @click="updatePreparacionSuelo()" color="primary" label="Editar" />
+                <q-form
+                    @submit="mostrarBotonEditar ? editar() : registrar()"
+                    class="q-gutter-sm">
+                    <p class="text-h5 text-center q-pb-md text-green">
+                        {{ datos ? "Editar" : "Agregar" }} preparacion de suelos
+                    </p>
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Nombre"
+                        v-model="nombreAdmin" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Direccion"
+                        v-model="direccionAdmin" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Correo"
+                        v-model="correoAdmin" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Telefono"
+                        v-model="telefonoAdmin" />
+                    <q-select
+                        standout="bg-green text-while"
+                        :options="colombia"
+                        option-label="departamento"
+                        option-value="departamento"
+                        label="Municipio"
+                        v-model="departamentoAdmin" />
+                    <q-select
+                        standout="bg-green text-while"
+                        :options="ciudadOpciones"
+                        label="Ciudad"
+                        v-model="ciudadAdmin" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Contraseña"
+                        v-model="claveAdmin" />
+                    <div class="row justify-end" style="gap: 10px">
+                        <q-btn
+                            unelevated
+                            v-if="mostrarBotonEditar"
+                            label="Editar"
+                            type="submit"
+                            color="positive" />
+                        <q-btn
+                            unelevated
+                            v-else
+                            label="Registrar"
+                            type="submit"
+                            color="positive" />
+                        <q-btn
+                            @click="controlFormulario(null, false)"
+                            flat
+                            class="bg-red text-white"
+                            label="Cerrar"
+                            type="button" />
                     </div>
                 </q-form>
             </q-card>
         </q-dialog>
+        
+
+        
     </div>
 </template>

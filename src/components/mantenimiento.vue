@@ -8,86 +8,86 @@ const useMantenimiento = useStoreMantenimiento();
 
 const opcionesTabla = ["Todos", "Fechas", "Herramienta", "Responsable"];
 
-const herramientas = ref([]);
 const gastos = ref([]);
 const rows = ref([]);
 const columns = ref([
-	{
-		name: "fecha",
-		label: "Fecha",
-		field: (row) => {
-			const fechaa = `${row.fecha}`;
-			return fechaa.split("T")[0];
-		},
-		align: "center",
-		sortable: true,
-	},
-	{
-		name: "gastos",
-		label: "Gastos",
-		field: (row) =>
-			row.gastos_id
-				? `${row.gastos_id.nombre} (num factura:${row.gastos_id.numeroFactura})`
-				: "",
-		align: "center",
-		sortable: true,
-	},
-	{
-		name: "herramienta",
-		label: "Herramienta",
-		field: (row) => (row.id_herramienta ? row.id_herramienta.nombre : ""),
-		align: "center",
-		sortable: true,
-	},
-	{
-		name: "verificacionRealizada",
-		label: "Verificación Realizada",
-		field: "verificacionRealizada",
-		align: "center",
-		sortable: true,
-	},
-	{
-		name: "calibracion",
-		label: "Calibración",
-		field: "calibracion",
-		align: "center",
-		sortable: true,
-	},
-	{
-		name: "responsable",
-		label: "Responsable",
-		field: "responsable",
-		align: "center",
-		sortable: true,
-	},
-	{
-		name: "observaciones",
-		label: "Observaciones",
-		field: "observaciones",
-		align: "center",
-		sortable: true,
-	},
-	{
-		name: "opciones",
-		label: "Opciones",
-		field: "opciones",
-		align: "center",
-	},
+    {
+        name: "fecha",
+        label: "Fecha",
+        field: (row) => {
+            const fechaa = `${row.fecha}`;
+            return fechaa.split("T")[0];
+        },
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "gastos",
+        label: "Gastos",
+        field: (row) =>
+            row.gastos_id
+                ? `${row.gastos_id.nombre} (num factura:${row.gastos_id.numeroFactura})`
+                : "",
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "herramienta",
+        label: "Herramienta",
+        field: (row) => (row.id_herramienta ? row.id_herramienta.nombre : ""),
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "verificacionRealizada",
+        label: "Verificación Realizada",
+        field: "verificacionRealizada",
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "calibracion",
+        label: "Calibración",
+        field: "calibracion",
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "responsable",
+        label: "Responsable",
+        field: "responsable",
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "observaciones",
+        label: "Observaciones",
+        field: "observaciones",
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "opciones",
+        label: "Opciones",
+        field: "opciones",
+        align: "center",
+    },
 ]);
-
-const fechaMantenimiento = ref("");
-const verificacionRealizada = ref("");
-const calibracion = ref("");
-const responsable = ref("");
-const observaciones = ref("");
-const gasto = ref("");
-
-const opcionTabla = ref("Todos");
 
 const fechaInicio = ref("");
 const fechaFin = ref("");
+const responsable = ref("");
 const herramienta = ref("");
-const responsableFiltro = ref("");
+const mostrarInputFecha = ref(false);
+const fechaMantenimiento = ref("");
+const verificacionRealizada = ref("");
+const calibracion = ref("");
+const observaciones = ref("");
+const gasto = ref("");
+const mostrarInput = ref(false);
+const mostrarSelectResponsable = ref(false);
+
+const opcionTabla = ref("Todos");
 
 const datos = ref([]);
 
@@ -96,338 +96,468 @@ const mostrarBotonEditar = ref(false);
 const loading = ref(true);
 
 const opcionesHerramientas = computed(() => {
-	return herramientas.value.map((herramienta) => {
-		return { label: herramienta.nombre, id: herramienta._id };
-	});
+    return herramientas.value.map((herramienta) => {
+        return { label: herramienta.nombre, id: herramienta._id };
+    });
 });
 
 const opcionesGastos = computed(() => {
-	return gastos.value.map((gastos) => {
-		return {
-			label: `${gastos.nombre} (num. factura:${gastos.numeroFactura})`,
-			id: gastos._id,
-		};
-	});
+    return gastos.value.map((gastos) => {
+        return {
+            label: `${gastos.nombre} (num. factura:${gastos.numeroFactura})`,
+            id: gastos._id,
+        };
+    });
 });
 
 const opcionesResponsables = computed(() => {
-	return rows.value.map((responsable) => {
-		return { label: responsable.responsable, id: responsable.responsable };
-	});
+    return rows.value.map((responsable) => {
+        return { label: responsable.responsable, id: responsable.responsable };
+    });
 });
 
 async function listarGastos() {
-	try {
-		loading.value = true;
-		const r = await useMantenimiento.getGastos();
-		gastos.value = r.data.gastos;
-	} finally {
-		loading.value = false;
-	}
+    try {
+        loading.value = true;
+        const r = await useMantenimiento.getGastos();
+        gastos.value = r.data.gastos;
+    } finally {
+        loading.value = false;
+    }
 }
 
 async function listarHerramientas() {
-	try {
-		loading.value = true;
-		const r = await useMantenimiento.getHerramientas();
-		herramientas.value = r.data.maquinariaH;
-	} finally {
-		loading.value = false;
-	}
+    try {
+        loading.value = true;
+        const r = await useMantenimiento.getHerramientas();
+        herramientas.value = r.data.maquinariaH;
+    } finally {
+        loading.value = false;
+    }
 }
 
 async function listarMantenimiento() {
-	try {
-		loading.value = true;
-		const r = await useMantenimiento.getMantenimientos();
-		rows.value = r.data.mantenimientos;
-	} finally {
-		loading.value = false;
-	}
+    try {
+        loading.value = true;
+        const r = await useMantenimiento.getMantenimientos();
+        rows.value = r.data.mantenimientos;
+    } finally {
+        loading.value = false;
+    }
 }
 
-async function listarMantenimientoFechas() {
-	if (fechaInicio.value && fechaFin.value) {
-		try {
-			loading.value = true;
-			const r = await useMantenimiento.getMantenimientosFechas(
-				fechaInicio.value,
-				fechaFin.value
-			);
-			rows.value = r.data.mantenimiento;
-		} finally {
-			loading.value = false;
-		}
-	} else {
-		$q.notify({
-			type: "negative",
-			message: "Llena los campos",
-			position: "bottom",
-		});
-	}
+async function listarmantenimientoFechas() {
+    if (fechaInicio.value && fechaFin.value) {
+        const inicio = new Date(fechaInicio.value);
+        const fin = new Date(fechaFin.value);
+
+        if (inicio > fin) {
+            $q.notify({
+                type: "negative",
+                message:
+                    "La fecha de inicio no puede ser mayor que la fecha de fin.",
+                position: "bottom",
+            });
+            return;
+        }
+        try {
+            loading.value = true;
+            const r = await useMantenimiento.getMantenimientosFechas(
+                fechaInicio.value,
+                fechaFin.value
+            );
+            rows.value = r.data.mantenimiento;
+        } finally {
+            loading.value = false;
+        }
+    } else {
+        $q.notify({
+            type: "negative",
+            message: "Llena los campos",
+            position: "bottom",
+        });
+    }
 }
 
 async function listarMantenimientoHerramienta() {
-	if (herramienta.value) {
-		try {
-			loading.value = true;
-			const r = await useMantenimiento.getMantenimientosHerramientas(
-				herramienta.value.id
-			);
-			rows.value = r.data.herramienta;
-		} finally {
-			loading.value = false;
-		}
-	} else {
-		$q.notify({
-			type: "negative",
-			message: "Selecciona una herramienta",
-			position: "bottom",
-		});
-	}
+    if (herramienta.value && herramienta.value.id) {
+        try {
+            loading.value = true;
+            const r = await useMantenimiento.getMantenimientosHerramientas(
+                herramienta.value.id
+            );
+            rows.value = r.data.herramienta;
+        } finally {
+            loading.value = false;
+        }
+    } else {
+        $q.notify({
+            type: "negative",
+            message: "Selecciona una herramienta",
+            position: "bottom",
+        });
+    }
 }
 
 async function listarMantenimientoResponsable() {
-	if (responsableFiltro.value) {
-		try {
-			loading.value = true;
-			const r = await useMantenimiento.getMantenimientosResponsable(
-				responsableFiltro.value.id
-			);
-			rows.value = r.data.responsable;
-		} finally {
-			loading.value = false;
-		}
-	} else {
-		$q.notify({
-			type: "negative",
-			message: "Selecciona un responsable",
-			position: "bottom",
-		});
-	}
+    if (responsable.value && responsable.value.id) {
+        try {
+            loading.value = true;
+            const r = await useMantenimiento.getMantenimientosResponsable(
+                responsable.value.id
+            );
+            rows.value = r.data.responsable;
+        } finally {
+            loading.value = false;
+        }
+    } else {
+        $q.notify({
+            type: "negative",
+            message: "Selecciona un responsable",
+            position: "bottom",
+        });
+    }
 }
 
 async function registrar() {
-	if (validarDatos()) {
-		try {
-			loading.value = true;
-			const info = {
-				fecha: fechaMantenimiento.value,
-				verificacionRealizada: verificacionRealizada.value,
-				calibracion: calibracion.value,
-				responsable: responsable.value,
-				observaciones: observaciones.value,
-				id_herramienta: herramienta.value.id,
-				gastos_id: gasto.value.id,
-			};
+    if (validarDatos()) {
+        try {
+            loading.value = true;
+            const info = {
+                fecha: fechaMantenimiento.value,
+                verificacionRealizada: verificacionRealizada.value,
+                calibracion: calibracion.value,
+                responsable: responsable.value,
+                observaciones: observaciones.value,
+                id_herramienta: herramienta.value.id,
+                gastos_id: gasto.value.id,
+            };
 
-			const res = await useMantenimiento.postMantenimiento(info);
-			if (res.status === 200) {
-				mostrarFormularioMantenimiento.value = false;
-				listarMantenimiento();
-			}
-		} finally {
-			loading.value = false;
-		}
-	}
+            const res = await useMantenimiento.postMantenimiento(info);
+            if (res.status === 200) {
+                mostrarFormularioMantenimiento.value = false;
+                listarMantenimiento();
+            }
+        } finally {
+            loading.value = false;
+        }
+    }
 }
 
 async function editar() {
-	if (validarDatos()) {
-		try {
-			loading.value = true;
-			const info = {
-				fecha: fechaMantenimiento.value,
-				verificacionRealizada: verificacionRealizada.value,
-				calibracion: calibracion.value,
-				responsable: responsable.value,
-				observaciones: observaciones.value,
-				id_herramienta: herramienta.value.id,
-				gastos_id: gasto.value.id,
-			};
+    if (validarDatos()) {
+        try {
+            loading.value = true;
+            const info = {
+                fecha: fechaMantenimiento.value,
+                verificacionRealizada: verificacionRealizada.value,
+                calibracion: calibracion.value,
+                responsable: responsable.value,
+                observaciones: observaciones.value,
+                id_herramienta: herramienta.value.id,
+                gastos_id: gasto.value.id,
+            };
 
-			const res = await useMantenimiento.putMantenimiento(
-				datos.value._id,
-				info
-			);
-			if (res.status === 200) {
-				mostrarFormularioMantenimiento.value = false;
-				listarMantenimiento();
-			}
-		} finally {
-			loading.value = false;
-		}
-	}
+            const res = await useMantenimiento.putMantenimiento(
+                datos.value._id,
+                info
+            );
+            if (res.status === 200) {
+                mostrarFormularioMantenimiento.value = false;
+                listarMantenimiento();
+            }
+        } finally {
+            loading.value = false;
+        }
+    }
 }
 
 function validarDatos() {
-	let validacion = true;
-	if (
-		!fechaMantenimiento.value ||
-		!verificacionRealizada.value ||
-		!calibracion.value ||
-		!responsable.value
-	) {
-		$q.notify({
-			type: "negative",
-			message: "Llena todos los campos obligatorios",
-			position: "bottom",
-		});
-		validacion = false;
-	}
-	return validacion;
+    let validacion = true;
+    if (
+        !fechaMantenimiento.value ||
+        !verificacionRealizada.value ||
+        !calibracion.value ||
+        !responsable.value
+    ) {
+        $q.notify({
+            type: "negative",
+            message: "Llena todos los campos obligatorios",
+            position: "bottom",
+        });
+        validacion = false;
+    }
+    return validacion;
 }
 
 function controlFormulario(obj, boolean) {
-	fechaMantenimiento.value = "";
-	verificacionRealizada.value = "";
-	calibracion.value = "";
-	responsable.value = "";
-	observaciones.value = "";
-	herramienta.value = "";
-	gasto.value = "";
+    fechaMantenimiento.value = "";
+    verificacionRealizada.value = "";
+    calibracion.value = "";
+    responsable.value = "";
+    observaciones.value = "";
+    herramienta.value = "";
+    gasto.value = "";
 
-	datos.value = obj;
-	mostrarBotonEditar.value = false;
-	if (obj != null && boolean == true) {
-		fechaMantenimiento.value = datos.value.fecha.split("T")[0];
-		verificacionRealizada.value = datos.value.verificacionRealizada;
-		calibracion.value = datos.value.calibracion;
-		responsable.value = datos.value.responsable;
-		observaciones.value = datos.value.observaciones;
-		herramienta.value = opcionesHerramientas.value.find(
-			(h) => h.id == datos.value.id_herramienta._id
-		);
-		gasto.value = opcionesGastos.value.find(
-			(g) => g.id == datos.value.gastos_id._id
-		);
+    datos.value = obj;
+    mostrarBotonEditar.value = false;
+    if (obj != null && boolean == true) {
+        fechaMantenimiento.value = datos.value.fecha.split("T")[0];
+        verificacionRealizada.value = datos.value.verificacionRealizada;
+        calibracion.value = datos.value.calibracion;
+        responsable.value = datos.value.responsable;
+        observaciones.value = datos.value.observaciones;
+        herramienta.value = opcionesHerramientas.value.find(
+            (h) => h.id == datos.value.id_herramienta._id
+        );
+        gasto.value = opcionesGastos.value.find(
+            (g) => g.id == datos.value.gastos_id._id
+        );
 
-		mostrarBotonEditar.value = true;
-	}
-	mostrarFormularioMantenimiento.value = boolean;
+        mostrarBotonEditar.value = true;
+    }
+
+    mostrarFormularioMantenimiento.value = true;
 }
 
-watch(opcionTabla, (newValue) => {
-	if (newValue === "Todos") {
-		listarMantenimiento();
-	}
-});
-
 function estadoTabla() {
-	if (opcionTabla.value == "Fechas") {
-		console.log(fechaFin.value);
-		listarMantenimientoFechas();
-	} else if (opcionTabla.value == "Herramienta") {
-		listarMantenimientoHerramienta();
-	} else if (opcionTabla.value == "Responsable") {
-		listarMantenimientoResponsable();
-	} else {
-		listarMantenimiento();
-	}
+    switch (opcionTabla.value) {
+        case "Todos":
+            mostrarInputFecha.value = false;
+            mostrarSelectResponsable.value = false;
+            mostrarInput.value = false;
+            listarMantenimiento();
+            break;
+        case "Fechas":
+            mostrarInputFecha.value = true;
+            mostrarSelectResponsable.value = false;
+            mostrarInput.value = true;
+            break;
+        case "Herramienta":
+            listarMantenimientoHerramienta();
+            break;
+        case "Responsable":
+            mostrarInputFecha.value = false;
+            mostrarSelectResponsable.value = true;
+            mostrarInput.value = true;
+            break;
+    }
 }
 
 onMounted(() => {
-	listarGastos();
-	listarHerramientas();
-	listarMantenimiento();
+    listarHerramientas();
+    listarGastos();
+    listarMantenimiento();
 });
 </script>
 
 <template>
-	<div>
-		<div>
-			<q-btn @click="controlFormulario(null, true)" label="Agregar" />
-		</div>
-		<q-table
-			flat
-			bordered
-			title="Mantenimiento"
-			:rows="rows"
-			:columns="columns"
-			row-key="id"
-			:loading="loading">
-			<template v-slot:top>
-				<q-input
-					v-if="opcionTabla == 'Fechas'"
-					v-model="fechaInicio"
-					type="date"
-					label="Fecha Inicio" />
-				<q-input
-					v-if="opcionTabla == 'Fechas'"
-					v-model="fechaFin"
-					type="date"
-					label="Fecha Fin" />
-				<q-select
-					v-if="opcionTabla == 'Herramienta'"
-					v-model="herramienta"
-					:options="opcionesHerramientas"
-					label="Herramienta" />
-				<q-btn
-					v-if="opcionTabla != 'Todos'"
-					label="Realizar"
-					@click="estadoTabla()" />
-				<q-select
-					filled
-					v-model="opcionTabla"
-					:options="opcionesTabla"
-					label="Filtrar por" />
-			</template>
-			<template v-slot:body-cell-opciones="props">
-				<q-td :props="props">
-					<q-btn
-						@click="controlFormulario(props.row, true)"
-						color="primary"
-						label="Editar" />
-				</q-td>
-			</template>
-		</q-table>
+    <div>
+        <q-table
+            :rows="rows"
+            :columns="columns"
+            row-key="id"
+            :loading="loading">
+            <template v-slot:top>
+                <section class="column full-width q-pr-md">
+                    <div class="row items-center q-gutter-md">
+                        <h1 class="text-h4 q-pl-xl text-green-7">
+                            Gestión de Mantenimientos
+                        </h1>
+                        <q-space />
+                        <q-btn
+                            size="md"
+                            @click="controlFormulario(null, true)"
+                            label="Agregar" />
+                    </div>
 
-		<q-dialog v-model="mostrarFormularioMantenimiento">
-			<q-card>
-				<q-card-section>
-					<div class="text-h6">
-						{{
-							mostrarBotonEditar
-								? "Editar Mantenimiento"
-								: "Agregar Mantenimiento"
-						}}
-					</div>
-				</q-card-section>
-				<q-card-section>
-					<q-input
-						v-model="fechaMantenimiento"
-						type="date"
-						label="Fecha" />
-					<q-input
-						v-model="verificacionRealizada"
-						label="Verificación Realizada" />
-					<q-input v-model="calibracion" label="Calibración" />
-					<q-select
-						v-model="herramienta"
-						:options="opcionesHerramientas"
-						label="Herramienta" />
-					<q-select
-						v-model="gasto"
-						:options="opcionesGastos"
-						label="Gatos" />
-					<q-input v-model="responsable" label="Responsable" />
-					<q-input v-model="observaciones" label="Observaciones" />
-				</q-card-section>
-				<q-card-actions>
-					<q-btn
-						@click="mostrarFormularioMantenimiento = false"
-						color="secondary"
-						label="Cancelar" />
-					<q-btn
-						@click="mostrarBotonEditar ? editar() : registrar()"
-						color="primary"
-						label="Guardar" />
-				</q-card-actions>
-			</q-card>
-		</q-dialog>
-	</div>
+                    <div class="row items-center q-pb-md">
+                        <q-space />
+                        <div class="row q-pr-xl q-gutter-lg">
+                            <q-select
+                                standout
+                                style="width: 300px"
+                                v-if="mostrarSelectResponsable"
+                                label="Responsable"
+                                :options="opcionesResponsables"
+                                v-model="responsable" />
+                            <q-input
+                                standout
+                                v-if="mostrarInputFecha"
+                                label="Fecha Inicio"
+                                type="date"
+                                v-model="fechaInicio" />
+                            <q-input
+                                standout
+                                v-if="mostrarInputFecha"
+                                label="Fecha Fin"
+                                type="date"
+                                v-model="fechaFin" />
+                            <q-btn
+                                v-if="mostrarInput"
+                                @click="
+                                    mostrarInputFecha
+                                        ? listarmantenimientoFechas()
+                                        : mostrarSelectResponsable
+                                        ? listarMantenimientoResponsable()
+                                        : ''
+                                "
+                                label="Buscar" />
+                        </div>
+                        <q-select
+                            style="width: 200px"
+                            standout="bg-green text-while"
+                            :options="opcionesTabla"
+                            v-model="opcionTabla"
+                            label="Filtro por"
+                            @update:model-value="estadoTabla" />
+                    </div>
+                </section>
+            </template>
+
+            <template v-slot:body-cell-opciones="props">
+                <q-td
+                    :props="props"
+                    class="row justify-center"
+                    style="gap: 20px">
+                    <q-btn
+                        @click="controlFormulario(props.row, true)"
+                        color="white"
+                        class="edit-btn"
+                        >✏️</q-btn
+                    >
+                </q-td>
+            </template>
+        </q-table>
+
+        <!-- Diálogo para formulario de mantenimiento -->
+        <q-dialog v-model="mostrarFormularioMantenimiento" persistent>
+            <q-card>
+                <q-form
+                    @submit="mostrarBotonEditar ? editar() : registrar()"
+                    class="q-gutter-sm">
+                    <q-card-section>
+                        <p class="text-h5 text-center q-pb-md text-green">
+                            {{
+                                mostrarBotonEditar
+                                    ? "Editar Mantenimiento"
+                                    : "Agregar Mantenimiento"
+                            }}
+                        </p>
+                    </q-card-section>
+                    <q-card-section>
+                        <q-input
+                            filled
+                            type="date"
+                            label="Fecha"
+                            v-model="fechaMantenimiento" />
+                        <q-input
+                            filled
+                            type="text"
+                            label="Verificación Realizada"
+                            v-model="verificacionRealizada" />
+                        <q-input
+                            filled
+                            type="text"
+                            label="Calibración"
+                            v-model="calibracion" />
+                        <q-select
+                            filled
+                            :options="opcionesHerramientas"
+                            label="Herramienta"
+                            v-model="herramienta" />
+                        <q-select
+                            filled
+                            :options="opcionesGastos"
+                            label="Gasto"
+                            v-model="gasto" />
+                        <q-input
+                            filled
+                            type="text"
+                            label="Responsable"
+                            v-model="responsable" />
+                        <q-input
+                            filled
+                            type="text"
+                            label="Observaciones"
+                            v-model="observaciones" />
+                    </q-card-section>
+                    <q-card-actions class="actions-right">
+                        <q-btn
+                            unelevated
+                            v-if="mostrarBotonEditar"
+                            label="Editar"
+                            type="submit"
+                            color="positive" />
+                        <q-btn
+                            unelevated
+                            v-else
+                            label="Agregar"
+                            type="submit"
+                            color="positive" />
+                        <q-btn
+                            @click="mostrarFormularioMantenimiento = false"
+                            flat
+                            class="bg-red text-white"
+                            label="Cerrar"
+                            type="button" />
+                    </q-card-actions>
+                </q-form>
+            </q-card>
+        </q-dialog>
+    </div>
 </template>
 
 <style scoped>
-/* Agrega estilos personalizados aquí si es necesario */
+.q-card {
+    background-color: rgb(255, 255, 255);
+    padding: 40px 30px;
+    border-radius: 8px;
+    width: 30rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: 0;
+}
+
+.q-form .q-input,
+.q-form .q-select {
+    margin-bottom: 15px;
+}
+
+.q-btn[color="primary"] {
+    background-color: #43a047;
+    color: white;
+}
+
+.q-btn[color="secondary"] {
+    background-color: #e53935;
+    color: white;
+}
+
+.q-btn.edit-btn {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.q-btn.flat.bg-red.text-white {
+    background-color: #e53935;
+    color: white;
+}
+
+.add-btn {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-select {
+    background-color: white;
+}
+
+.q-gutter-md {
+    gap: 16px;
+}
+
+.actions-right {
+    display: flex;
+    justify-content: flex-end;
+}
 </style>

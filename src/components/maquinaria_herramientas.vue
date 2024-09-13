@@ -317,108 +317,139 @@ onMounted(() => {
 
 <template>
 	<div>
-		<div>
-			<q-btn @click="controlFormulario(null, true)" label="Agregar" />
-		</div>
-		<q-table
-			flat
-			bordered
-			title="Maquinaria y Herramientas"
-			:rows="rows"
-			:columns="columns"
-			row-key="id"
-			:loading="loading">
-			<template v-slot:top>
-				<q-select
-					v-if="mostrarInputTipo"
-					v-model="tipoFiltro"
-					:options="opcionesTipos"
-					label="Tipo" />
-				<q-input
-					v-if="mostrarInputFechas"
-					v-model="fechaInicio"
-					type="date"
-					label="Fecha Inicio" />
-				<q-input
-					v-if="mostrarInputFechas"
-					v-model="fechaFin"
-					type="date"
-					label="Fecha Fin" />
-				<q-btn
-					v-if="mostrarInput"
-					label="Realizar"
-					@click="
-						mostrarInputTipo
-							? listarMaquinariaTipo()
-							: mostrarInputFechas
-							? listarMaquinariaFechas()
-							: ''
-					" />
-				<q-select
-					filled
-					v-model="opcionTabla"
-					:options="opcionesTabla"
-					label="Filtrar por"
-					@update:model-value="estadoTabla" />
-			</template>
-			<template v-slot:body-cell-opciones="props">
-				<q-td :props="props">
-					<q-btn
-						@click="controlFormulario(props.row, true)"
-						color="primary"
-						label="Editar" />
-					<q-btn
-						@click="editarEstado(props.row)"
-						color="secondary"
-						label="Cambiar Estado" />
-				</q-td>
-			</template>
-		</q-table>
+		<div class="q-pa-lg">
+            <q-table
+                :rows="rows"
+                :columns="columns"
+                row-key="id"
+                :loading="loading">
+                <template v-slot:top>
+					<section class="column full-width q-pr-md">
+						<div class="row items-center">
+							<h1 class="text-h4 q-pl-xl text-green-7">
+								Maquinaria y Herramientas
+							</h1>
+							<q-space />
+							<q-btn
+								size="md"
+								@click="controlFormulario(null, true)"
+								label="Agregar" />
+						</div>
+						<div class="row items-center q-pb-md">
+							<q-space />
+							<q-select
+								style="width: 200px"
+								standout="bg-green text-while"
+								:options="opcionesTabla"
+								v-model="opcionTabla"
+								label="Filtro por"
+								@update:model-value="estadoTabla" />
+						</div>
+					</section>
+                </template>
+                <template v-slot:body-cell-estado="props">
+                    <q-td :props="props">
+                        <q-badge
+                            :color="props.row.estado === 1 ? 'green' : 'red'"
+                            align="top"
+                            :label="
+                                props.row.estado === 1 ? 'Activo' : 'Inactivo'
+                            " />
+                    </q-td>
+                </template>
+                <template v-slot:body-cell-opciones="props">
+                    <q-td
+                        :props="props"
+                        class="row justify-center"
+                        style="gap: 20px">
+                        <q-btn @click="controlFormulario(props.row, true)">
+                            ✏️
+                        </q-btn>
+                        <q-btn
+                            v-if="props.row.estado == 1"
+                            @click="editarEstado(props.row)">
+                            ❌
+                        </q-btn>
+                        <q-btn v-else @click="editarEstado(props.row)">
+                            ✅
+                        </q-btn>
+                    </q-td>
+                </template>
+            </q-table>
+        </div>
 
 		<q-dialog v-model="mostrarFormularioMaquinaria">
 			<q-card>
-				<q-card-section>
-					<div class="text-h6">
-						{{
-							mostrarBotonEditar
-								? "Editar Maquinaria y Herramientas"
-								: "Agregar Maquinaria y Herramientas"
-						}}
-					</div>
-				</q-card-section>
-				<q-card-section>
-					<q-input v-model="nombre" label="Nombre" />
-					<q-select
-						v-model="proveedor"
-						:options="opcionesProveedores"
-						label="Proveedor" />
-					<q-input v-model="tipo" label="Tipo" />
-					<q-input
-						v-model="fechaCompra"
-						type="date"
-						label="Fecha de Compra" />
-					<q-input v-model="observaciones" label="Observaciones" />
-					<q-input
-						v-model="cantidad"
-						label="Cantidad"
-						type="number" />
-					<q-input v-model="total" label="Total" type="number" />
-				</q-card-section>
-				<q-card-actions>
-					<q-btn
-						@click="mostrarFormularioMaquinaria = false"
-						color="secondary"
-						label="Cancelar" />
-					<q-btn
-						@click="mostrarBotonEditar ? editar() : registrar()"
-						color="primary"
-						label="Guardar" />
-				</q-card-actions>
+				<q-form
+                    @submit="mostrarBotonEditar ? editar() : registrar()"
+                    class="q-gutter-sm">
+                    <p class="text-h5 text-center q-pb-md text-green">
+                        {{ datos ? "Editar" : "Agregar" }} Administrador
+                    </p>
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Nombre"
+                        v-model="nombreAdmin" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="tipo"
+                        v-model="direccionAdmin" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="date"
+                        label="fecha de compra"
+                        v-model="correoAdmin" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="cantidad"
+                        v-model="telefonoAdmin" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="total"
+                        v-model="claveAdmin" />
+                    <div class="row justify-end" style="gap: 10px">
+                        <q-btn
+                            unelevated
+                            v-if="mostrarBotonEditar"
+                            label="Editar"
+                            type="submit"
+                            color="positive" />
+                        <q-btn
+                            unelevated
+                            v-else
+                            label="Registrar"
+                            type="submit"
+                            color="positive" />
+                        <q-btn
+                            @click="controlFormulario(null, false)"
+                            flat
+                            class="bg-red text-white"
+                            label="Cerrar"
+                            type="button" />
+                    </div>
+                </q-form>
 			</q-card>
+				
 		</q-dialog>
 	</div>
 </template>
 
 <style scoped>
-/* Agrega estilos personalizados aquí si es necesario */
+.q-card {
+    background-color: rgb(255, 255, 255);
+    padding: 40px 30px 40px 30px;
+    border-radius: 1pc;
+    width: 30rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: 0;
+}
+
+.q-form .q-input,
+.q-form .q-select {
+    margin-bottom: 15px;
+}
 </style>

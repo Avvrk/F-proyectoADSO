@@ -4,7 +4,7 @@ import { useStoreNomina } from "../stores/nomina.js";
 import { Notify } from "quasar";
 
 // Variables usadas en el filtro
-const opcionesTabla = ["Todos", "Fechas", "Empleados"]
+const opcionesTabla = ["Todos", "Fechas", "Empleados"];
 const opcion = ref("Todos");
 const mostrarSelectEmpleados = ref(false);
 const mostrarInputFechas = ref(false);
@@ -28,7 +28,6 @@ const newNomina = ref({
 });
 const empleados = ref([]);
 
-
 const nominas = ref([]);
 const columns = [
     {
@@ -37,16 +36,13 @@ const columns = [
         align: "center",
         field: (row) => row.fecha.split("T")[0],
     },
-
-
     {
         name: "id_empleado",
         label: "Empleado",
         align: "center",
-        field: (row) => `${row.id_empleado.nombre} (dni: ${row.id_empleado.documento})`,
+        field: (row) => `${row.id_empleado.nombre} (DNI: ${row.id_empleado.documento})`,
     },
     { name: "tipo", label: "Tipo", align: "center", field: "tipo" },
-
     {
         name: "valor",
         label: "Valor",
@@ -63,7 +59,6 @@ const opcionesEmpleado = computed(() => {
         id: e._id,
     }));
 });
-
 
 const loadNominas = async () => {
     loading.value = true;
@@ -106,7 +101,7 @@ const addNomina = async () => {
             fecha: newNomina.value.fecha,
             tipo: newNomina.value.tipo,
             valor: newNomina.value.valor,
-            id_empleado: newNomina.value.id_empleado.id,
+            id_empleado: newNomina.value.id_empleado,
         };
 
         await storeNomina.postNomina(nominaData);
@@ -121,13 +116,10 @@ const addNomina = async () => {
 
 const editNominaData = async (nomina) => {
     try {
-        // Convertir la fecha al formato "yyyy-MM-dd"
         const fechaFormateada = nomina.fecha.split("T")[0];
-
-        // Cargar los datos de la nómina seleccionada en el formulario de edición
         editNomina.value = {
             ...nomina,
-            fecha: fechaFormateada, // Asignar la fecha formateada
+            fecha: fechaFormateada,
             id_empleado: opcionesEmpleado.value.find((e) => e.id === nomina.id_empleado),
         };
         dialogEditNomina.value = true;
@@ -143,7 +135,7 @@ const updateNomina = async () => {
     try {
         await storeNomina.putNomina(editNomina.value._id, {
             ...editNomina.value,
-            id_empleado: editNomina.value.id_empleado.id, // Asegurarse de enviar solo el ID del empleado
+            id_empleado: editNomina.value.id_empleado.id,
         });
         await loadNominas();
         dialogEditNomina.value = false;
@@ -160,27 +152,22 @@ const updateNomina = async () => {
     }
 };
 
-
-async function listarAnalisisSueloFechas() {
+async function listarNominaFechas() {
     if (fechaInicio.value && fechaFin.value) {
         const inicio = new Date(fechaInicio.value);
         const fin = new Date(fechaFin.value);
 
         if (inicio > fin) {
-            $q.notify({
+            Notify.create({
                 type: "negative",
-                message:
-                    "La fecha de inicio no puede ser mayor que la fecha de fin.",
+                message: "La fecha de inicio no puede ser mayor que la fecha de fin.",
                 position: "bottom",
             });
             return;
         }
         try {
             loading.value = true;
-            const r = await storeNomina.getNominaFechas(
-                fechaInicio.value,
-                fechaFin.value
-            );
+            const r = await storeNomina.getNominaFechas(fechaInicio.value, fechaFin.value);
             nominas.value = r.data.nomina;
         } finally {
             loading.value = false;
@@ -194,19 +181,18 @@ async function listarAnalisisSueloFechas() {
     }
 }
 
-
 async function listarNominaEmpleados() {
     try {
         if (empleado.value) {
             loading.value = true;
-            const r =  await storeNomina.getNominaEmpleados(empleado.value.id)
-            nominas.value = r.data.nomina
+            const r = await storeNomina.getNominaEmpleados(empleado.value.id);
+            nominas.value = r.data.nomina;
         } else {
             Notify.create({
                 type: "negative",
                 message: "Complete el campo",
                 position: "bottom",
-            })
+            });
         }
     } finally {
         loading.value = false;
@@ -237,82 +223,95 @@ onMounted(() => {
 </script>
 
 <template>
-    <q-page>
-        <q-card>
-            <q-card-section>
-                <q-btn @click="dialogAddNomina = true" label="Agregar Nómina" color="positive" />
-            </q-card-section>
-
+    <div>
+        <div class="q-pa-lg">
             <q-table :rows="nominas" :columns="columns" row-key="_id" :loading="loading">
                 <template v-slot:top>
-                    <q-select
-                        v-if="mostrarSelectEmpleados"
-                        :options="opcionesEmpleado"
-                        v-model="empleado"/>
-                    <q-input
-                        v-if="mostrarInputFechas"
-                        type="date"
-                        label="Fecha Inicio"
-                        v-model="fechaInicio"/>
-                    <q-input
-                        v-if="mostrarInputFechas"
-                        type="date"
-                        label="Fecha Fin"
-                        v-model="fechaFin"/>
-                    <q-btn
-                        v-if="mostrarInput"
-                        label="Buscar"
-                        @click="mostrarInputFechas ? listarAnalisisSueloFechas() : mostrarSelectEmpleados ? listarNominaEmpleados() : ''"
-                        />
-                    <q-select
-                        standout="bg-green text-while"
-                        :options="opcionesTabla"
-                        v-model="opcion"
-                        @update:model-value="estadoTabla"/>
-                </template>
-                <template v-slot:loading>
-                    <q-inner-loading :showing="loading" />
+                    <section class="column full-width q-pr-md">
+                        <div class="row items-center">
+                            <h1 class="text-h4 q-pl-xl text-green-7">Gestión De Nómina</h1>
+                            <q-space />
+                            <q-btn size="md" @click="dialogAddNomina = true" label="Agregar" class="add-btn" />
+                        </div>
+                        <div class="row items-center q-pb-md">
+                            <q-space />
+                            <q-select style="width: 200px" standout="bg-green text-white" v-model="opcion" :options="opcionesTabla" label="Filtrar por" @update:model-value="estadoTabla" class="filter-select" />
+                            <q-input v-if="mostrarInputFechas" type="date" label="Fecha Inicio" v-model="fechaInicio" class="q-mr-sm" />
+                            <q-input v-if="mostrarInputFechas" type="date" label="Fecha Fin" v-model="fechaFin" class="q-mr-sm" />
+                            <q-btn v-if="mostrarInput" label="Buscar" @click="mostrarInputFechas ? listarNominaFechas() : mostrarSelectEmpleados ? listarNominaEmpleados() : ''" class="search-btn" />
+                        </div>
+                    </section>
                 </template>
                 <template v-slot:body-cell-actions="props">
-                    <q-td :props="props">
-                        <q-btn @click="editNominaData(props.row)" icon="edit" color="primary" />
-                    </q-td>
+                    <q-td :props="props" class="row justify-center" style="gap: 20px">
+                        <q-btn @click="editNominaData(props.row, true)" color="white" class="q-mr-sm"> ✏️ </q-btn>                    </q-td>
                 </template>
             </q-table>
+        </div>
 
-            <!-- Diálogo para editar nómina -->
-            <q-dialog v-model="dialogEditNomina" persistent>
-                <q-card>
-                    <q-card-section>
-                        <q-input v-model="editNomina.fecha" label="Fecha" type="date" />
-                        <q-input v-model="editNomina.tipo" label="Tipo" />
-                        <q-input v-model="editNomina.valor" label="Valor" type="number" />
-                        <q-select v-model="editNomina.id_empleado" :options="opcionesEmpleado" label="Empleado" />
-                    </q-card-section>
+        <!-- Dialog para agregar nómina -->
+           <!-- Dialog para agregar nómina -->
+           <q-dialog v-model="dialogAddNomina" persistent>
+            <q-card>
+                <q-form @submit="addNomina" class="q-gutter-sm">
+                    <p class="text-h5 text-center q-pb-md text-green">
+                        Agregar Nómina
+                    </p>
+                    <q-input filled type="date" label="Fecha" v-model="newNomina.fecha" />
+                    <q-select filled :options="opcionesEmpleado" v-model="newNomina.id_empleado" option-value="id" option-label="label" label="Empleado" />
+                    <q-select filled :options="['Salario', 'Bonificación', 'Otros']" v-model="newNomina.tipo" label="Tipo" />
+                    <q-input filled type="number" label="Valor" v-model="newNomina.valor" />
+                    <div class="row justify-end" style="gap: 10px">
+                        <q-btn unelevated label="Agregar" type="submit" color="positive" />
+                        <q-btn @click="dialogAddNomina = false" flat class="bg-red text-white" label="Cerrar" type="button" />
+                    </div>
+                </q-form>
+            </q-card>
+        </q-dialog>
 
-                    <q-card-actions>
-                        <q-btn @click="updateNomina" label="Guardar" color="primary" />
-                        <q-btn @click="dialogEditNomina = false" label="Cancelar" color="secondary" />
-                    </q-card-actions>
-                </q-card>
-            </q-dialog>
-
-            <!-- Diálogo para agregar nómina -->
-            <q-dialog v-model="dialogAddNomina" persistent>
-                <q-card>
-                    <q-card-section>
-                        <q-input v-model="newNomina.fecha" label="Fecha" type="date" />
-                        <q-input v-model="newNomina.tipo" label="Tipo" />
-                        <q-input v-model="newNomina.valor" label="Valor" type="number" />
-                        <q-select v-model="newNomina.id_empleado" :options="opcionesEmpleado" label="Empleado" />
-                    </q-card-section>
-
-                    <q-card-actions>
-                        <q-btn @click="addNomina" label="Agregar" color="primary" />
-                        <q-btn @click="dialogAddNomina = false" label="Cancelar" color="secondary" />
-                    </q-card-actions>
-                </q-card>
-            </q-dialog>
-        </q-card>
-    </q-page>
+        <!-- Dialog para editar nómina -->
+        <q-dialog v-model="dialogEditNomina" persistent>
+            <q-card>
+                <q-form @submit="updateNomina" class="q-gutter-sm">
+                    <p class="text-h5 text-center q-pb-md text-green">
+                        Editar Nómina
+                    </p>
+                    <q-input filled type="date" label="Fecha" v-model="editNomina.fecha" />
+                    <q-select filled :options="opcionesEmpleado" v-model="editNomina.id_empleado" option-value="id" option-label="label" label="Empleado" />
+                    <q-select filled :options="['Salario', 'Bonificación', 'Otros']" v-model="editNomina.tipo" label="Tipo" />
+                    <q-input filled type="number" label="Valor" v-model="editNomina.valor" />
+                    <div class="row justify-end" style="gap: 10px">
+                        <q-btn unelevated label="Actualizar" type="submit" color="positive" />
+                        <q-btn @click="dialogEditNomina = false" flat class="bg-red text-white" label="Cerrar" type="button" />
+                    </div>
+                </q-form>
+            </q-card>
+        </q-dialog>
+    </div>
 </template>
+
+<style scoped>
+.q-card {
+    background-color: rgb(255, 255, 255);
+    padding: 40px 30px;
+    border-radius: 8px;
+    width: 30rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: 0;
+}
+
+.q-form .q-input,
+.q-form .q-select {
+    margin-bottom: 15px;
+}
+
+.q-btn[unelevated] {
+    background-color: #43a047;
+    color: white;
+}
+
+.q-btn.flat.bg-red.text-white {
+    background-color: #e53935;
+    color: white;
+}
+</style>
