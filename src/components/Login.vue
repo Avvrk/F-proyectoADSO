@@ -140,10 +140,16 @@ async function validarDatos() {
 
 onMounted(() => {
 	const token = localStorage.getItem('Admin');
-	
-	if (token == "") {
-		router.push("/Admin");
+	console.log(token);
+
+	if(token) {
+		const newT = JSON.parse(token);
+		
+		if (newT.token != "") {
+			router.push("/Admin")
+		}
 	}
+
 })
 </script>
 <!-- background: linear-gradient(210deg, #abec8b, #004d00); -->

@@ -53,8 +53,8 @@ export const notifySuccessRequest = (msg, position = "bottom") => {
 	});
 };
 
-const auth = (to, from, next) => {
-    if (checkAuth()) {
+const auth = async (to, from, next) => {
+    if (await checkAuth()) {
         next();
     } else {
         return next({ name: "login" });
