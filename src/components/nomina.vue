@@ -63,8 +63,22 @@ const opcionesEmpleado = computed(() => {
 const loadNominas = async () => {
     loading.value = true;
     try {
-        const response = await storeNomina.getNomina();
-        nominas.value = response.data.nomina;
+        const r = await storeNomina.getNomina();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
+        nominas.value = r.data.nomina;
     } catch (error) {
         Notify.create({
             type: "negative",
@@ -77,8 +91,22 @@ const loadNominas = async () => {
 
 const loadEmpleados = async () => {
     try {
-        const response = await storeNomina.getEmpleados();
-        empleados.value = response.data.empleados;
+        const r = await storeNomina.getEmpleados();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
+        empleados.value = r.data.empleados;
     } catch (error) {
         Notify.create({
             type: "negative",

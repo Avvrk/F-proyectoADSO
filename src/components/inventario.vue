@@ -131,6 +131,20 @@ async function listarsemilla() {
     try {
         loading.value = true;
         const r = await useInventario.getSemillas();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         semilla.value = r.data.semillas;
     } finally {
         loading.value = false;
@@ -141,6 +155,20 @@ async function listarinsumos() {
     try {
         loading.value = true;
         const r = await useInventario.getInsumos();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         insumo.value = r.data.insumos;
     } finally {
         loading.value = false;
@@ -151,6 +179,20 @@ async function listarmaquinariaHerramienta() {
     try {
         loading.value = true;
         const r = await useInventario.getMaquinaria();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         maquina.value = r.data.maquinariaH;
     } finally {
         loading.value = false;
@@ -161,6 +203,20 @@ async function listarInventario() {
     try {
         loading.value = true;
         const r = await useInventario.getInventario();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         rows.value = r.data.inventario;
     } finally {
         loading.value = false;

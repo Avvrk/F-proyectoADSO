@@ -7,13 +7,7 @@ const $q = useQuasar();
 
 const useAnalisisSuelo = useStoreAnalisisSuelos();
 
-const opcionesTabla = [
-    "Todos",
-    "Activos",
-    "Inactivos",
-    "Fechas",
-    "Responsable",
-];
+const opcionesTabla = ["Todos", "Activos", "Inactivos", "Fechas", "Responsable"];
 const parcelas = ref([]);
 const empleados = ref([]);
 const rows = ref([]);
@@ -31,15 +25,13 @@ const columns = ref([
     {
         name: "id_parcela",
         label: "Parcela",
-        field: (row) =>
-            `${row.id_parcela.numero} (${row.id_parcela.id_fincas.nombre})`,
+        field: (row) => `${row.id_parcela.numero} (${row.id_parcela.id_fincas.nombre})`,
         align: "center",
     },
     {
         name: "empleado_id",
         label: "Empleado",
-        field: (row) =>
-            `${row.empleado_id.nombre} (DNI: ${row.empleado_id.documento})`,
+        field: (row) => `${row.empleado_id.nombre} (DNI: ${row.empleado_id.documento})`,
         align: "center",
         sortable: true,
     },
@@ -197,18 +189,14 @@ async function listarAnalisisSueloFechas() {
         if (inicio > fin) {
             $q.notify({
                 type: "negative",
-                message:
-                    "La fecha de inicio no puede ser mayor que la fecha de fin.",
+                message: "La fecha de inicio no puede ser mayor que la fecha de fin.",
                 position: "bottom",
             });
             return;
         }
         try {
             loading.value = true;
-            const r = await useAnalisisSuelo.getAnalisisSueloFechas(
-                fechaInicio.value,
-                fechaFin.value
-            );
+            const r = await useAnalisisSuelo.getAnalisisSueloFechas(fechaInicio.value, fechaFin.value);
             rows.value = r.data.suelos;
         } finally {
             loading.value = false;
@@ -226,9 +214,7 @@ async function listarAnalisisSueloResponsable() {
     if (responsable.value) {
         try {
             loading.value = true;
-            const r = await useAnalisisSuelo.getAnalisisSueloResponsable(
-                responsable.value.id
-            );
+            const r = await useAnalisisSuelo.getAnalisisSueloResponsable(responsable.value.id);
             rows.value = r.data.suelos;
         } finally {
             loading.value = false;
@@ -246,13 +232,9 @@ async function editarEstado(elemento) {
     try {
         loading.value = true;
         if (elemento.estado === 1) {
-            const res = await useAnalisisSuelo.putAnalisisSueloInactivar(
-                elemento._id
-            );
+            const res = await useAnalisisSuelo.putAnalisisSueloInactivar(elemento._id);
         } else if (elemento.estado === 0) {
-            const res = await useAnalisisSuelo.putAnalisisSueloActivar(
-                elemento._id
-            );
+            const res = await useAnalisisSuelo.putAnalisisSueloActivar(elemento._id);
         }
         listarAnalisisSuelo();
     } finally {
@@ -301,10 +283,7 @@ async function editar() {
                 recomendaciones: recomendacionesAnalisisSuelo.value,
             };
 
-            const res = await useAnalisisSuelo.putAnalisisSuelo(
-                datos.value._id,
-                info
-            );
+            const res = await useAnalisisSuelo.putAnalisisSuelo(datos.value._id, info);
             if (res.status === 200) {
                 mostrarFormularioAnalisisSuelo.value = false;
                 listarAnalisisSuelo();
@@ -317,16 +296,7 @@ async function editar() {
 
 function validarDatos() {
     let validacion = true;
-    if (
-        !fechaAnalisisSuelo.value &&
-        !parcelaAnalisisSuelo.value &&
-        !empleadoAnalisisSuelo.value &&
-        !muestraAnalisisSuelo.value.trim() &&
-        !cultivoAnalisisSuelo.value.trim() &&
-        !laboratorioAnalisisSuelo.value.trim() &&
-        !resultadosAnalisisSuelo.value.trim() &&
-        !recomendacionesAnalisisSuelo.value.trim()
-    ) {
+    if (!fechaAnalisisSuelo.value && !parcelaAnalisisSuelo.value && !empleadoAnalisisSuelo.value && !muestraAnalisisSuelo.value.trim() && !cultivoAnalisisSuelo.value.trim() && !laboratorioAnalisisSuelo.value.trim() && !resultadosAnalisisSuelo.value.trim() && !recomendacionesAnalisisSuelo.value.trim()) {
         $q.notify({
             type: "negative",
             message: "Llena todos los campos",
@@ -410,12 +380,8 @@ function controlFormulario(obj, boolean) {
         const em = opcionesResponsables.value;
 
         fechaAnalisisSuelo.value = datos.value.fecha.split("T")[0];
-        parcelaAnalisisSuelo.value = par.find(
-            (as) => as.id == datos.value.id_parcela._id
-        );
-        empleadoAnalisisSuelo.value = em.find(
-            (as) => as.id == datos.value.empleado_id._id
-        );
+        parcelaAnalisisSuelo.value = par.find((as) => as.id == datos.value.id_parcela._id);
+        empleadoAnalisisSuelo.value = em.find((as) => as.id == datos.value.empleado_id._id);
         muestraAnalisisSuelo.value = datos.value.muestra;
         cultivoAnalisisSuelo.value = datos.value.cultivo;
         laboratorioAnalisisSuelo.value = datos.value.laboratorio;
@@ -464,158 +430,56 @@ onMounted(() => {
 <template>
     <div>
         <div class="q-pa-lg">
-            <q-table
-                :rows="rows"
-                :columns="columns"
-                row-key="id"
-                :loading="loading">
+            <q-table :rows="rows" :columns="columns" row-key="id" :loading="loading">
                 <template v-slot:top>
                     <section class="column full-width q-pr-md">
                         <div class="row items-center">
-                            <h1 class="text-h4 q-pl-xl text-green-7">
-                                Analisi del Suelo
-                            </h1>
+                            <h1 class="text-h4 q-pl-xl text-green-7">Analisi del Suelo</h1>
                             <q-space />
-                            <q-btn
-                                size="md"
-                                @click="controlFormulario(null, true)"
-                                label="Agregar" />
+                            <q-btn size="md" @click="controlFormulario(null, true)" label="Agregar" />
                         </div>
                         <div class="row items-center q-pb-md">
                             <q-space />
                             <div class="row q-pr-xl q-gutter-lg">
-                                <q-select
-                                    standout
-                                    style="width: 300px"
-                                    v-if="mostrarSelectResponsable"
-                                    label="Responsable"
-                                    :options="opcionesResponsables"
-                                    v-model="responsable" />
-                                <q-input
-                                    standout
-                                    v-if="mostrarInputFecha"
-                                    label="Fecha Inicio"
-                                    type="date"
-                                    v-model="fechaInicio" />
-                                <q-input
-                                    standout
-                                    v-if="mostrarInputFecha"
-                                    label="Fecha Fin"
-                                    type="date"
-                                    v-model="fechaFin" />
-                                <q-btn
-                                    v-if="mostraInput"
-                                    @click="
-                                        mostrarInputFecha
-                                            ? listarAnalisisSueloFechas()
-                                            : mostrarSelectResponsable
-                                            ? listarAnalisisSueloResponsable()
-                                            : ''
-                                    "
-                                    label="Buscar" />
+                                <q-select standout style="width: 300px" v-if="mostrarSelectResponsable" label="Responsable" :options="opcionesResponsables" v-model="responsable" />
+                                <q-input standout v-if="mostrarInputFecha" label="Fecha Inicio" type="date" v-model="fechaInicio" />
+                                <q-input standout v-if="mostrarInputFecha" label="Fecha Fin" type="date" v-model="fechaFin" />
+                                <q-btn v-if="mostraInput" @click="mostrarInputFecha ? listarAnalisisSueloFechas() : mostrarSelectResponsable ? listarAnalisisSueloResponsable() : ''" label="Buscar" />
                             </div>
-                            <q-select
-                                style="width: 200px"
-                                standout="bg-green text-while"
-                                :options="opcionesTabla"
-                                v-model="opcionTabla"
-                                label="Filtro por"
-                                @update:model-value="estadoTabla" />
+                            <q-select style="width: 200px" standout="bg-green text-while" :options="opcionesTabla" v-model="opcionTabla" label="Filtro por" @update:model-value="estadoTabla" />
                         </div>
                     </section>
                 </template>
                 <template v-slot:body-cell-estado="props">
                     <q-td :props="props">
-                        <q-badge
-                            :color="props.row.estado === 1 ? 'green' : 'red'"
-                            align="top"
-                            label="Estado" />
+                        <q-badge :color="props.row.estado === 1 ? 'green' : 'red'" align="top" label="Estado" />
                     </q-td>
                 </template>
                 <template v-slot:body-cell-opciones="props">
                     <q-td :props="props">
-                        <q-btn @click="controlFormulario(props.row, true)">
-                            ✏️
-                        </q-btn>
-                        <q-btn
-                            v-if="props.row.estado == 1"
-                            @click="editarEstado(props.row)">
-                            ❌
-                        </q-btn>
-                        <q-btn v-else @click="editarEstado(props.row)">
-                            ✅
-                        </q-btn>
+                        <q-btn @click="controlFormulario(props.row, true)"> ✏️ </q-btn>
+                        <q-btn v-if="props.row.estado == 1" @click="editarEstado(props.row)"> ❌ </q-btn>
+                        <q-btn v-else @click="editarEstado(props.row)"> ✅ </q-btn>
                     </q-td>
                 </template>
             </q-table>
         </div>
         <q-dialog v-model="mostrarFormularioAnalisisSuelo">
             <q-card>
-                <q-form
-                    @submit="mostrarBotonEditar ? editar() : registrar()"
-                    class="q-gutter-sm">
-                    <p class="text-h5 text-center q-pb-md text-green">
-                        {{ datos ? "Editar" : "Agregar" }} Analisis del Suelo
-                    </p>
-                    <q-input
-                        standout="bg-green text-while"
-                        type="date"
-                        label="Fecha"
-                        v-model="fechaAnalisisSuelo" />
-                    <q-select
-                        standout="bg-green text-while"
-                        :options="opcionesParcelas"
-                        label="Parcela"
-                        v-model="parcelaAnalisisSuelo" />
-                    <q-select
-                        standout="bg-green text-while"
-                        :options="opcionesResponsables"
-                        label="Empledo"
-                        v-model="empleadoAnalisisSuelo" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="text"
-                        label="Muestra"
-                        v-model="muestraAnalisisSuelo" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="text"
-                        label="Cultivo"
-                        v-model="cultivoAnalisisSuelo" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="text"
-                        label="Laboratorio"
-                        v-model="laboratorioAnalisisSuelo" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="textarea"
-                        label="Resultados"
-                        v-model="resultadosAnalisisSuelo" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="textarea"
-                        label="Recomendaciones"
-                        v-model="recomendacionesAnalisisSuelo" />
+                <q-form @submit="mostrarBotonEditar ? editar() : registrar()" class="q-gutter-sm">
+                    <p class="text-h5 text-center q-pb-md text-green">{{ datos ? "Editar" : "Agregar" }} Analisis del Suelo</p>
+                    <q-input standout="bg-green text-while" type="date" label="Fecha" v-model="fechaAnalisisSuelo" />
+                    <q-select standout="bg-green text-while" :options="opcionesParcelas" label="Parcela" v-model="parcelaAnalisisSuelo" />
+                    <q-select standout="bg-green text-while" :options="opcionesResponsables" label="Empledo" v-model="empleadoAnalisisSuelo" />
+                    <q-input standout="bg-green text-while" type="text" label="Muestra" v-model="muestraAnalisisSuelo" />
+                    <q-input standout="bg-green text-while" type="text" label="Cultivo" v-model="cultivoAnalisisSuelo" />
+                    <q-input standout="bg-green text-while" type="text" label="Laboratorio" v-model="laboratorioAnalisisSuelo" />
+                    <q-input standout="bg-green text-while" type="textarea" label="Resultados" v-model="resultadosAnalisisSuelo" />
+                    <q-input standout="bg-green text-while" type="textarea" label="Recomendaciones" v-model="recomendacionesAnalisisSuelo" />
                     <div class="row justify-end" style="gap: 10px">
-                        <q-btn
-                            unelevated
-                            v-if="mostrarBotonEditar"
-                            label="Editar"
-                            type="submit"
-                            color="positive" />
-                        <q-btn
-                            unelevated
-                            v-else
-                            label="Registrar"
-                            type="submit"
-                            color="positive" />
-                        <q-btn
-                            @click="controlFormulario(null, false)"
-                            flat
-                            class="bg-red text-white"
-                            label="Cerrar"
-                            type="button" />
+                        <q-btn unelevated v-if="mostrarBotonEditar" label="Editar" type="submit" color="positive" />
+                        <q-btn unelevated v-else label="Registrar" type="submit" color="positive" />
+                        <q-btn @click="controlFormulario(null, false)" flat class="bg-red text-white" label="Cerrar" type="button" />
                     </div>
                 </q-form>
             </q-card>

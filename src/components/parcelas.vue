@@ -88,8 +88,22 @@ const opcionesFinca = computed(() => {
 const loadParcelas = async () => {
     loading.value = true;
     try {
-        const response = await storeParcelas.getParcelas();
-        parcelas.value = response.data.parcelas;
+        const r = await storeParcelas.getParcelas();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
+        parcelas.value = r.data.parcelas;
     } catch (error) {
         Notify.create({
             type: "negative",
@@ -102,8 +116,22 @@ const loadParcelas = async () => {
 
 const loadFincas = async () => {
     try {
-        const response = await storeParcelas.getFincas();
-        fincas.value = response.data.fincas;
+        const r = await storeParcelas.getFincas();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
+        fincas.value = r.data.fincas;
     } catch (error) {
         Notify.create({
             type: "negative",

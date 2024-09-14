@@ -117,6 +117,20 @@ const loadPreparacionSuelos = async () => {
     loading.value = true;
     try {
         const r = await usePS.getPreparacionSuelos();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         preparacionSuelos.value = r.data.preparaciones;
         rows.value = preparacionSuelos.value;
     } catch (error) {
@@ -133,6 +147,20 @@ const loadPreparacionSuelos = async () => {
 const loadParcelas = async () => {
     try {
         const r = await usePS.getParcelas();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         parcelas.value = r.data.parcelas;
     } catch (error) {
         Notify.create({
@@ -145,6 +173,20 @@ const loadParcelas = async () => {
 const loadEmpleados = async () => {
     try {
         const r = await usePS.getEmpleados();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         empleados.value = r.data.empleados;
     } catch (error) {
         Notify.create({
