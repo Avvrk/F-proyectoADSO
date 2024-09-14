@@ -147,7 +147,8 @@ async function listarEmpleado() {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  "
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
             ) {
                 router.push("/");
             }
@@ -166,7 +167,8 @@ async function listarParcela() {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  "
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
             ) {
                 router.push("/");
             }
@@ -185,7 +187,8 @@ async function listarAnalisisSuelo() {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  "
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
             ) {
                 router.push("/");
             }

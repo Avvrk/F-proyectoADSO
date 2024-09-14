@@ -136,7 +136,8 @@ async function listarFincas() {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  "
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
             ) {
                 router.push("/");
             }
@@ -155,7 +156,8 @@ async function listarEmpleados() {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  "
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
             ) {
                 router.push("/");
             }
@@ -173,7 +175,8 @@ async function listarClimas() {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  "
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
             ) {
                 router.push("/");
             }

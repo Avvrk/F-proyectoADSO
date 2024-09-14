@@ -141,7 +141,8 @@ async function listarCultivos() {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  "
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
             ) {
                 router.push("/");
             }
@@ -160,7 +161,8 @@ async function listarEmpleados() {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  "
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
             ) {
                 router.push("/");
             }
@@ -179,7 +181,8 @@ async function listarControlPlagas() {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  "
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
             ) {
                 router.push("/");
             }
