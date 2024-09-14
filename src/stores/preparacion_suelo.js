@@ -136,7 +136,7 @@ export const useStorePreparacionSuelos = defineStore(
 		const putPreparacionSueloEstado = async (id, estado) => {
 			try {
 				const r = await axios.put(
-					`${url}/preparacionSuelos${
+					`${url}/preparacionSuelos/${
 						estado === 0 ? "inactivar" : "activar"
 					}/${id}`,
 					{},

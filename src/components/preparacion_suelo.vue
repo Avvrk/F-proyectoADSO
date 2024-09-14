@@ -36,7 +36,7 @@ const rows = ref([]);
 // Variables usadas para controlar la información de la tabla
 const preparacionSuelos = ref([]);
 const columns = [
-    { name: "fecha", label: "Fecha", align: "center", field: "fecha" },
+    { name: "fecha", label: "Fecha", align: "center", field: (row) => `${row.fecha.split("T")[0]}` },
     {
         name: "id_parcela",
         label: "Parcela",
@@ -68,21 +68,17 @@ const columns = [
         align: "left",
         field: "responsable",
     },
-
-    
     {
         name: "observaciones",
         label: "Observaciones",
         align: "left",
         field: "observaciones",
     },
-
     {name: "estado",
         label: "Estado",
         field: "estado",
         align: "center",
     },
-    
     {
         name: "actions",
         label: "Acciones",
@@ -90,10 +86,6 @@ const columns = [
         field: "actions",
         slots: { default: "actions" },
     },
-
-    
-
-
 ];
 
 // Variables que contienen los datos a buscar o filtrar en la tabla
@@ -117,6 +109,20 @@ const loadPreparacionSuelos = async () => {
     loading.value = true;
     try {
         const r = await usePS.getPreparacionSuelos();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         preparacionSuelos.value = r.data.preparaciones;
         rows.value = preparacionSuelos.value;
     } catch (error) {
@@ -133,6 +139,20 @@ const loadPreparacionSuelos = async () => {
 const loadParcelas = async () => {
     try {
         const r = await usePS.getParcelas();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         parcelas.value = r.data.parcelas;
     } catch (error) {
         Notify.create({
@@ -145,6 +165,20 @@ const loadParcelas = async () => {
 const loadEmpleados = async () => {
     try {
         const r = await usePS.getEmpleados();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         empleados.value = r.data.empleados;
     } catch (error) {
         Notify.create({
@@ -325,11 +359,7 @@ onMounted(() => {
                                 label="Filtrar por" />
                         </div>
                     </section>
-
-                    
                 </template>
-                
-
                 <template v-slot:body-cell-estado="props">
                     <q-td :props="props">
                         <q-badge
@@ -338,13 +368,14 @@ onMounted(() => {
                             :label="props.row.estado === 1 ? 'Activo' : 'Inactivo'" />
                     </q-td>
                 </template>
-
                 <template v-slot:body-cell-actions="props">
-                    <q-td :props="props" class="row justify-center" style="gap: 20px">
-                        <q-btn @click="c(props.row, true)">
+                    <q-td :props="props">
+                        <q-btn @click="controlFormulario(props.row, true)">
                             ✏️
                         </q-btn>
-                        <q-btn v-if="props.row.estado == 1" @click="changePreparacionSueloState(props.row._id, 0)">
+                        <q-btn
+                            v-if="props.row.estado == 1"
+                            @click="changePreparacionSueloState(props.row._id, 0)">
                             ❌
                         </q-btn>
                         <q-btn v-else @click="changePreparacionSueloState(props.row._id, 1)">
@@ -355,7 +386,7 @@ onMounted(() => {
             </q-table>
         </div>
 
-        <q-dialog v-model="administrarFormulario">
+        <q-dialog v-model="mostrarFormularioPrepararSuelo">
             <q-card>
                 <q-form
                     @submit="mostrarBotonEditar ? editar() : registrar()"
@@ -423,8 +454,21 @@ onMounted(() => {
                 </q-form>
             </q-card>
         </q-dialog>
-        
-
-        
     </div>
 </template>
+
+<style scoped>
+.q-card {
+    background-color: rgb(255, 255, 255);
+    padding: 40px 30px 40px 30px;
+    border-radius: 1pc;
+    width: 30rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: 0;
+}
+
+.q-form .q-input,
+.q-form .q-select {
+    margin-bottom: 15px;
+}
+</style>
