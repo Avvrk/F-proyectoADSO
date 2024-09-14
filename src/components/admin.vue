@@ -2,6 +2,9 @@
 import { ref, onMounted, computed } from "vue";
 import { useStoreAdmins } from "../stores/admin.js";
 import { useQuasar } from "quasar";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const $q = useQuasar();
 
@@ -95,6 +98,15 @@ async function listarAdmin() {
     try {
         loading.value = true;
         const r = await useAdmin.getAdmin();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  "
+            ) {
+                router.push("/");
+            }
+        }
         rows.value = r.data.admins;
     } finally {
         loading.value = false;
@@ -191,7 +203,8 @@ function validarDatos() {
         !correoAdmin.value.trim() &&
         !telefonoAdmin.value.trim() &&
         !ciudadAdmin.value.trim() &&
-        (datos.value == null && !claveAdmin.value.trim())
+        datos.value == null &&
+        !claveAdmin.value.trim()
     ) {
         $q.notify({
             type: "negative",

@@ -143,6 +143,15 @@ async function listarEmpleado() {
     try {
         loading.value = true;
         const r = await useAnalisisSuelo.getEmpleado();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  "
+            ) {
+                router.push("/");
+            }
+        }
         empleados.value = r.data.empleados;
     } finally {
         loading.value = false;
@@ -153,6 +162,15 @@ async function listarParcela() {
     try {
         loading.value = true;
         const r = await useAnalisisSuelo.getParcela();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  "
+            ) {
+                router.push("/");
+            }
+        }
         parcelas.value = r.data.parcelas;
     } finally {
         loading.value = false;
@@ -163,6 +181,15 @@ async function listarAnalisisSuelo() {
     try {
         loading.value = true;
         const r = await useAnalisisSuelo.getAnalisisSuelo();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  "
+            ) {
+                router.push("/");
+            }
+        }
         rows.value = r.data.suelos;
     } finally {
         loading.value = false;

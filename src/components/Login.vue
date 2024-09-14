@@ -140,7 +140,6 @@ async function validarDatos() {
 
 onMounted(() => {
 	const token = localStorage.getItem('Admin');
-	console.log(token);
 
 	if(token) {
 		const newT = JSON.parse(token);

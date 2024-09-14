@@ -137,6 +137,15 @@ async function listarCultivos() {
     try {
         loading.value = true;
         const r = await useControlPlaga.getCultivos();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  "
+            ) {
+                router.push("/");
+            }
+        }
         cultivos.value = r.data.cultivos;
     } finally {
         loading.value = false;
@@ -147,6 +156,15 @@ async function listarEmpleados() {
     try {
         loading.value = true;
         const r = await useControlPlaga.getEmpleados();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  "
+            ) {
+                router.push("/");
+            }
+        }
         empleados.value = r.data.empleados;
     } finally {
         loading.value = false;
@@ -157,6 +175,15 @@ async function listarControlPlagas() {
     try {
         loading.value = true;
         const r = await useControlPlaga.getControlPlagas();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  "
+            ) {
+                router.push("/");
+            }
+        }
         rows.value = r.data.plagas;
     } finally {
         loading.value = false;

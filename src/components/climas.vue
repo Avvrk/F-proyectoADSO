@@ -132,6 +132,15 @@ async function listarFincas() {
     try {
         loading.value = true;
         const r = await useClima.getFincas();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  "
+            ) {
+                router.push("/");
+            }
+        }
         fincas.value = r.data.fincas;
     } finally {
         loading.value = false;
@@ -142,6 +151,15 @@ async function listarEmpleados() {
     try {
         loading.value = true;
         const r = await useClima.getEmpleados();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  "
+            ) {
+                router.push("/");
+            }
+        }
         empleados.value = r.data.empleados;
     } finally {
         loading.value = false;
@@ -151,6 +169,15 @@ async function listarEmpleados() {
 async function listarClimas() {
     try {
         const r = await useClima.getClimas();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  "
+            ) {
+                router.push("/");
+            }
+        }
         rows.value = r.data.climas;
     } catch (error) {
         console.log(error.message);

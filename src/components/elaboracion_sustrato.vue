@@ -119,6 +119,15 @@ async function listarProcesos() {
     try {
         loading.value = true;
         const r = await useSustrato.getProcesos();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  "
+            ) {
+                router.push("/");
+            }
+        }
         procesos.value = r.data.procesos;
     } finally {
         loading.value = false;
@@ -129,6 +138,15 @@ async function listarEmpleados() {
     try {
         loading.value = true;
         const r = await useSustrato.getEmpleados();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  "
+            ) {
+                router.push("/");
+            }
+        }
         empleados.value = r.data.empleados;
     } finally {
         loading.value = false;
@@ -139,6 +157,15 @@ async function listarSustratos() {
     try {
         loading.value = true;
         const r = await useSustrato.getSustrato();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  "
+            ) {
+                router.push("/");
+            }
+        }
         rows.value = r.data.sustratos;
     } finally {
         loading.value = false;
