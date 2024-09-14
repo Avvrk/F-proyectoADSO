@@ -6,7 +6,7 @@
                 <q-toolbar-title>
                     <em>campo</em>
                 </q-toolbar-title>
-                <q-item clickable tag="router-link" to="/" @click="cerrar()">
+                <q-item clickable tag="router-link" to="/" @click="cerrar()" style="color: red; font-weight: 900; font-size: large;">
 					<q-item-section>
 						<q-item-label>Cerrar Sesión</q-item-label>
 					</q-item-section>
