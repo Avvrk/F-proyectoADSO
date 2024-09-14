@@ -126,7 +126,11 @@ async function listarProcesos() {
                 r.response.data.msg == "Token no válido!!  " ||
                 r.response.data.msg == "Token no valido"
             ) {
-                router.push("/");
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
             }
         }
         procesos.value = r.data.procesos;
@@ -146,7 +150,11 @@ async function listarEmpleados() {
                 r.response.data.msg == "Token no válido!!  " ||
                 r.response.data.msg == "Token no valido"
             ) {
-                router.push("/");
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
             }
         }
         empleados.value = r.data.empleados;
@@ -166,7 +174,11 @@ async function listarSustratos() {
                 r.response.data.msg == "Token no válido!!  " ||
                 r.response.data.msg == "Token no valido"
             ) {
-                router.push("/");
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
             }
         }
         rows.value = r.data.sustratos;

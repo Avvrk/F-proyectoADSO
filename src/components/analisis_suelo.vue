@@ -150,7 +150,11 @@ async function listarEmpleado() {
                 r.response.data.msg == "Token no válido!!  " ||
                 r.response.data.msg == "Token no valido"
             ) {
-                router.push("/");
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
             }
         }
         empleados.value = r.data.empleados;
@@ -170,7 +174,11 @@ async function listarParcela() {
                 r.response.data.msg == "Token no válido!!  " ||
                 r.response.data.msg == "Token no valido"
             ) {
-                router.push("/");
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
             }
         }
         parcelas.value = r.data.parcelas;
@@ -190,7 +198,11 @@ async function listarAnalisisSuelo() {
                 r.response.data.msg == "Token no válido!!  " ||
                 r.response.data.msg == "Token no valido"
             ) {
-                router.push("/");
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
             }
         }
         rows.value = r.data.suelos;

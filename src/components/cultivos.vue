@@ -77,7 +77,11 @@ async function listarParcelas() {
                 r.response.data.msg == "Token no válido!!  " ||
                 r.response.data.msg == "Token no valido"
             ) {
-                router.push("/");
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
             }
         }
         parcelas.value = r.data.parcelas;
@@ -97,7 +101,11 @@ async function listarCultivos() {
                 r.response.data.msg == "Token no válido!!  " ||
                 r.response.data.msg == "Token no valido"
             ) {
-                router.push("/");
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
             }
         }
         rows.value = r.data.cultivos;

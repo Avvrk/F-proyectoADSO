@@ -151,7 +151,11 @@ async function listarProduccion() {
                 r.response.data.msg == "Token no válido!!  " ||
                 r.response.data.msg == "Token no valido"
             ) {
-                router.push("/");
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
             }
         }
         produccion.value = r.data.producciones;
@@ -171,7 +175,11 @@ async function listarComprador() {
                 r.response.data.msg == "Token no válido!!  " ||
                 r.response.data.msg == "Token no valido"
             ) {
-                router.push("/");
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
             }
         }
         rows.value = r.data.compradores;

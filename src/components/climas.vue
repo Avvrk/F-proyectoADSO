@@ -139,7 +139,11 @@ async function listarFincas() {
                 r.response.data.msg == "Token no válido!!  " ||
                 r.response.data.msg == "Token no valido"
             ) {
-                router.push("/");
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
             }
         }
         fincas.value = r.data.fincas;
@@ -159,7 +163,11 @@ async function listarEmpleados() {
                 r.response.data.msg == "Token no válido!!  " ||
                 r.response.data.msg == "Token no valido"
             ) {
-                router.push("/");
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
             }
         }
         empleados.value = r.data.empleados;
@@ -178,7 +186,11 @@ async function listarClimas() {
                 r.response.data.msg == "Token no válido!!  " ||
                 r.response.data.msg == "Token no valido"
             ) {
-                router.push("/");
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
             }
         }
         rows.value = r.data.climas;
