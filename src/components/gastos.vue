@@ -5,26 +5,7 @@ import { useQuasar } from "quasar";
 const $q = useQuasar();
 
 // Datos de los gastos
-let rows = ref([
-	{
-		nombre: "Compra de insumos agrícolas",
-		fecha: "2024-07-20",
-		numeroFactura: "FAC-12345",
-		descripcion:
-			"Compra de fertilizantes y plaguicidas para el cultivo de maíz",
-		total: "$ 150.000",
-		insumos_id: "345d4h56",
-	},
-	{
-		nombre: "Mantenimiento de maquinaria",
-		fecha: "2024-08-05",
-		numeroFactura: "FAC-12346",
-		descripcion: "Revisión y reparación de la cosechadora",
-		total: "$ 580.000",
-		mantenimiento_id: "476b4f90",
-	},
-]);
-
+let rows = ref([]);
 let columns = ref([
 	{
 		name: "nombre",

@@ -160,6 +160,20 @@ async function listarCultivo() {
     try {
         loading.value = true;
         const r = await useFertilizacion.getCultivos();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         cultivo.value = r.data.cultivos;
     } finally {
         loading.value = false;
@@ -170,6 +184,20 @@ async function listarEmpleado() {
     try {
         loading.value = true;
         const r = await useFertilizacion.getEmpleados();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         empleado.value = r.data.empleados;
     } finally {
         loading.value = false;
@@ -180,6 +208,20 @@ async function listarInventario() {
     try {
         loading.value = true;
         const r = await useFertilizacion.getInventario();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         inventario.value = r.data.inventario;
     } finally {
         loading.value = false;
@@ -190,6 +232,20 @@ async function listarFertilizacion() {
     try {
         loading.value = true;
         const r = await useFertilizacion.getFertilizacion();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         rows.value = r.data.fertilizaciones;
     } finally {
         loading.value = false;

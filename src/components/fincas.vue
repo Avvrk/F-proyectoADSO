@@ -135,6 +135,20 @@ async function listarAdmins() {
     try {
         loading.value = true;
         const r = await useFincas.getAdmin();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         admin.value = r.data.admins;
     } finally {
         loading.value = false;
@@ -145,6 +159,20 @@ async function listarFincas() {
     try {
         loading.value = true;
         const r = await useFincas.getFincas();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         rows.value = r.data.fincas;
     } finally {
         loading.value = false;

@@ -81,6 +81,20 @@ async function listarEmpleadoActivo() {
     try {
         loading.value = true;
         const r = await useEmpleado.getEmpleadosActivos();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         rows.value = r.data.empleados;
     } finally {
         loading.value = false;

@@ -175,6 +175,20 @@ async function listarComprador() {
     try {
         loading.value = true;
         const r = await useFacturas.getComprador();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         comprador.value = r.data.compradores;
     } finally {
         loading.value = false;
@@ -185,6 +199,20 @@ async function listarInventario() {
     try {
         loading.value = true;
         const r = await useFacturas.getInventario();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         inventario.value = r.data.inventario;
     } finally {
         loading.value = false;
@@ -195,6 +223,20 @@ async function listarFactura() {
     try {
         loading.value = true;
         const r = await useFacturas.getFacturas();
+        if (r.code == "ERR_BAD_REQUEST") {
+            if (
+                r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+            ) {
+                $q.notify({
+                    type: "negative",
+                    message: "Token no valido",
+                });
+                return router.push("/");
+            }
+        }
         rows.value = r.data.facturas;
     } finally {
         loading.value = false;

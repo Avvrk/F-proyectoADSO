@@ -5,29 +5,7 @@ import { useQuasar } from "quasar";
 const $q = useQuasar();
 
 // Datos de los insumos
-let rows = ref([
-	{
-		_idProveedor: 23534546,
-		nombre: "Insecticida",
-		relacionNPK: "20-10-30",
-		cantidad: 30,
-		unidad: "$ 12.000",
-		total: "$ 360.000",
-		responsable: "Miguel",
-		observaciones: "Aplicar con sus medidas de precaución",
-	},
-	{
-		_idProveedor: 3454567,
-		nombre: "Plaguicida",
-		relacionNPK: "40-5-10",
-		cantidad: 10,
-		unidad: "$ 8.000",
-		total: "$ 80.000",
-		responsable: "Josue",
-		observaciones: "Utilizar elementos de protección personal",
-	},
-]);
-
+let rows = ref([]);
 let columns = ref([
 	{
 		name: "_idProveedor",
