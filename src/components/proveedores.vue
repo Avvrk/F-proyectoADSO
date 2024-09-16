@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
-// import { notifyErrorRequest } from "../routes/routes.js";
 import { useStoreProveedores } from "../stores/proveedores.js";
 import { format } from "date-fns";
 
@@ -11,9 +10,9 @@ const listarProducto = ref("");
 const listarFechasOne = ref("");
 const listarFechasTwo = ref("");
 
-// Variables parra mostrar formularios
-const mostrarFormularioEditarProveedor = ref(false);
-const mostrarFormularioAgregarProveedor = ref(false);
+// Variables para mostrar formularios
+const mostrarFormulario = ref(false);
+const esEdicion = ref(false);
 
 // Llamado de modelos
 const useProveedor = useStoreProveedores();
@@ -24,12 +23,6 @@ const nombre = ref("");
 const direccion = ref("");
 const telefono = ref("");
 const email = ref("");
-
-// const estadoOptions = [
-//   { label: "Activo" },
-//   { label: "Inactivo" },
-// ];
-const estado = ref("Activo");
 
 const selectedOption = ref("Listar Proveedores");
 const options = [
@@ -56,7 +49,7 @@ let rows = ref([]);
 const columns = ref([
 	{
 		name: "createdAt",
-		label: "Fecha de Creación",
+		label: "Fecha",
 		field: (row) => format(new Date(row.createdAt), "dd/MM/yyyy"),
 		align: "center",
 	},
@@ -90,18 +83,13 @@ const columns = ref([
 		field: "estado",
 		align: "center",
 	},
-	{ name: "opciones", label: "Opciones", field: "opciones", align: "center" }
+	{ name: "opciones", label: "Opciones", field: "opciones", align: "center" },
 ]);
 
 async function actualizarListadoProveedores() {
 	loadingg.value = true;
 	try {
-		const proveedoresPromise =
-			selectedOption.value === "Listar Proveedores Activos"
-				? useProveedor.getProveedoresActivos()
-				: selectedOption.value === "Listar Proveedores Inactivos"
-					? useProveedor.getProveedoresInactivos()
-					: useProveedor.getProveedores();
+		const proveedoresPromise = selectedOption.value === "Listar Proveedores Activos" ? useProveedor.getProveedoresActivos() : selectedOption.value === "Listar Proveedores Inactivos" ? useProveedor.getProveedoresInactivos() : useProveedor.getProveedores();
 
 		rows.value = (await proveedoresPromise).data.proveedores;
 		console.log("Proveedores", rows.value);
@@ -127,31 +115,18 @@ const filtrarFilas = computed(() => {
 
 	let proveedoresFiltradas = rows.value;
 
-	// Filtrar por nombre del producto
-	if (
-		selectedOption.value === "Listar Proveedores por Nombre" &&
-		listarProducto.value
-	) {
-		proveedoresFiltradas = proveedoresFiltradas.filter((row) =>
-			row.nombre
-				.toLowerCase()
-				.includes(listarProducto.value.toLowerCase())
-		);
-		// notifySuccessRequest('Proveedores listadas por producto exitosamente.');
+	if (selectedOption.value === "Listar Proveedores por Nombre" && listarProducto.value) {
+		proveedoresFiltradas = proveedoresFiltradas.filter((row) => row.nombre.toLowerCase().includes(listarProducto.value.toLowerCase()));
 	}
 
-	// Filtrar por rango de fechas
 	if (listarFechasOne.value && listarFechasTwo.value) {
-		const normalizeDate = date => new Date(date).toISOString().slice(0, 10);
+		const startDate = new Date(new Date(listarFechasOne.value).setDate(new Date(listarFechasOne.value).getDate() + 1)).toISOString().slice(0, 10);
+		const endDate = new Date(new Date(listarFechasTwo.value).setDate(new Date(listarFechasTwo.value).getDate() + 1)).toISOString().slice(0, 10);
 
-		const startDate = normalizeDate(listarFechasOne.value);
-		const endDate = normalizeDate(listarFechasTwo.value);
-
-		proveedoresFiltradas = proveedoresFiltradas.filter(proveedor => {
-			const proveedorDate = normalizeDate(proveedor.createdAt);
+		proveedoresFiltradas = proveedoresFiltradas.filter((proveedor) => {
+			const proveedorDate = new Date(proveedor.createdAt).toISOString().slice(0, 10);
 			return proveedorDate >= startDate && proveedorDate <= endDate;
 		});
-		// notifySuccessRequest('Proveedores listados por rango de fechas exitosamente.');
 	}
 
 	return proveedoresFiltradas;
@@ -163,7 +138,7 @@ const limpiarCampos = () => {
 	direccion.value = "";
 	telefono.value = "";
 	email.value = "";
-	estado.value = "Activo";
+	esEdicion.value = false;
 };
 
 async function agregarProveedor() {
@@ -172,28 +147,27 @@ async function agregarProveedor() {
 		direccion: direccion.value,
 		telefono: telefono.value,
 		email: email.value,
-		estado: estado.value === "Activo" ? 1 : 0,
 	};
 
 	const r = await useProveedor.postProveedores(nuevoProveedor);
 	if (r.status === 200) {
-		mostrarFormularioAgregarProveedor.value = false;
+		mostrarFormulario.value = false;
 		actualizarListadoProveedores();
-		estado.value = "Activo";
 		console.log("Proveedor agregado exitosamente", nuevoProveedor);
 	}
 }
 
-const cargarProveedorParaEdicion = (proveedor) => {
+function cargarProveedorParaEdicion(proveedor) {
 	idProveedorSeleccionada.value = proveedor._id;
 	nombre.value = proveedor.nombre;
 	direccion.value = proveedor.direccion;
 	telefono.value = proveedor.telefono;
 	email.value = proveedor.email;
 
-	mostrarFormularioEditarProveedor.value = true;
+	esEdicion.value = true;
+	mostrarFormulario.value = true;
 	console.log("Datos del proveedor a editar", proveedor);
-};
+}
 
 async function editarProveedor() {
 	const proveedorEditado = {
@@ -204,12 +178,9 @@ async function editarProveedor() {
 		email: email.value,
 	};
 
-	const r = await useProveedor.putProveedores(
-		idProveedorSeleccionada.value,
-		proveedorEditado
-	);
+	const r = await useProveedor.putProveedores(idProveedorSeleccionada.value, proveedorEditado);
 	if (r.status === 200) {
-		mostrarFormularioEditarProveedor.value = false;
+		mostrarFormulario.value = false;
 		actualizarListadoProveedores();
 		console.log("Proveedor editado exitosamente", proveedorEditado);
 	}
@@ -236,103 +207,47 @@ watch(selectedOption, () => {
 		</div>
 
 		<div class="contSelect" style="margin-left: 5%; text-align: end; margin-right: 5%">
-			<q-select background-color="green" class="q-my-md" id="q-select" v-model="selectedOption" outlined dense
-				options-dense emit-value :options="options" />
+			<q-select background-color="green" class="q-my-md" id="q-select" v-model="selectedOption" outlined dense options-dense emit-value :options="options" />
 
-			<input v-if="selectedOption === 'Listar Proveedores por Nombre'" v-model="listarProducto" class="q-my-md"
-				type="text" name="search" id="search" placeholder="Proveedor" />
+			<input v-if="selectedOption === 'Listar Proveedores por Nombre'" v-model="listarProducto" class="q-my-md" type="text" name="search" id="search" placeholder="Proveedor" />
 
-			<div v-if="selectedOption === 'Listar Proveedores por fechas'" style="
-					display: flex;
-					flex-direction: row;
-					text-align: center;
-					flex-wrap: wrap;
-					position: absolute;
-					top: 150px;
-					left: 240px;
-				">
+			<div v-if="selectedOption === 'Listar Proveedores por fechas'" style="display: flex; flex-direction: row; text-align: center; flex-wrap: wrap; position: absolute; top: 150px; left: 240px">
 				<label for="listarFechasOne" style="height: 100%; line-height: 88px; margin-left: 40px">De:</label>
-				<q-input v-model="listarFechasOne" class="q-my-md" type="date" name="search" id="listarFechasOne"
-					placeholder="Ingrese la fecha" />
+				<q-input v-model="listarFechasOne" class="q-my-md" type="date" name="search" id="listarFechasOne" placeholder="Ingrese la fecha" />
 
 				<label for="listarFechasTwo" style="height: 100%; line-height: 88px; margin-left: 40px">A:</label>
-				<q-input v-model="listarFechasTwo" class="q-my-md" type="date" name="search" id="listarFechasTwo"
-					placeholder="Ingrese la fecha" />
+				<q-input v-model="listarFechasTwo" class="q-my-md" type="date" name="search" id="listarFechasTwo" placeholder="Ingrese la fecha" />
 			</div>
 		</div>
 
 		<div>
 			<div style="margin-left: 5%; text-align: end; margin-right: 5%" class="q-mb-md">
-				<q-btn label="Agregar Proveedor" @click="mostrarFormularioAgregarProveedor = true">
+				<q-btn label="Agregar Proveedor" @click="mostrarFormulario = true">
 					<q-tooltip> Agregar Proveedor </q-tooltip>
 				</q-btn>
 			</div>
 
-			<!-- Formulario para agregar proveedor -->
-			<q-dialog v-model="mostrarFormularioAgregarProveedor"
-				v-bind="mostrarFormularioAgregarProveedor && limpiarCampos()">
+			<!-- Formulario para agregar o editar proveedor -->
+			<q-dialog v-model="mostrarFormulario" v-bind="!mostrarFormulario && limpiarCampos()">
 				<q-card>
 					<q-card-section>
 						<div class="text-h6">
-							Agregar Proveedor
+							{{ esEdicion ? "Editar Proveedor" : "Agregar Proveedor" }}
 						</div>
 					</q-card-section>
 					<q-card-section>
-						<q-form @submit.prevent="agregarProveedor">
+						<q-form @submit.prevent="esEdicion ? editarProveedor() : agregarProveedor()">
 							<q-input v-model.trim="nombre" label="Nombre" filled outlined class="q-mb-md" required />
 							<q-input v-model.trim="direccion" label="Dirección" filled class="q-mb-md" required />
-							<q-input v-model.trim="telefono" label="Teléfono" type="number" filled outlined
-								class="q-mb-md" required />
-							<q-input v-model.trim="email" label="Email" type="email" filled outlined class="q-mb-md"
-								required />
-							<q-select v-model="estado" label="Estado" :options="[
-								{ label: 'Activo' },
-								{ label: 'Inactivo' },
-							]" filled outlined class="q-mb-md" required style="max-width: 100%" />
+							<q-input v-model.trim="telefono" label="Teléfono" type="number" filled outlined class="q-mb-md" required />
+							<q-input v-model.trim="email" label="Email" type="email" filled outlined class="q-mb-md" required />
 
 							<div class="q-mt-md">
-								<q-btn label="Cancelar" color="negative" class="q-ma-sm" @click="
-									mostrarFormularioAgregarProveedor = false
-									">
+								<q-btn label="Cancelar" color="negative" class="q-ma-sm" @click="mostrarFormulario = false">
 									<q-tooltip> Cancelar </q-tooltip>
 								</q-btn>
-								<q-btn :loading="useProveedor.loading" :disable="useProveedor.loading" type="submit"
-									label="Guardar Proveedor" color="primary" class="q-ma-sm">
-									<q-tooltip> Guardar Proveedor </q-tooltip>
-									<template v-slot:loading>
-										<q-spinner color="white" size="1em" />
-									</template>
-								</q-btn>
-							</div>
-						</q-form>
-					</q-card-section>
-				</q-card>
-			</q-dialog>
-
-			<!-- Formulario para editar proveedor -->
-			<q-dialog v-model="mostrarFormularioEditarProveedor">
-				<q-card>
-					<q-card-section>
-						<div class="text-h6">Editar Proveedor</div>
-					</q-card-section>
-					<q-card-section>
-						<q-form @submit.prevent="editarProveedor">
-							<q-input v-model.trim="nombre" label="Nombre" filled outlined class="q-mb-md" required />
-							<q-input v-model.trim="direccion" label="Dirección" filled class="q-mb-md" required />
-							<q-input v-model.trim="telefono" label="Teléfono" type="number" filled outlined
-								class="q-mb-md" required />
-							<q-input v-model.trim="email" label="Email" type="email" filled outlined class="q-mb-md"
-								required />
-
-							<div class="q-mt-md">
-								<q-btn label="Cancelar" color="negative" class="q-ma-sm" @click="
-									mostrarFormularioEditarProveedor = false
-									">
-									<q-tooltip> Cancelar </q-tooltip>
-								</q-btn>
-								<q-btn :loading="useProveedor.loading" :disable="useProveedor.loading" type="submit"
-									label="Guardar Cambios" color="primary" class="q-ma-sm">
-									<q-tooltip> Guardar Cambios </q-tooltip>
+								<q-btn :loading="useProveedor.loading" :disable="useProveedor.loading" type="submit" :label="esEdicion ? 'Guardar Cambios' : 'Guardar Proveedor'" color="primary" class="q-ma-sm">
+									<q-tooltip> {{ esEdicion ? "Guardar Cambios" : "Guardar Proveedor" }} </q-tooltip>
 									<template v-slot:loading>
 										<q-spinner color="white" size="1em" />
 									</template>
@@ -344,8 +259,7 @@ watch(selectedOption, () => {
 			</q-dialog>
 		</div>
 
-		<q-table flat bordered title="Proveedores" title-class="text-green text-weight-bolder text-h5"
-			:rows="filtrarFilas" :columns="columns" row-key="id" :loading="loadingg" style="text-align: center">
+		<q-table flat bordered title="Proveedores" title-class="text-green text-weight-bolder text-h5" :rows="filtrarFilas" :columns="columns" row-key="id" :loading="loadingg" style="text-align: center">
 			<template v-slot:body-cell-opciones="props">
 				<q-td :props="props">
 					<q-btn @click="cargarProveedorParaEdicion(props.row)">
@@ -365,19 +279,22 @@ watch(selectedOption, () => {
 
 			<template v-slot:body-cell-estado="props">
 				<q-td :props="props">
-					<q-badge :color="props.row.estado === 1 ? 'green' : 'red'" align="top" label="Estado" />
+					<p
+						:style="{
+							color: props.row.estado === 1 ? 'green' : 'red',
+							margin: 0,
+						}">
+						{{ props.row.estado === 1 ? "Activo" : "Inactivo" }}
+					</p>
 				</q-td>
 			</template>
 
 			<template v-slot:loading>
-				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal"
-					label-style="font-size: 1.1em">
-				</q-inner-loading>
+				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal" label-style="font-size: 1.1em"> </q-inner-loading>
 			</template>
 		</q-table>
 	</div>
-	<q-inner-loading :showing="isLoading" label="Por favor espere..." label-class="text-teal"
-		label-style="font-size: 1.1em" />
+	<q-inner-loading :showing="isLoading" label="Por favor espere..." label-class="text-teal" label-style="font-size: 1.1em" />
 </template>
 
 <style scoped>
