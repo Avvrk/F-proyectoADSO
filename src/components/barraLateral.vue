@@ -6,14 +6,12 @@
                 <q-toolbar-title>
                     <em>campo</em>
                 </q-toolbar-title>
-                <q-item clickable tag="router-link" to="/" @click="cerrar()" style="color: red; font-weight: 900; font-size: large;">
-					<q-item-section>
-						<q-item-label>Cerrar Sesión</q-item-label>
-					</q-item-section>
-					<q-item-section avatar>
-						<q-icon name="login" />
-					</q-item-section>
-				</q-item>
+                <button style="color: red; font-weight: 900; font-size: large; background-color: transparent; border: 0px; display: flex; flex-direction: row-reverse; cursor: pointer;" @click="cerrar()">
+                    Cerrar Sesión
+                    <q-item-section avatar>
+                        <q-icon name="login" />
+                    </q-item-section>
+                </button>
             </q-toolbar>
         </q-header>
 
