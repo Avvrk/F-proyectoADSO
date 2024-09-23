@@ -1,33 +1,81 @@
 import { defineStore } from "pinia";
-import axios from "axios";
+import { ref } from "vue";
 import { useStoreAdmins } from "./admin.js";
+import axios from "axios";
 
 export const useStoreGastos = defineStore(
 	"Gastos",
 	() => {
-		// const url = "http://localhost:3000";
-		const url = "https://b-proyectoadso-production.up.railway.app";
-		const useUsuario = useStoreAdmins();
+		const url = "http://localhost:4000";
+		// const url = "https://b-proyectoadso-production.up.railway.app";
+		const useAdmin = useStoreAdmins();
 
-		const getGastos = async () => {
+		const getInsumos = async () => {
 			try {
-				const r = await axios.get(`${url}/Gastos`, {
+				const r = await axios.get(`${url}/Insumos`, {
 					headers: {
-						token: useUsuario.token,
+						token: useAdmin.token,
 					},
 				});
 				return r;
+				console.log(r.data);
 			} catch (error) {
 				console.log(error);
 				return error;
 			}
 		};
 
+		const getSemillas = async () => {
+			try {
+				const r = await axios.get(`${url}/Semillas`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				return r;
+				console.log(r.data);
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
+		const getMantenimientos = async () => {
+			try {
+				const r = await axios.get(`${url}/Mantenimiento`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				return r;
+				console.log(r.data);
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
+
+		const getGastos = async () => {
+			try {
+				const r = await axios.get(`${url}/gastos`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				console.log(r.data);
+				return r;
+			} catch (error) {
+				console.log(error.response);
+				return error;
+			}
+		};
+
 		const getGastosID = async (id) => {
 			try {
-				const r = await axios.get(`${url}/Gastos/${id}`, {
+				const r = await axios.get(`${url}/gastos/${id}`, {
 					headers: {
-						token: useUsuario.token,
+						token: useAdmin.token,
 					},
 				});
 				return r;
@@ -39,9 +87,9 @@ export const useStoreGastos = defineStore(
 
 		const postGastos = async (datos) => {
 			try {
-				const r = await axios.post(`${url}/Gastos/`, datos, {
+				const r = await axios.post(`${url}/gastos/`, datos, {
 					headers: {
-						token: useUsuario.token,
+						token: useAdmin.token,
 					},
 				});
 				return r;
@@ -53,9 +101,9 @@ export const useStoreGastos = defineStore(
 
 		const putGastos = async (id, datos) => {
 			try {
-				const r = await axios.put(`${url}/Gastos/${id}`, datos, {
+				const r = await axios.put(`${url}/gastos/${id}`, datos, {
 					headers: {
-						token: useUsuario.token,
+						token: useAdmin.token,
 					},
 				});
 				return r;
@@ -66,6 +114,9 @@ export const useStoreGastos = defineStore(
 		};
 
 		return {
+			getInsumos,
+			getSemillas,
+			getMantenimientos,
 			getGastos,
 			getGastosID,
 			postGastos,

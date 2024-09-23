@@ -1,19 +1,36 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 import { useStoreAdmins } from "./admin.js";
+import { useQuasar } from "quasar";
 
 export const useStoreInsumos = defineStore(
 	"Insumos",
 	() => {
-		// const url = "http://localhost:3000";
-		const url = "https://b-proyectoadso-production.up.railway.app";
-		const useUsuario = useStoreAdmins();
+		const url = "http://localhost:4000";
+		// const url = "https://b-proyectoadso-production.up.railway.app";
+		const useAdmin = useStoreAdmins();
+		const $q = useQuasar();
+
+		const getProveedores = async () => {
+			try {
+				const r = await axios.get(`${url}/Proveedores`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				console.log(r.data);
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		}
 
 		const getInsumos = async () => {
 			try {
 				const r = await axios.get(`${url}/Insumos`, {
 					headers: {
-						token: useUsuario.token,
+						token: useAdmin.token,
 					},
 				});
 				return r;
@@ -27,7 +44,7 @@ export const useStoreInsumos = defineStore(
 			try {
 				const r = await axios.get(`${url}/Insumos/${id}`, {
 					headers: {
-						token: useUsuario.token,
+						token: useAdmin.token,
 					},
 				});
 				return r;
@@ -41,7 +58,7 @@ export const useStoreInsumos = defineStore(
 			try {
 				const r = await axios.post(`${url}/Insumos/`, datos, {
 					headers: {
-						token: useUsuario.token,
+						token: useAdmin.token,
 					},
 				});
 				return r;
@@ -55,7 +72,7 @@ export const useStoreInsumos = defineStore(
 			try {
 				const r = await axios.put(`${url}/Insumos/${id}`, datos, {
 					headers: {
-						token: useUsuario.token,
+						token: useAdmin.token,
 					},
 				});
 				return r;
@@ -66,6 +83,7 @@ export const useStoreInsumos = defineStore(
 		};
 
 		return {
+			getProveedores,
 			getInsumos,
 			getInsumosID,
 			postInsumos,

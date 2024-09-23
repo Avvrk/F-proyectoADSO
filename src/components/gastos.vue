@@ -1,206 +1,531 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
+import { useStoreGastos } from "../stores/gastos.js";
 import { useQuasar } from "quasar";
+import { router } from "../routes/routes.js";
 
 const $q = useQuasar();
 
-// Datos de los gastos
+const useGasto = useStoreGastos();
+
 let rows = ref([]);
 let columns = ref([
+	{ name: "nombre", align: "center", label: "Nombre", field: "nombre", sortable: true, },
+	{ name: "fecha", align: "center", label: "Fecha", field: (row) => {
+            return row.fecha.split("T")[0];
+        }, sortable: true, },
+	{ name: "numeroFactura", align: "center", label: "Número de Factura", field: "numeroFactura", sortable: true, },
+	{ name: "descripcion", align: "center", label: "Descripción", field: "descripcion", sortable: true, },
+	{ name: "total", align: "center", label: "Total", field: "total", sortable: true, },
 	{
-		name: "nombre",
-		align: "center",
-		label: "Nombre",
-		field: "nombre",
-		sortable: true,
-	},
-	{
-		name: "fecha",
-		align: "center",
-		label: "Fecha",
-		field: "fecha",
-		sortable: true,
-	},
-	{
-		name: "numeroFactura",
-		align: "center",
-		label: "Número de Factura",
-		field: "numeroFactura",
-		sortable: true,
-	},
-	{
-		name: "descripcion",
-		align: "center",
-		label: "Descripción",
-		field: "descripcion",
-		sortable: true,
-	},
-	{
-		name: "total",
-		align: "center",
-		label: "Total",
-		field: "total",
-		sortable: true,
-	},
-	{
-		name: "insumos_id",
-		align: "center",
-		label: "ID del Insumo",
-		field: "insumos_id",
-		sortable: true,
-	},
-	{
-		name: "mantenimiento_id",
-		align: "center",
-		label: "ID del Mantenimiento",
-		field: "mantenimiento_id",
-		sortable: true,
-	},
-	{
-		name: "opciones",
-		align: "center",
-		label: "Editar",
-		field: "opciones",
-		sortable: true,
-	},
+  name: "insumos_id",
+  align: "center",
+  label: "Insumo",
+  field: (row) =>
+    row.insumos_id ? `${row.insumos_id.nombre}` : "Sin información",
+  sortable: true,
+},
+	{ 
+  name: "semillas_id", 
+  align: "center", 
+  label: "Semilla", 
+  field: (row) =>
+    row.semillas_id
+      ? `${row.semillas_id.especieVariedad} (Origen: ${row.semillas_id.origen})`
+      : "Sin información", 
+  sortable: true
+},
+{
+  name: "mantenimiento_id",
+  align: "center",
+  label: "Mantenimiento",
+  field: (row) =>
+    row.mantenimiento_id
+      ? `${row.mantenimiento_id.nombre} (Tipo: ${row.mantenimiento_id.tipo})`
+      : "Sin información",
+  sortable: true,
+},
+	{ name: "opciones", align: "center", label: "Editar", field: "opciones", sortable: true, },
 ]);
 
-// Información del gasto en edición
-const editando = ref(false);
-const gastoActual = ref({
-	nombre: "",
-	fecha: "",
-	numeroFactura: "",
-	descripcion: "",
-	total: "",
-	insumos_id: "",
-	mantenimiento_id: "",
+const insumo = ref([]);
+const semilla = ref([]);
+const mantenimiento = ref([]);
+
+//Variables para el formulario
+const nombreGasto = ref("");
+const fechaGasto = ref("");
+const numeroFacturaGasto = ref("");
+const descripcionGasto = ref("");
+const totalGasto = ref("");
+const insumoGasto = ref("");
+const semillaGasto = ref("");
+const mantenimientoGasto = ref("");
+
+//Variable necesaria para la edición.
+const datos = ref([]);
+
+//Variables que controla lo que se va a mostrar en la pantalla.
+const mostrarFormularioGasto = ref(false);
+const mostrarBotonEditar = ref(false);
+const loading = ref(true);
+
+const opcionesInsumos = computed(() => {
+	return insumo.value.map((item) => {
+		return { label: item.nombre, value: item.id };
+	});
 });
 
-// Función para abrir la card de edición
-function editarGasto(gasto) {
-	gastoActual.value = { ...gasto };
-	editando.value = true;
-}
+const opcionesSemillas = computed(() => {
+	return semilla.value.map((item) => {
+		return { label: `${item.especieVariedad} (Origen: ${item.origen})`, value: item.id };
+	});
+});
 
-// Función para guardar los cambios del gasto
-function guardarCambios() {
-	const indice = rows.value.findIndex(
-		(g) => g.numeroFactura === gastoActual.value.numeroFactura
-	);
-	if (indice !== -1) {
-		rows.value[indice] = { ...gastoActual.value };
-		$q.notify({
-			type: "positive",
-			message: "Cambios guardados exitosamente.",
-		});
+const opcionesMantenimientos = computed(() => {
+	return mantenimiento.value.map((item) => {
+		return { label: `${item.nombre} (Tipo: ${item.tipo})`, value: item.id };
+	});
+});
+
+async function listarInsumos() {
+	try {
+		loading.value = true;
+		const r = await useGasto.getInsumos();
+		if (r.code == "ERR_BAD_REQUEST"){
+			if (
+				r.response.data.msg == "No hay token en la peticion" ||
+                r.response.data.msg == "Token no válido! ." ||
+                r.response.data.msg == "Token no válido!!  " ||
+                r.response.data.msg == "Token no valido"
+			) {
+				$q.notify({
+					type: "negative",
+					message: "No hay token en la petición",
+				});
+			} else {
+				$q.notify({
+					type: "negative",
+					message: "Error al listar los insumos",
+				});
+				return router.push("/");
+			}
+		}
+		insumo.value = r.data.insumos;
+	} finally {
+		loading.value = false;
 	}
-	editando.value = false;
 }
 
-// Función para cerrar la card de edición
-function cerrarEditar() {
-	editando.value = false;
+async function listarSemillas() {
+	try {
+		loading.value = true;
+		const r = await useGasto.getSemillas();
+		if (r.code == "ERR_BAD_REQUEST"){
+			if (
+				r.response.data.msg == "No hay token en la peticion" ||
+				r.response.data.msg == "Token no válido! ." ||
+				r.response.data.msg == "Token no válido!!  " ||
+				r.response.data.msg == "Token no valido"
+			) {
+				$q.notify({
+					type: "negative",
+					message: "No hay token en la petición",
+				});
+			} else {
+				$q.notify({
+					type: "negative",
+					message: "Error al listar las semillas",
+				});
+				return router.push("/");
+			}
+		}
+		semilla.value = r.data.semillas;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function listarMantenimientos() {
+	try {
+		loading.value = true;
+		const r = await useGasto.getMantenimientos();
+		if (r.code == "ERR_BAD_REQUEST"){
+			if (
+				r.response.data.msg == "No hay token en la peticion" ||
+				r.response.data.msg == "Token no válido! ." ||
+				r.response.data.msg == "Token no válido!!  " ||
+				r.response.data.msg == "Token no valido"
+			) {
+				$q.notify({
+					type: "negative",
+					message: "No hay token en la petición",
+				});
+			} else {
+				$q.notify({
+					type: "negative",
+					message: "Error al listar los mantenimientos",
+				});
+				return router.push("/");
+			}
+		}
+		mantenimiento.value = r.data.mantenimientos;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function listarGastos() {
+	try {
+		loading.value = true;
+		const r = await useGasto.getGastos();
+		if (r.code == "ERR_BAD_REQUEST"){
+			if (
+				r.response.data.msg == "No hay token en la peticion" ||
+				r.response.data.msg == "Token no válido! ." ||
+				r.response.data.msg == "Token no válido!!  " ||
+				r.response.data.msg == "Token no valido"
+			) {
+				$q.notify({
+					type: "negative",
+					message: "No hay token en la petición",
+				});
+			} else {
+				$q.notify({
+					type: "negative",
+					message: "Error al listar los gastos",
+				});
+				return router.push("/");
+			}
+		}
+		rows.value = r.data.gastos;
+	} finally {
+		loading.value = false;
+	}
+}
+
+async function registrar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				nombre: nombreGasto.value.id,
+				fecha: fechaGasto.value,
+				numeroFactura: numeroFacturaGasto.value.id,
+				descripcion: descripcionGasto.value.id,
+				total: totalGasto.value.id,
+				insumos_id: insumoGasto.value,
+				semillas_id: semillaGasto.value,
+				mantenimiento_id: mantenimientoGasto.value,
+			};
+			console.log(info);
+
+			const r = await useGasto.postGastos(info);
+			mostrarFormularioGasto.value = false;
+			listarGastos();
+		} finally {
+			loading.value = false;
+		}
+	}
+}
+
+
+async function editar() {
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const info = {
+				nombre: nombreGasto.value.id,
+				fecha: fechaGasto.value,
+				numeroFactura: numeroFacturaGasto.value.id,
+				descripcion: descripcionGasto.value.id,
+				total: totalGasto.value.id,
+				insumos_id: insumoGasto.value,
+				semillas_id: semillaGasto.value,
+				mantenimiento_id: mantenimientoGasto.value,
+			};
+			console.log(info);
+
+			const r = await useGasto.putGastos(datos.value.id, info);
+			mostrarFormularioGasto.value = false;
+			listarGastos();
+		} finally {
+			loading.value = false;
+		}
+	}
+}
+
+function validarDatos() {
+	let validacion = true;
+	if (
+		!nombreGasto.value &&
+		!fechaGasto.value &&
+		!numeroFacturaGasto.value &&
+		!descripcionGasto.value &&
+		!totalGasto.value &&
+		!insumoGasto.value &&
+		!semillaGasto.value &&
+		!mantenimientoGasto.value
+	) {
+		$q.notify({
+			color: "negative",
+			message: "Todos los campos son obligatorios",
+			position: "top",
+		});
+		validacion = false;
+	} else {
+		if (!nombreGasto.value) {
+			$q.notify({
+				color: "negative",
+				message: "El nombre es obligatorio",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!fechaGasto.value) {
+			$q.notify({
+				color: "negative",
+				message: "La fecha es obligatoria",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!numeroFacturaGasto.value) {
+			$q.notify({
+				color: "negative",
+				message: "El número de factura es obligatorio",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!descripcionGasto.value) {
+			$q.notify({
+				color: "negative",
+				message: "La descripción es obligatoria",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!totalGasto.value) {
+			$q.notify({
+				color: "negative",
+				message: "El total es obligatorio",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!insumoGasto.value) {
+			$q.notify({
+				color: "negative",
+				message: "El insumo es obligatorio",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!semillaGasto.value) {
+			$q.notify({
+				color: "negative",
+				message: "La semilla es obligatoria",
+				position: "top",
+			});
+			validacion = false;
+		}
+		if (!mantenimientoGasto.value) {
+			$q.notify({
+				color: "negative",
+				message: "El mantenimiento es obligatorio",
+				position: "top",
+			});
+			validacion = false;
+		}
+	}
+	return validacion;
+}
+
+function controlFormulario (obj, boolean) {
+	nombreGasto.value = "";
+	fechaGasto.value = "";
+	numeroFacturaGasto.value = "";
+	descripcionGasto.value = "";
+	totalGasto.value = "";
+	insumoGasto.value = "";
+	semillaGasto.value = "";
+	mantenimientoGasto.value = "";
+	console.log(obj);
+
+	datos.value = obj;
+	mostrarBotonEditar.value = false;
+	if (obj != null && boolean == true) {
+		nombreGasto.value = datos.value.nombre;
+		fechaGasto.value = datos.value.fecha;
+		numeroFacturaGasto.value = datos.value.numeroFactura;
+		descripcionGasto.value = datos.value.descripcion;
+		totalGasto.value = datos.value.total;
+		insumoGasto.value = opcionesInsumos.value.find(
+			(i) => i.id == datos.value.insumos_id._id
+		);
+		semillaGasto.value = opcionesSemillas.value.find(
+			(s) => s.id == datos.value.semillas_id._id
+		);
+		mantenimientoGasto.value = opcionesMantenimientos.value.find(
+			(m) => m.id == datos.value.mantenimiento_id._id
+		);
+		mostrarBotonEditar.value = true;
+
+	}
+
+	console.log(datos.value);
+
+	mostrarFormularioGasto.value = boolean;
+
 }
 
 onMounted(() => {
-	// Código para ejecutar al montar el componente
-});
+	listarInsumos();
+	listarSemillas();
+	listarMantenimientos();
+	listarGastos();
+})
+
+
 </script>
 
 <template>
-	<div class="container">
-		<div class="title text-h2 text-center">Gastos</div>
-		<hr class="divider" />
+    <div>
+        <div class="q-pa-lg">
+            <q-table
+                :rows="rows"
+                :columns="columns"
+                row-key="id"
+                :loading="loading"
+            >
+                <template v-slot:top>
+                    <section class="column full-width q-pr-md">
+                        <div class="row items-center">
+                            <h1 class="text-h4 q-pl-xl text-green-7">
+                                Gastos
+                            </h1>
+                            <q-space />
+                            <q-btn
+                                size="md"
+                                @click="controlFormulario(null, true)"
+                                label="Agregar"
+                            />
+                        </div>
+                    </section>
+                </template>
 
-		<!-- Tabla de gastos -->
-		<q-table
-			flat
-			bordered
-			title="Lista de Gastos"
-			:rows="rows"
-			:columns="columns"
-			row-key="numeroFactura"
-			class="table">
-			<template v-slot:body-cell-opciones="props">
-				<q-td :props="props" class="actions-cell">
-					<q-btn @click="editarGasto(props.row)" class="btn-editar"
-						>✏️</q-btn
-					>
-				</q-td>
-			</template>
-		</q-table>
-
-		<!-- Card de edición de gasto -->
-		<q-dialog v-model="editando">
-			<q-card>
-				<q-card-section>
+                <template v-slot:body-cell-opciones="props">
+                    <q-td
+                        :props="props"
+                        class="row justify-center"
+                        style="gap: 20px"
+                    >
+                        <q-btn @click="controlFormulario(props.row, true)">
+                            ✏️
+                        </q-btn>
+                    </q-td>
+                </template>
+            </q-table>
+        </div>
+        <q-dialog v-model="mostrarFormularioGasto">
+            <q-card>
+                <q-form
+                    @submit="mostrarBotonEditar ? editar() : registrar()"
+                    class="q-gutter-md"
+                >
+                    <p class="text-h5 text-center q-pb-md text-green">
+                        {{ datos ? "Editar" : "Agregar" }} Gasto
+                    </p>
 					<q-input
-						v-model="gastoActual.nombre"
-						label="Nombre"></q-input>
+						standout="bg-green text-while"
+						type="text"
+						label="Nombre"
+						v-model="nombreGasto"
+					/>
 					<q-input
-						v-model="gastoActual.fecha"
-						label="Fecha"
-						type="date"></q-input>
+                        standout="bg-green text-while"
+                        type="date"
+                        label="Fecha"
+                        v-model="fechaGasto"
+                    />
 					<q-input
-						v-model="gastoActual.numeroFactura"
-						label="Número de Factura"></q-input>
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Número de Factura"
+                        v-model="numeroFacturaGasto"
+                    />
 					<q-input
-						v-model="gastoActual.descripcion"
-						label="Descripción"></q-input>
+					standout="bg-green text-while"
+					type="text"
+					label = "Descripción"
+					v-model="descripcionGasto"
+					/>
 					<q-input
-						v-model="gastoActual.total"
-						label="Total"></q-input>
-					<q-input
-						v-model="gastoActual.insumos_id"
-						label="ID del Insumo"></q-input>
-					<q-input
-						v-model="gastoActual.mantenimiento_id"
-						label="ID del Mantenimiento"></q-input>
-				</q-card-section>
-				<q-card-actions>
-					<q-btn @click="guardarCambios" color="primary"
-						>Guardar</q-btn
-					>
-					<q-btn @click="cerrarEditar" color="secondary"
-						>Cancelar</q-btn
-					>
-				</q-card-actions>
-			</q-card>
-		</q-dialog>
-	</div>
+					standout="bg-green text-while"
+					type="text"
+					label = "Total"
+					v-model="totalGasto"
+					/>
+                    <q-select
+                        standout="bg-green text-while"
+                        :options="opcionesInsumos"
+                        label="Insumo"
+                        v-model="insumoGasto"
+                    />
+					<q-select
+                        standout="bg-green text-while"
+                        :options="opcionesSemillas"
+                        label="Semilla"
+                        v-model="semillaGasto"
+                    />
+					<q-select
+						standout="bg-green text-while"
+						:options="opcionesMantenimientos"
+						label="Mantenimiento"
+						v-model="mantenimientoGasto"
+					/>
+                    <div class="row justify-end" style="gap: 10px">
+                        <q-btn
+                            unelevated
+                            v-if="mostrarBotonEditar"
+                            label="Editar"
+                            type="submit"
+                            color="positive"
+                        />
+                        <q-btn
+                            unelevated
+                            v-else
+                            label="Registrar"
+                            type="submit"
+                            color="positive"
+                        />
+                        <q-btn
+                            @click="controlFormulario(null, false)"
+                            flat
+                            class="bg-red text-white"
+                            label="Cerrar"
+                            type="button"
+                        />
+                    </div>
+                </q-form>
+            </q-card>
+        </q-dialog>
+    </div>
 </template>
 
 <style scoped>
-.container {
-	padding: 20px;
-	background-color: #f5f5f5;
-	border-radius: 10px;
+.q-card {
+    background-color: rgb(255, 255, 255);
+    padding: 40px 30px 40px 30px;
+    border-radius: 1pc;
+    width: 30rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border: 0;
 }
-.title {
-	margin-top: 20px;
-	margin-bottom: 20px;
-	color: #333;
-}
-.divider {
-	height: 5px;
-	background-color: #007bff;
-	border: none;
-	margin: 20px 0;
-}
-.table {
-	margin-top: 40px;
-	border-radius: 10px;
-	overflow: hidden;
-}
-.actions-cell {
-	display: flex;
-	justify-content: space-around;
-	align-items: center;
-}
-.btn-editar {
-	font-size: 1pc;
-	margin: 5px 5px;
-	color: #007bff;
+
+.q-form .q-input,
+.q-form {
+    margin-bottom: 15px;
 }
 </style>
