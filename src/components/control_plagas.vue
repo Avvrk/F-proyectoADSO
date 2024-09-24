@@ -128,8 +128,8 @@ const opcionesCultivos = computed(() => {
 });
 
 const opcionesEmpleados = computed(() => {
-    return empleados.value.map((e) => {
-        return { label: `${e.nombre} (dni: ${e.documento})`, id: e._id };
+    return empleados.value.filter(({estado}) => estado === 0).filter(({rol}) => rol === "Empleado").map((e) => {
+        return { label: `${e.nombre} (correo: ${e.correo})`, id: e._id };
     });
 });
 
@@ -175,7 +175,7 @@ async function listarEmpleados() {
                 return router.push("/");
             }
         }
-        empleados.value = r.data.empleados;
+        empleados.value = r.data.admins;
     } finally {
         loading.value = false;
     }

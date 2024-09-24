@@ -10,6 +10,7 @@ const $q = useQuasar();
 
 const useAdmin = useStoreAdmins();
 
+const roles = ["Administrador", "Empleado"];
 const opcionesTabla = ["Todos", "Activos", "Inactivos"];
 const rows = ref([]);
 const columns = ref([
@@ -17,6 +18,13 @@ const columns = ref([
         name: "nombre",
         label: "Nombre",
         field: "nombre",
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "rol",
+        label: "Rol",
+        field: "rol",
         align: "center",
         sortable: true,
     },
@@ -68,6 +76,7 @@ const telefonoAdmin = ref("");
 const departamentoAdmin = ref("");
 const ciudadAdmin = ref("");
 const claveAdmin = ref("");
+const rolAdmin = ref("");
 
 // Varibale que controla lo que se mostrara en la tabla
 const opcionTabla = ref("Todos");
@@ -98,7 +107,7 @@ async function listarAdmin() {
     try {
         loading.value = true;
         const r = await useAdmin.getAdmin();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -109,9 +118,9 @@ async function listarAdmin() {
                     type: "negative",
                     message: "Token no valido",
                 });
-                return router.push("/");
+                router.push("/")
             }
-        }
+        } */
         rows.value = r.data.admins;
     } finally {
         loading.value = false;
@@ -163,6 +172,7 @@ async function registrar() {
                 telefono: telefonoAdmin.value,
                 municipio: ciudadAdmin.value,
                 password: claveAdmin.value,
+                rol: rolAdmin.value,
             };
 
             const res = await useAdmin.postAdmin(info);
@@ -186,6 +196,7 @@ async function editar() {
                 correo: correoAdmin.value,
                 telefono: telefonoAdmin.value,
                 municipio: ciudadAdmin.value,
+                rol: rolAdmin.value,
             };
 
             const res = await useAdmin.putAdmin(datos.value._id, info);
@@ -208,6 +219,7 @@ function validarDatos() {
         !correoAdmin.value.trim() &&
         !telefonoAdmin.value.trim() &&
         !ciudadAdmin.value.trim() &&
+        !rolAdmin.value &&
         datos.value == null &&
         !claveAdmin.value.trim()
     ) {
@@ -273,6 +285,13 @@ function validarDatos() {
             });
             validacion = false;
         }
+        if (!rolAdmin.value) {
+            $q.notify({
+                type: "negative",
+                message: "El rol esta vacio",
+                position: "bottom",
+            })
+        }
     }
     return validacion;
 }
@@ -284,6 +303,7 @@ function controlFormulario(obj, boolean) {
     telefonoAdmin.value = "";
     departamentoAdmin.value = "";
     ciudadAdmin.value = "";
+    rolAdmin.value = "";
 
     datos.value = obj;
     mostrarBotonEditar.value = false;
@@ -297,6 +317,7 @@ function controlFormulario(obj, boolean) {
             c.ciudades.some((cc) => cc === datos.value.municipio)
         );
         ciudadAdmin.value = datos.value.municipio;
+        rolAdmin.value = datos.value.rol;
 
         mostrarBotonEditar.value = true;
     }
@@ -331,7 +352,7 @@ onMounted(() => {
                     <section class="column full-width q-pr-md">
                         <div class="row items-center">
                             <h1 class="text-h4 q-pl-xl text-green-7">
-                                Administrador
+                                Usuarios
                             </h1>
                             <q-space />
                             <q-btn
@@ -387,7 +408,7 @@ onMounted(() => {
                     @submit="mostrarBotonEditar ? editar() : registrar()"
                     class="q-gutter-sm">
                     <p class="text-h5 text-center q-pb-md text-green">
-                        {{ datos ? "Editar" : "Agregar" }} Administrador
+                        {{ datos ? "Editar" : "Agregar" }} Usuario
                     </p>
                     <q-input
                         standout="bg-green text-while"
@@ -427,6 +448,11 @@ onMounted(() => {
                         type="text"
                         label="Contraseña"
                         v-model="claveAdmin" />
+                    <q-select
+                        standout="bg-green text-while"
+                        :options="roles"
+                        label="Rol"
+                        v-model="rolAdmin" />
                     <div class="row justify-end" style="gap: 10px">
                         <q-btn
                             unelevated
