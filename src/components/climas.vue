@@ -226,6 +226,13 @@ async function listarClimasFechas() {
 // sumar las dos y luego dividirlas por las cantidad de datos, osea 2
 async function registrar() {
     if (validarDatos()) {
+        if (temperaturaMaximaClima.value < temperaturaMinimaClima.value) {
+            $q.notify({
+                type: "negative",
+                message: "La temperatura maxima no puede ser menor a la temperatura minima",
+                position: "bottom",
+            })
+        }
         try {
             loading.value = true;
             const info = {
@@ -553,7 +560,7 @@ onMounted(() => {
                         standout="bg-green text-while"
                         type="text"
                         label="Promedio"
-                        v-model="promedioTem" />
+                        v-model="promedioClima" />
                     <div class="row justify-end" style="gap: 10px">
                         <q-btn
                             unelevated
