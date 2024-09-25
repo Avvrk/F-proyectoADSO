@@ -112,9 +112,10 @@ const mostraInput = ref(false);
 const loading = ref(true);
 
 const opcionesResponsables = computed(() => {
-    return empleados.value.map((emp) => {
-        return { label: `${emp.nombre} (${emp.documento})`, id: emp._id };
+    return empleados.value.filter(({estado}) => estado === 1).filter(({rol}) => rol === "Empleado").map((e) => {
+        return { label: `${e.nombre} (correo: ${e.correo})`, id: e._id };
     });
+
 });
 
 const opcionesParcelas = computed(() => {
@@ -143,7 +144,7 @@ async function listarEmpleado() {
     try {
         loading.value = true;
         const r = await useAnalisisSuelo.getEmpleado();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -156,8 +157,8 @@ async function listarEmpleado() {
                 });
                 return router.push("/");
             }
-        }
-        empleados.value = r.data.empleados;
+        } */
+        empleados.value = r.data.admins;
     } finally {
         loading.value = false;
     }
@@ -167,7 +168,7 @@ async function listarParcela() {
     try {
         loading.value = true;
         const r = await useAnalisisSuelo.getParcela();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -180,7 +181,7 @@ async function listarParcela() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         parcelas.value = r.data.parcelas;
     } finally {
         loading.value = false;
@@ -191,7 +192,7 @@ async function listarAnalisisSuelo() {
     try {
         loading.value = true;
         const r = await useAnalisisSuelo.getAnalisisSuelo();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -204,7 +205,7 @@ async function listarAnalisisSuelo() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         rows.value = r.data.suelos;
     } finally {
         loading.value = false;
@@ -313,7 +314,7 @@ async function registrar() {
                 muestra: muestraAnalisisSuelo.value,
                 cultivo: cultivoAnalisisSuelo.value,
                 laboratorio: laboratorioAnalisisSuelo.value,
-                resultados: resultadosAnalisisSuelo.value,
+                resultados: resultadosAnalisisSuelo.value.split(',').map(r => r.trim()),
                 recomendaciones: recomendacionesAnalisisSuelo.value,
             };
 
@@ -339,7 +340,7 @@ async function editar() {
                 muestra: muestraAnalisisSuelo.value,
                 cultivo: cultivoAnalisisSuelo.value,
                 laboratorio: laboratorioAnalisisSuelo.value,
-                resultados: resultadosAnalisisSuelo.value,
+                resultados: resultadosAnalisisSuelo.value.split(',').map(r => r.trim()),
                 recomendaciones: recomendacionesAnalisisSuelo.value,
             };
 
@@ -358,6 +359,8 @@ async function editar() {
 }
 
 function validarDatos() {
+    alert(resultadosAnalisisSuelo.value);
+    
     let validacion = true;
     if (
         !fechaAnalisisSuelo.value &&
@@ -461,7 +464,7 @@ function controlFormulario(obj, boolean) {
         muestraAnalisisSuelo.value = datos.value.muestra;
         cultivoAnalisisSuelo.value = datos.value.cultivo;
         laboratorioAnalisisSuelo.value = datos.value.laboratorio;
-        resultadosAnalisisSuelo.value = datos.value.resultados;
+        resultadosAnalisisSuelo.value = [...datos.value.resultados];
         recomendacionesAnalisisSuelo.value = datos.value.recomendaciones;
 
         mostrarBotonEditar.value = true;
@@ -595,7 +598,7 @@ onMounted(() => {
             <q-card>
                 <q-form
                     @submit="mostrarBotonEditar ? editar() : registrar()"
-                    class="q-gutter-sm">
+                    class="q-gutter-md">
                     <p class="text-h5 text-center q-pb-md text-green">
                         {{ datos ? "Editar" : "Agregar" }} Analisis del Suelo
                     </p>
@@ -630,13 +633,15 @@ onMounted(() => {
                         label="Laboratorio"
                         v-model="laboratorioAnalisisSuelo" />
                     <q-input
+                        autogrow
                         standout="bg-green text-while"
-                        type="textarea"
-                        label="Resultados"
+                        type="text"
+                        label="Resultados (separados por comas)"
                         v-model="resultadosAnalisisSuelo" />
                     <q-input
+                        autogrow
                         standout="bg-green text-while"
-                        type="textarea"
+                        type="text"
                         label="Recomendaciones"
                         v-model="recomendacionesAnalisisSuelo" />
                     <div class="row justify-end" style="gap: 10px">
@@ -679,10 +684,5 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     height: auto;
-}
-
-.q-form .q-input,
-.q-form .q-select {
-    margin-bottom: 15px;
 }
 </style>

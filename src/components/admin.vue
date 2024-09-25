@@ -10,9 +10,17 @@ const $q = useQuasar();
 
 const useAdmin = useStoreAdmins();
 
+const roles = ["Administrador", "Empleado"];
 const opcionesTabla = ["Todos", "Activos", "Inactivos"];
 const rows = ref([]);
 const columns = ref([
+    {
+        name: "rol",
+        label: "Rol",
+        field: "rol",
+        align: "center",
+        sortable: true,
+    },
     {
         name: "nombre",
         label: "Nombre",
@@ -68,6 +76,7 @@ const telefonoAdmin = ref("");
 const departamentoAdmin = ref("");
 const ciudadAdmin = ref("");
 const claveAdmin = ref("");
+const rolAdmin = ref("");
 
 // Varibale que controla lo que se mostrara en la tabla
 const opcionTabla = ref("Todos");
@@ -98,7 +107,7 @@ async function listarAdmin() {
     try {
         loading.value = true;
         const r = await useAdmin.getAdmin();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -111,7 +120,7 @@ async function listarAdmin() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         rows.value = r.data.admins;
     } finally {
         loading.value = false;
@@ -163,6 +172,7 @@ async function registrar() {
                 telefono: telefonoAdmin.value,
                 municipio: ciudadAdmin.value,
                 password: claveAdmin.value,
+                rol: rolAdmin.value,
             };
 
             const res = await useAdmin.postAdmin(info);
@@ -186,6 +196,7 @@ async function editar() {
                 correo: correoAdmin.value,
                 telefono: telefonoAdmin.value,
                 municipio: ciudadAdmin.value,
+                rol: rolAdmin.value,
             };
 
             const res = await useAdmin.putAdmin(datos.value._id, info);
@@ -209,7 +220,8 @@ function validarDatos() {
         !telefonoAdmin.value.trim() &&
         !ciudadAdmin.value.trim() &&
         datos.value == null &&
-        !claveAdmin.value.trim()
+        !claveAdmin.value.trim() &&
+        !rolAdmin.value
     ) {
         $q.notify({
             type: "negative",
@@ -273,6 +285,13 @@ function validarDatos() {
             });
             validacion = false;
         }
+        if (!rolAdmin.value) {
+            $q.notify({
+                type: "negative",
+                message: "El rol esta vacio",
+                position: "bottom"
+            })
+        }
     }
     return validacion;
 }
@@ -284,6 +303,7 @@ function controlFormulario(obj, boolean) {
     telefonoAdmin.value = "";
     departamentoAdmin.value = "";
     ciudadAdmin.value = "";
+    rolAdmin.value = "";
 
     datos.value = obj;
     mostrarBotonEditar.value = false;
@@ -297,6 +317,7 @@ function controlFormulario(obj, boolean) {
             c.ciudades.some((cc) => cc === datos.value.municipio)
         );
         ciudadAdmin.value = datos.value.municipio;
+        rolAdmin.value = datos.value.rol;
 
         mostrarBotonEditar.value = true;
     }
@@ -385,7 +406,7 @@ onMounted(() => {
             <q-card>
                 <q-form
                     @submit="mostrarBotonEditar ? editar() : registrar()"
-                    class="q-gutter-sm">
+                    class="q-gutter-md">
                     <p class="text-h5 text-center q-pb-md text-green">
                         {{ datos ? "Editar" : "Agregar" }} Administrador
                     </p>
@@ -427,6 +448,11 @@ onMounted(() => {
                         type="text"
                         label="Contraseña"
                         v-model="claveAdmin" />
+                    <q-select
+                        standout="bg-green text-while"
+                        :options="roles"
+                        label="Rol"
+                        v-model="rolAdmin" />
                     <div class="row justify-end" style="gap: 10px">
                         <q-btn
                             unelevated
@@ -461,10 +487,5 @@ onMounted(() => {
     width: 30rem;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border: 0;
-}
-
-.q-form .q-input,
-.q-form .q-select {
-    margin-bottom: 15px;
 }
 </style>

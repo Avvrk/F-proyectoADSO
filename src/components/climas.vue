@@ -116,6 +116,10 @@ const mostrarFormularioClima = ref(false);
 const mostrarBotonEditar = ref(false);
 const loading = ref(true);
 
+const promedioClima = computed(() => {
+    return (Number(temperaturaMaximaClima.value) + Number(temperaturaMinimaClima.value)) / 2
+})
+
 const opcionesFincas = computed(() => {
     return fincas.value.map((f) => {
         return { label: `${f.nombre} (rut: ${f.rut})`, id: `${f._id}` };
@@ -123,16 +127,17 @@ const opcionesFincas = computed(() => {
 });
 
 const opcionesEmpleados = computed(() => {
-    return empleados.value.map((emp) => {
-        return { label: `${emp.nombre} (dni: ${emp.documento})`, id: emp._id };
+    return empleados.value.filter(({estado}) => estado === 1).filter(({rol}) => rol === "Empleado").map((e) => {
+        return { label: `${e.nombre} (correo: ${e.correo})`, id: e._id };
     });
+
 });
 
 async function listarFincas() {
     try {
         loading.value = true;
         const r = await useClima.getFincas();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -145,7 +150,7 @@ async function listarFincas() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         fincas.value = r.data.fincas;
     } finally {
         loading.value = false;
@@ -156,7 +161,7 @@ async function listarEmpleados() {
     try {
         loading.value = true;
         const r = await useClima.getEmpleados();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -169,8 +174,8 @@ async function listarEmpleados() {
                 });
                 return router.push("/");
             }
-        }
-        empleados.value = r.data.empleados;
+        } */
+        empleados.value = r.data.admins;
     } finally {
         loading.value = false;
     }
@@ -179,7 +184,7 @@ async function listarEmpleados() {
 async function listarClimas() {
     try {
         const r = await useClima.getClimas();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -192,7 +197,7 @@ async function listarClimas() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         rows.value = r.data.climas;
     } catch (error) {
         console.log(error.message);
@@ -218,7 +223,7 @@ async function listarClimasFechas() {
         loading.value;
     }
 }
-
+// sumar las dos y luego dividirlas por las cantidad de datos, osea 2
 async function registrar() {
     if (validarDatos()) {
         try {
@@ -228,6 +233,7 @@ async function registrar() {
                 empleado_id: empleadoClima.value.id,
                 fecha: fechaClima.value,
                 tipoClima: tipoClima.value,
+                promedio: promedioClima.value,
                 horaInicio: horaInicioClima.value,
                 horaFinal: horaFinClima.value,
                 temperaturaMaxima: temperaturaMaximaClima.value,
@@ -254,6 +260,7 @@ async function editar() {
                 empleado_id: empleadoClima.value.id,
                 fecha: fechaClima.value,
                 tipoClima: tipoClima.value,
+                promedio: promedioClima.value,
                 horaInicio: horaInicioClima.value,
                 horaFinal: horaFinClima.value,
                 temperaturaMaxima: temperaturaMaximaClima.value,
@@ -493,7 +500,7 @@ onMounted(() => {
             <q-card>
                 <q-form
                     @submit="mostrarBotonEditar ? editar() : registrar()"
-                    class="q-gutter-sm">
+                    class="q-gutter-md">
                     <p class="text-h5 text-center q-pb-md text-green">
                         {{ datos ? "Editar" : "Agregar" }} Climas
                     </p>
@@ -541,6 +548,12 @@ onMounted(() => {
                         type="text"
                         label="Temperatura Minima"
                         v-model="temperaturaMinimaClima" />
+                    <q-input
+                        :disable="true"
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Promedio"
+                        v-model="promedioTem" />
                     <div class="row justify-end" style="gap: 10px">
                         <q-btn
                             unelevated
@@ -575,10 +588,5 @@ onMounted(() => {
     width: 30rem;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border: 0;
-}
-
-.q-form .q-input,
-.q-form .q-select {
-    margin-bottom: 15px;
 }
 </style>
