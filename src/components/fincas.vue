@@ -15,7 +15,7 @@ let columns = ref([
     {
         name: "_idUsuario",
         align: "center",
-        label: "Encargado",
+        label: "Responsable / Administrador",
         field: (row) => `${row._idUsuario.nombre}`,
         sortable: true,
     },
