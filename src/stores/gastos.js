@@ -6,7 +6,7 @@ import axios from "axios";
 export const useStoreGastos = defineStore(
   "Gastos",
   () => {
-    const url = "http://localhost:3000";
+    const url = "http://localhost:4000";
     const useAdmin = useStoreAdmins();
 
     const getInsumos = async () => {
@@ -85,6 +85,21 @@ export const useStoreGastos = defineStore(
       }
     };
 
+    const getFincas = async () => {
+			try {
+				const r = await axios.get(`${url}/fincas`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+        console.log(r.data);
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
     const postGastos = async (datos) => {
       try {
         if (!useAdmin.token) {
@@ -124,7 +139,8 @@ export const useStoreGastos = defineStore(
     };
 
     return {
-      getProveedores,  // Asegúrate de que esta línea esté aquí
+      getProveedores,
+      getFincas,  // Asegúrate de que esta línea esté aquí
       getInsumos,
       getSemillas,
       getGastos,
