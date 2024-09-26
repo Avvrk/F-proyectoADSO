@@ -5,8 +5,8 @@ import { useStoreAdmins } from "./admin.js";
 export const useStoreFincas = defineStore(
 	"Fincas",
 	() => {
-		// const url = "http://localhost:3000";
-		const url = "https://b-proyectoadso-production.up.railway.app";
+		const url = "http://localhost:4000";
+		// const url = "https://b-proyectoadso-production.up.railway.app";
 		const useAdmin = useStoreAdmins();
 
 		const getMunicipios = async () => {
@@ -44,6 +44,7 @@ export const useStoreFincas = defineStore(
 						token: useAdmin.token,
 					},
 				});
+				console.log(r.data);
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -97,11 +98,12 @@ export const useStoreFincas = defineStore(
 
 		const postFincas = async (datos) => {
 			try {
-				const r = await axios.post(`${url}/fincas/`, datos, {
+				const r = await axios.post(`${url}/fincas`, datos, {
 					headers: {
 						token: useAdmin.token,
 					},
 				});
+				console.log(r.data);
 				return r;
 			} catch (error) {
 				console.log(error);
