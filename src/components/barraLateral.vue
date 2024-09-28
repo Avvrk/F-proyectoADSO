@@ -24,7 +24,7 @@
             <q-list>
                 <q-item clickable tag="router-link" to="/Admin">
                     <q-item-section>
-                        <q-item-label>Administrador</q-item-label>
+                        <q-item-label>Usuarios</q-item-label>
                     </q-item-section>
                     <q-item-section avatar>
                         <q-icon name="person" />
