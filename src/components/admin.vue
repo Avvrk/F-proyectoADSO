@@ -352,7 +352,7 @@ onMounted(() => {
                     <section class="column full-width q-pr-md">
                         <div class="row items-center">
                             <h1 class="text-h4 q-pl-xl text-green-7">
-                                Administrador
+                                Usuarios
                             </h1>
                             <q-space />
                             <q-btn
