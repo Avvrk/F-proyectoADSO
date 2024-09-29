@@ -5,8 +5,8 @@ import { useStoreAdmins } from "./admin.js";
 export const useStoreFincas = defineStore(
 	"Fincas",
 	() => {
-		const url = "http://localhost:4000";
-		// const url = "https://b-proyectoadso-production.up.railway.app";
+		// const url = "http://localhost:4000";
+		const url = "https://b-proyectoadso-production.up.railway.app";
 		const useAdmin = useStoreAdmins();
 
 		const getMunicipios = async () => {
