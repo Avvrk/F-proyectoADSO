@@ -13,7 +13,7 @@ export const useStoreControl_plagas = defineStore(
 
 		const getEmpleados = async () => {
 			try {
-				const r = await axios.get(`${url}/empleados`, {
+				const r = await axios.get(`${url}/admin`, {
 					headers: {
 						token: useAdmin.token,
 					},

@@ -122,9 +122,9 @@ const opcionesFincas = computed(() => {
     });
 });
 
-const opcionesEmpleados = computed(() => {
-    return empleados.value.map((emp) => {
-        return { label: `${emp.nombre} (dni: ${emp.documento})`, id: emp._id };
+const opcionesResponsables = computed(() => {
+    return empleados.value.filter(({estado}) => estado === 1).filter(({rol}) => rol === "Empleado").map((e) => {
+        return { label: `${e.nombre} (correo: ${e.correo})`, id: e._id };
     });
 });
 
@@ -132,7 +132,7 @@ async function listarFincas() {
     try {
         loading.value = true;
         const r = await useClima.getFincas();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -145,7 +145,7 @@ async function listarFincas() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         fincas.value = r.data.fincas;
     } finally {
         loading.value = false;
@@ -170,7 +170,7 @@ async function listarEmpleados() {
                 return router.push("/");
             }
         }
-        empleados.value = r.data.empleados;
+        empleados.value = r.data.admins;
     } finally {
         loading.value = false;
     }

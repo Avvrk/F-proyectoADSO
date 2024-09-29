@@ -112,8 +112,8 @@ const mostraInput = ref(false);
 const loading = ref(true);
 
 const opcionesResponsables = computed(() => {
-    return empleados.value.map((emp) => {
-        return { label: `${emp.nombre} (${emp.documento})`, id: emp._id };
+    return empleados.value.filter(({estado}) => estado === 1).filter(({rol}) => rol === "Empleado").map((e) => {
+        return { label: `${e.nombre} (correo: ${e.correo})`, id: e._id };
     });
 });
 
@@ -143,7 +143,7 @@ async function listarEmpleado() {
     try {
         loading.value = true;
         const r = await useAnalisisSuelo.getEmpleado();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -156,8 +156,8 @@ async function listarEmpleado() {
                 });
                 return router.push("/");
             }
-        }
-        empleados.value = r.data.empleados;
+        } */
+        empleados.value = r.data.admins;
     } finally {
         loading.value = false;
     }
@@ -167,7 +167,7 @@ async function listarParcela() {
     try {
         loading.value = true;
         const r = await useAnalisisSuelo.getParcela();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -180,7 +180,7 @@ async function listarParcela() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         parcelas.value = r.data.parcelas;
     } finally {
         loading.value = false;
@@ -191,7 +191,7 @@ async function listarAnalisisSuelo() {
     try {
         loading.value = true;
         const r = await useAnalisisSuelo.getAnalisisSuelo();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -204,7 +204,7 @@ async function listarAnalisisSuelo() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         rows.value = r.data.suelos;
     } finally {
         loading.value = false;
@@ -313,7 +313,7 @@ async function registrar() {
                 muestra: muestraAnalisisSuelo.value,
                 cultivo: cultivoAnalisisSuelo.value,
                 laboratorio: laboratorioAnalisisSuelo.value,
-                resultados: resultadosAnalisisSuelo.value,
+                resultados: resultadosAnalisisSuelo.value.split(',').map(item => item.trim()),
                 recomendaciones: recomendacionesAnalisisSuelo.value,
             };
 
@@ -329,6 +329,7 @@ async function registrar() {
 }
 
 async function editar() {
+console.log(resultadosAnalisisSuelo.value.split(','))
     if (validarDatos()) {
         try {
             loading.value = true;
@@ -339,7 +340,7 @@ async function editar() {
                 muestra: muestraAnalisisSuelo.value,
                 cultivo: cultivoAnalisisSuelo.value,
                 laboratorio: laboratorioAnalisisSuelo.value,
-                resultados: resultadosAnalisisSuelo.value,
+                resultados: resultadosAnalisisSuelo.value.split(',').map(item => item.trim()),
                 recomendaciones: recomendacionesAnalisisSuelo.value,
             };
 
@@ -450,6 +451,7 @@ function controlFormulario(obj, boolean) {
     if (obj != null && boolean == true) {
         const par = opcionesParcelas.value;
         const em = opcionesResponsables.value;
+        // const r = datos.value.resultados;
 
         fechaAnalisisSuelo.value = datos.value.fecha.split("T")[0];
         parcelaAnalisisSuelo.value = par.find(
@@ -461,7 +463,7 @@ function controlFormulario(obj, boolean) {
         muestraAnalisisSuelo.value = datos.value.muestra;
         cultivoAnalisisSuelo.value = datos.value.cultivo;
         laboratorioAnalisisSuelo.value = datos.value.laboratorio;
-        resultadosAnalisisSuelo.value = datos.value.resultados;
+        resultadosAnalisisSuelo.value = [...datos.value.resultados];
         recomendacionesAnalisisSuelo.value = datos.value.recomendaciones;
 
         mostrarBotonEditar.value = true;
@@ -632,7 +634,7 @@ onMounted(() => {
                     <q-input
                         standout="bg-green text-while"
                         type="textarea"
-                        label="Resultados"
+                        label="Resultados (separa con comas)"
                         v-model="resultadosAnalisisSuelo" />
                     <q-input
                         standout="bg-green text-while"

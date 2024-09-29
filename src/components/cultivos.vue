@@ -70,7 +70,7 @@ async function listarParcelas() {
     try {
         loading.value = true;
         const r = await useCultivo.getParcelas();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -83,7 +83,7 @@ async function listarParcelas() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         parcelas.value = r.data.parcelas;
     } finally {
         loading.value = false;
@@ -94,7 +94,7 @@ async function listarCultivos() {
     try {
         loading.value = true;
         const r = await useCultivo.getCultivos();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -107,7 +107,7 @@ async function listarCultivos() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         rows.value = r.data.cultivos;
     } finally {
         loading.value = false;

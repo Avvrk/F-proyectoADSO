@@ -128,8 +128,8 @@ const opcionesCultivos = computed(() => {
 });
 
 const opcionesEmpleados = computed(() => {
-    return empleados.value.map((e) => {
-        return { label: `${e.nombre} (dni: ${e.documento})`, id: e._id };
+    return empleados.value.filter(({estado}) => estado === 0).filter(({rol}) => rol === "Empleado").map((e) => {
+        return { label: `${e.nombre} (correo: ${e.correo})`, id: e._id };
     });
 });
 
@@ -137,7 +137,7 @@ async function listarCultivos() {
     try {
         loading.value = true;
         const r = await useControlPlaga.getCultivos();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -150,7 +150,7 @@ async function listarCultivos() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         cultivos.value = r.data.cultivos;
     } finally {
         loading.value = false;
@@ -161,7 +161,7 @@ async function listarEmpleados() {
     try {
         loading.value = true;
         const r = await useControlPlaga.getEmpleados();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -174,8 +174,8 @@ async function listarEmpleados() {
                 });
                 return router.push("/");
             }
-        }
-        empleados.value = r.data.empleados;
+        } */
+        empleados.value = r.data.admins;
     } finally {
         loading.value = false;
     }
@@ -185,7 +185,7 @@ async function listarControlPlagas() {
     try {
         loading.value = true;
         const r = await useControlPlaga.getControlPlagas();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -198,7 +198,7 @@ async function listarControlPlagas() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         rows.value = r.data.plagas;
     } finally {
         loading.value = false;
