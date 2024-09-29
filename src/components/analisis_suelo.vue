@@ -330,6 +330,7 @@ async function registrar() {
 }
 
 async function editar() {
+console.log(resultadosAnalisisSuelo.value.split(','))
     if (validarDatos()) {
         try {
             loading.value = true;
@@ -453,6 +454,7 @@ function controlFormulario(obj, boolean) {
     if (obj != null && boolean == true) {
         const par = opcionesParcelas.value;
         const em = opcionesResponsables.value;
+        // const r = datos.value.resultados;
 
         fechaAnalisisSuelo.value = datos.value.fecha.split("T")[0];
         parcelaAnalisisSuelo.value = par.find(
@@ -636,7 +638,7 @@ onMounted(() => {
                         autogrow
                         standout="bg-green text-while"
                         type="text"
-                        label="Resultados (separados por comas)"
+                        label="Resultados (separa con comas)"
                         v-model="resultadosAnalisisSuelo" />
                     <q-input
                         autogrow

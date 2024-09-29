@@ -29,6 +29,13 @@ const columns = ref([
         sortable: true,
     },
     {
+        name: "rol",
+        label: "Rol",
+        field: "rol",
+        align: "center",
+        sortable: true,
+    },
+    {
         name: "direccion",
         label: "Direccion",
         field: "direccion",
@@ -118,7 +125,7 @@ async function listarAdmin() {
                     type: "negative",
                     message: "Token no valido",
                 });
-                return router.push("/");
+                router.push("/")
             }
         } */
         rows.value = r.data.admins;
@@ -219,6 +226,7 @@ function validarDatos() {
         !correoAdmin.value.trim() &&
         !telefonoAdmin.value.trim() &&
         !ciudadAdmin.value.trim() &&
+        !rolAdmin.value &&
         datos.value == null &&
         !claveAdmin.value.trim() &&
         !rolAdmin.value
@@ -289,7 +297,7 @@ function validarDatos() {
             $q.notify({
                 type: "negative",
                 message: "El rol esta vacio",
-                position: "bottom"
+                position: "bottom",
             })
         }
     }
@@ -408,7 +416,7 @@ onMounted(() => {
                     @submit="mostrarBotonEditar ? editar() : registrar()"
                     class="q-gutter-md">
                     <p class="text-h5 text-center q-pb-md text-green">
-                        {{ datos ? "Editar" : "Agregar" }} Administrador
+                        {{ datos ? "Editar" : "Agregar" }} Usuario
                     </p>
                     <q-input
                         standout="bg-green text-while"
