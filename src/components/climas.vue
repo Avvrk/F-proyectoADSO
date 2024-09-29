@@ -132,7 +132,7 @@ async function listarFincas() {
     try {
         loading.value = true;
         const r = await useClima.getFincas();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -145,7 +145,7 @@ async function listarFincas() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         fincas.value = r.data.fincas;
     } finally {
         loading.value = false;

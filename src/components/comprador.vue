@@ -144,7 +144,7 @@ async function listarProduccion() {
     try {
         loading.value = true;
         const r = await useComprador.getProduccion();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -157,7 +157,7 @@ async function listarProduccion() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         produccion.value = r.data.producciones;
     } finally {
         loading.value = false;
@@ -168,7 +168,7 @@ async function listarComprador() {
     try {
         loading.value = true;
         const r = await useComprador.getComprador();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -181,7 +181,7 @@ async function listarComprador() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         rows.value = r.data.compradores;
     } finally {
         loading.value = false;
