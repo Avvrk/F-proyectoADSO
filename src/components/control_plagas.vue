@@ -70,9 +70,9 @@ const columns = ref([
         sortable: true,
     },
     {
-        name: "operario",
+        name: "operario_id",
         label: "Operario",
-        field: "operario",
+        field: "operario_id",
         align: "center",
         sortable: true,
     },
@@ -128,9 +128,10 @@ const opcionesCultivos = computed(() => {
 });
 
 const opcionesEmpleados = computed(() => {
-    return empleados.value.filter(({estado}) => estado === 0).filter(({rol}) => rol === "Empleado").map((e) => {
+    return empleados.value.filter(({estado}) => estado === 1).filter(({rol}) => rol === "Empleado").map((e) => {
         return { label: `${e.nombre} (correo: ${e.correo})`, id: e._id };
     });
+
 });
 
 async function listarCultivos() {
@@ -289,7 +290,7 @@ async function registrar() {
                 tipo: tipoControlPlagas.value,
                 ingredientesActivo: ingredientesActivoControlPlagas.value,
                 dosis: dosisControlPlagas.value,
-                operario: operarioControlPlagas.value,
+                operario_id: operarioControlPlagas.value.id,
                 observaciones: observacionesControlPlagas.value,
             };
 
@@ -317,7 +318,7 @@ async function editar() {
                 tipo: tipoControlPlagas.value,
                 ingredientesActivo: ingredientesActivoControlPlagas.value,
                 dosis: dosisControlPlagas.value,
-                operario: operarioControlPlagas.value,
+                operario_id: operarioControlPlagas.value.id,
                 observaciones: observacionesControlPlagas.value,
             };
 
@@ -346,7 +347,7 @@ function validarDatos() {
         !tipoControlPlagas.value &&
         !ingredientesActivoControlPlagas.value.trim() &&
         !dosisControlPlagas.value.trim() &&
-        !operarioControlPlagas.value.trim() &&
+        !operarioControlPlagas.value &&
         !observacionesControlPlagas.value.trim()
     ) {
         $q.notify({
@@ -427,7 +428,7 @@ function validarDatos() {
             });
             validacion = false;
         }
-        if (!operarioControlPlagas.value.trim()) {
+        if (!operarioControlPlagas.value) {
             $q.notify({
                 type: "negative",
                 message: "El operario esta vacio",
@@ -474,7 +475,9 @@ function controlFormulario(obj, boolean) {
         tipoControlPlagas.value = datos.value.tipo;
         ingredientesActivoControlPlagas.value = datos.value.ingredientesActivo;
         dosisControlPlagas.value = String(datos.value.dosis);
-        operarioControlPlagas.value = datos.value.operario;
+        operarioControlPlagas.value = opcionesEmpleados.value.find(
+            (e) => e.id == datos.value.operario_id._id
+        );;
         observacionesControlPlagas.value = datos.value.observaciones;
 
         mostrarBotonEditar.value = true;
@@ -600,7 +603,7 @@ onMounted(() => {
             <q-card>
                 <q-form
                     @submit="mostrarBotonEditar ? editar() : registrar()"
-                    class="q-gutter-sm">
+                    class="q-gutter-md">
                     <p class="text-h5 text-center q-pb-md text-green">
                         {{ datos ? "Editar" : "Agregar" }} Control de Plagas
                     </p>
@@ -644,9 +647,9 @@ onMounted(() => {
                         type="text"
                         label="Dosis"
                         v-model="dosisControlPlagas" />
-                    <q-input
+                    <q-select
                         standout="bg-green text-white"
-                        type="text"
+                        :options="opcionesEmpleados"
                         label="Operario"
                         v-model="operarioControlPlagas" />
                     <q-input
@@ -688,10 +691,5 @@ onMounted(() => {
     width: 30rem;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border: 0;
-}
-
-.q-form .q-input,
-.q-form .q-select {
-    margin-bottom: 15px;
 }
 </style>

@@ -41,13 +41,6 @@ const columns = ref([
         align: "center",
     },
     {
-        name: "documento",
-        label: "Documento",
-        field: "documento",
-        align: "center",
-        sortable: true,
-    },
-    {
         name: "telefono",
         label: "Telefono",
         field: "telefono",
@@ -69,16 +62,9 @@ const columns = ref([
         sortable: true,
     },
     {
-        name: "numeroLoteComercial",
-        label: "Num. Lote Comercial",
-        field: "numeroLoteComercial",
-        align: "center",
-        sortable: true,
-    },
-    {
-        name: "total",
-        label: "Total",
-        field: "total",
+        name: "valor",
+        label: "Valor",
+        field: "valor",
         align: "center",
         sortable: true,
     },
@@ -100,12 +86,10 @@ const produccionComprador = ref("");
 const fechaComprador = ref("");
 const especieComprador = ref("");
 const nombreComprador = ref("");
-const documentoComprador = ref("");
 const telefonoComprador = ref("");
 const cantidadComprador = ref("");
 const numeroGuiaTransporteComprador = ref("");
-const numeroLoteComercialComprador = ref("");
-const totalComprador = ref("");
+const valorComprador = ref("");
 
 const opcionTabla = ref("Todos");
 
@@ -288,12 +272,10 @@ async function registrar() {
                 fecha: fechaComprador.value,
                 especie: especieComprador.value,
                 nombre: nombreComprador.value,
-                documento: documentoComprador.value,
                 telefono: telefonoComprador.value,
                 cantidad: cantidadComprador.value,
                 numeroGuiaTransporte: numeroGuiaTransporteComprador.value,
-                numeroLoteComercial: numeroLoteComercialComprador.value,
-                total: totalComprador.value,
+                valor: valorComprador.value,
             };
 
             const res = await useComprador.postComprador(info);
@@ -316,12 +298,10 @@ async function editar() {
                 fecha: fechaComprador.value,
                 especie: especieComprador.value,
                 nombre: nombreComprador.value,
-                documento: documentoComprador.value,
                 telefono: telefonoComprador.value,
                 cantidad: cantidadComprador.value,
                 numeroGuiaTransporte: numeroGuiaTransporteComprador.value,
-                numeroLoteComercial: numeroLoteComercialComprador.value,
-                total: totalComprador.value,
+                valor: valorComprador.value,
             };
 
             const res = await useComprador.putComprador(datos.value._id, info);
@@ -342,12 +322,10 @@ function validarDatos() {
         !fechaComprador.value &&
         !especieComprador.value.trim() &&
         !nombreComprador.value.trim() &&
-        !documentoComprador.value.trim() &&
         !telefonoComprador.value.trim() &&
         !cantidadComprador.value.trim() &&
         !numeroGuiaTransporteComprador.value.trim() &&
-        !numeroLoteComercialComprador.value.trim() &&
-        !totalComprador.value.trim()
+        !valorComprador.value.trim()
     ) {
         $q.notify({
             type: "negative",
@@ -388,14 +366,6 @@ function validarDatos() {
             });
             validacion = false;
         }
-        if (!documentoComprador.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El documento esta vacio",
-                position: "bottom",
-            });
-            validacion = false;
-        }
         if (!telefonoComprador.value.trim()) {
             $q.notify({
                 type: "negative",
@@ -420,15 +390,7 @@ function validarDatos() {
             });
             validacion = false;
         }
-        if (!numeroLoteComercialComprador.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El Num. lote comercial esta vacio",
-                position: "bottom",
-            });
-            validacion = false;
-        }
-        if (!totalComprador.value.trim()) {
+        if (!valorComprador.value.trim()) {
             $q.notify({
                 type: "negative",
                 message: "El total esta vacio",
@@ -445,12 +407,10 @@ function controlFormulario(obj, boolean) {
     fechaComprador.value = "";
     especieComprador.value = "";
     nombreComprador.value = "";
-    documentoComprador.value = "";
     telefonoComprador.value = "";
     cantidadComprador.value = "";
     numeroGuiaTransporteComprador.value = "";
-    numeroLoteComercialComprador.value = "";
-    totalComprador.value = "";
+    valorComprador.value = "";
 
     datos.value = obj;
     mostrarBotonEditar.value = false;
@@ -461,12 +421,10 @@ function controlFormulario(obj, boolean) {
         fechaComprador.value = datos.value.fecha.split("T")[0];
         especieComprador.value = datos.value.especie;
         nombreComprador.value = datos.value.nombre;
-        documentoComprador.value = datos.value.documento;
         telefonoComprador.value = String(datos.value.telefono);
         cantidadComprador.value = String(datos.value.cantidad);
         numeroGuiaTransporteComprador.value = datos.value.numeroGuiaTransporte;
-        numeroLoteComercialComprador.value = datos.value.numeroLoteComercial;
-        totalComprador.value = String(datos.value.total);
+        valorComprador.value = String(datos.value.total);
 
         mostrarBotonEditar.value = true;
     }
@@ -608,7 +566,7 @@ onMounted(() => {
             <q-card>
                 <q-form
                     @submit="mostrarBotonEditar ? editar() : registrar()"
-                    class="q-gutter-sm">
+                    class="q-gutter-md">
                     <p class="text-h5 text-center q-pb-md text-green">
                         {{ datos ? "Editar" : "Agregar" }} Comprador
                     </p>
@@ -635,11 +593,6 @@ onMounted(() => {
                     <q-input
                         standout="bg-green text-while"
                         type="text"
-                        label="Documento"
-                        v-model="documentoComprador" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="text"
                         label="Telefono"
                         v-model="telefonoComprador" />
                     <q-input
@@ -655,13 +608,8 @@ onMounted(() => {
                     <q-input
                         standout="bg-green text-while"
                         type="text"
-                        label="Num Lote Comercial"
-                        v-model="numeroLoteComercialComprador" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="text"
-                        label="Total"
-                        v-model="totalComprador" />
+                        label="Valor"
+                        v-model="valorComprador" />
                     <div class="row justify-end" style="gap: 10px">
                         <q-btn
                             unelevated
@@ -696,10 +644,5 @@ onMounted(() => {
     width: 30rem;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border: 0;
-}
-
-.q-form .q-input,
-.q-form .q-select {
-    margin-bottom: 15px;
 }
 </style>

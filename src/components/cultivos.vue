@@ -347,7 +347,7 @@ onMounted(() => {
             <q-card>
                 <q-form
                     @submit="mostrarBotonEditar ? editar() : registrar()"
-                    class="q-gutter-sm">
+                    class="q-gutter-md">
                     <p class="text-h5 text-center q-pb-md text-green">
                         {{ datos ? "Editar" : "Agregar" }} Cultivos
                     </p>
@@ -400,10 +400,5 @@ onMounted(() => {
     width: 30rem;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border: 0;
-}
-
-.q-form .q-input,
-.q-form .q-select {
-    margin-bottom: 15px;
 }
 </style>

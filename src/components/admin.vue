@@ -15,6 +15,13 @@ const opcionesTabla = ["Todos", "Activos", "Inactivos"];
 const rows = ref([]);
 const columns = ref([
     {
+        name: "rol",
+        label: "Rol",
+        field: "rol",
+        align: "center",
+        sortable: true,
+    },
+    {
         name: "nombre",
         label: "Nombre",
         field: "nombre",
@@ -221,7 +228,8 @@ function validarDatos() {
         !ciudadAdmin.value.trim() &&
         !rolAdmin.value &&
         datos.value == null &&
-        !claveAdmin.value.trim()
+        !claveAdmin.value.trim() &&
+        !rolAdmin.value
     ) {
         $q.notify({
             type: "negative",
@@ -406,7 +414,7 @@ onMounted(() => {
             <q-card>
                 <q-form
                     @submit="mostrarBotonEditar ? editar() : registrar()"
-                    class="q-gutter-sm">
+                    class="q-gutter-md">
                     <p class="text-h5 text-center q-pb-md text-green">
                         {{ datos ? "Editar" : "Agregar" }} Usuario
                     </p>
@@ -487,10 +495,5 @@ onMounted(() => {
     width: 30rem;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border: 0;
-}
-
-.q-form .q-input,
-.q-form .q-select {
-    margin-bottom: 15px;
 }
 </style>

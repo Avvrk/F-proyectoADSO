@@ -115,6 +115,7 @@ const opcionesResponsables = computed(() => {
     return empleados.value.filter(({estado}) => estado === 1).filter(({rol}) => rol === "Empleado").map((e) => {
         return { label: `${e.nombre} (correo: ${e.correo})`, id: e._id };
     });
+
 });
 
 const opcionesParcelas = computed(() => {
@@ -313,7 +314,7 @@ async function registrar() {
                 muestra: muestraAnalisisSuelo.value,
                 cultivo: cultivoAnalisisSuelo.value,
                 laboratorio: laboratorioAnalisisSuelo.value,
-                resultados: resultadosAnalisisSuelo.value.split(',').map(item => item.trim()),
+                resultados: resultadosAnalisisSuelo.value.split(',').map(r => r.trim()),
                 recomendaciones: recomendacionesAnalisisSuelo.value,
             };
 
@@ -340,7 +341,7 @@ console.log(resultadosAnalisisSuelo.value.split(','))
                 muestra: muestraAnalisisSuelo.value,
                 cultivo: cultivoAnalisisSuelo.value,
                 laboratorio: laboratorioAnalisisSuelo.value,
-                resultados: resultadosAnalisisSuelo.value.split(',').map(item => item.trim()),
+                resultados: resultadosAnalisisSuelo.value.split(',').map(r => r.trim()),
                 recomendaciones: recomendacionesAnalisisSuelo.value,
             };
 
@@ -359,6 +360,8 @@ console.log(resultadosAnalisisSuelo.value.split(','))
 }
 
 function validarDatos() {
+    alert(resultadosAnalisisSuelo.value);
+    
     let validacion = true;
     if (
         !fechaAnalisisSuelo.value &&
@@ -597,7 +600,7 @@ onMounted(() => {
             <q-card>
                 <q-form
                     @submit="mostrarBotonEditar ? editar() : registrar()"
-                    class="q-gutter-sm">
+                    class="q-gutter-md">
                     <p class="text-h5 text-center q-pb-md text-green">
                         {{ datos ? "Editar" : "Agregar" }} Analisis del Suelo
                     </p>
@@ -632,13 +635,15 @@ onMounted(() => {
                         label="Laboratorio"
                         v-model="laboratorioAnalisisSuelo" />
                     <q-input
+                        autogrow
                         standout="bg-green text-while"
-                        type="textarea"
+                        type="text"
                         label="Resultados (separa con comas)"
                         v-model="resultadosAnalisisSuelo" />
                     <q-input
+                        autogrow
                         standout="bg-green text-while"
-                        type="textarea"
+                        type="text"
                         label="Recomendaciones"
                         v-model="recomendacionesAnalisisSuelo" />
                     <div class="row justify-end" style="gap: 10px">
@@ -681,10 +686,5 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     height: auto;
-}
-
-.q-form .q-input,
-.q-form .q-select {
-    margin-bottom: 15px;
 }
 </style>
