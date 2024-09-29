@@ -160,7 +160,7 @@ async function listarAdmins() {
     try {
         loading.value = true;
         const r = await useFincas.getAdmin();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -173,7 +173,7 @@ async function listarAdmins() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         admin.value = r.data.admins;
     } finally {
         loading.value = false;
