@@ -174,8 +174,5 @@ export const useStoreFincas = defineStore(
 			putFincaActivar,
 			putFincaInactivar,
 		};
-	},
-	{
-		persist: true,
 	}
 );
