@@ -155,17 +155,9 @@ export const useStoreClimas = defineStore("climas", () => {
 				},
 			});
 			if (r.status !== 200) {
-				$q.notify({
-					type: "negative",
-					message: "Parece que hubo un error al editar",
-					position: "bottom-right",
-				});
+				notify("Parece que hubo un error al editar")
 			} else {
-				$q.notify({
-					type: "positive",
-					message: "El editar se ha realizado correctamente",
-					position: "bottom-right",
-				});
+				notify("El editar se ha realizado correctamente", "positive")
 			}
 			return r;
 		} catch (error) {
