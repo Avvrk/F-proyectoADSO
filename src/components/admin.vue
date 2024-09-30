@@ -1,12 +1,10 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useStoreAdmins } from "../stores/admin.js";
-import { useQuasar } from "quasar";
-import { useRouter } from "vue-router";
+// import { useRouter } from "vue-router";
+import notify from "../utils/notificaciones.js";
 
-const router = useRouter();
-
-const $q = useQuasar();
+// const router = useRouter();
 
 const useAdmin = useStoreAdmins();
 
@@ -186,7 +184,11 @@ async function registrar() {
             if (res.status === 200) {
                 mostrarFormularioAdmin.value = false;
                 listarAdmin();
-            }
+            } else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
         } finally {
             loading.value = false;
         }
@@ -210,7 +212,11 @@ async function editar() {
             if (res.status === 200) {
                 mostrarFormularioAdmin.value = false;
                 listarAdmin();
-            }
+            } else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
         } finally {
             loading.value = false;
         }
@@ -231,76 +237,42 @@ function validarDatos() {
         !claveAdmin.value.trim() &&
         !rolAdmin.value
     ) {
-        $q.notify({
-            type: "negative",
-            message: "Llena todos los campos",
-            position: "bottom",
-        });
+        notify("Llena todos los campos");
         validacion = false;
     } else {
         if (!nombreAdmin.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El nombre esta vacio",
-                position: "bottom",
-            });
+            notify("El nombre está vacío");
             validacion = false;
         }
         if (!direccionAdmin.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "La direccion esta vacia",
-                position: "bottom",
-            });
+            notify("La dirección está vacía");
             validacion = false;
         }
         if (!correoAdmin.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El correo esta vacio",
-                position: "bottom",
-            });
+            notify("El correo está vacío");
             validacion = false;
         }
         if (!telefonoAdmin.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El telefono esta vacio",
-                position: "bottom",
-            });
+            notify("El teléfono está vacío");
             validacion = false;
         } else if (telefonoAdmin.value.length < 10) {
-            $q.notify({
-                type: "negative",
-                message: "El telefono debe tener minimo 10 caracteres",
-                position: "bottom",
-            });
+            notify("El teléfono debe tener mínimo 10 caracteres");
             validacion = false;
         }
         if (!ciudadAdmin.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "La ciudad esta vacia",
-                position: "bottom",
-            });
+            notify("La ciudad está vacía");
             validacion = false;
         }
         if (datos === null && !claveAdmin.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "La contraseña esta vacia",
-                position: "bottom",
-            });
+            notify("La contraseña está vacía");
             validacion = false;
         }
         if (!rolAdmin.value) {
-            $q.notify({
-                type: "negative",
-                message: "El rol esta vacio",
-                position: "bottom",
-            })
+            notify("El rol está vacío");
+            validacion = false;
         }
     }
+
     return validacion;
 }
 

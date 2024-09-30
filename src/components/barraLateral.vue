@@ -6,7 +6,7 @@
                 <q-toolbar-title>
                     <em>campo</em>
                 </q-toolbar-title>
-                <button style="color: red; font-weight: 900; font-size: large; background-color: transparent; border: 0px; display: flex; flex-direction: row-reverse; cursor: pointer;" @click="cerrar()">
+                <button style="color: red; font-weight: 600; font-size: large; background-color: transparent; border: 0px; display: flex; flex-direction: row-reverse; cursor: pointer;" @click="cerrar()">
                     Cerrar Sesión
                     <q-item-section avatar>
                         <q-icon name="login" />

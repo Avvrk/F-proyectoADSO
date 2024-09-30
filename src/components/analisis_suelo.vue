@@ -1,9 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useStoreAnalisisSuelos } from "../stores/analisis_suelo.js";
-import { useQuasar } from "quasar";
-
-const $q = useQuasar();
+import notify from "../utils/notificaciones.js";
 
 const useAnalisisSuelo = useStoreAnalisisSuelos();
 
@@ -238,12 +236,7 @@ async function listarAnalisisSueloFechas() {
         const fin = new Date(fechaFin.value);
 
         if (inicio > fin) {
-            $q.notify({
-                type: "negative",
-                message:
-                    "La fecha de inicio no puede ser mayor que la fecha de fin.",
-                position: "bottom",
-            });
+            notify("La fecha de inicio no puede ser mayor que la fecha de fin.")
             return;
         }
         try {
@@ -257,11 +250,7 @@ async function listarAnalisisSueloFechas() {
             loading.value = false;
         }
     } else {
-        $q.notify({
-            type: "negative",
-            message: "Llena los campos",
-            position: "bottom",
-        });
+        notify("Llena los campos")
     }
 }
 
@@ -277,11 +266,7 @@ async function listarAnalisisSueloResponsable() {
             loading.value = false;
         }
     } else {
-        $q.notify({
-            type: "negative",
-            message: "Llena el campo",
-            position: "bottom",
-        });
+        notify("Llena el campo")
     }
 }
 
@@ -322,7 +307,11 @@ async function registrar() {
             if (res.status === 200) {
                 mostrarFormularioAnalisisSuelo.value = false;
                 listarAnalisisSuelo();
-            }
+            } else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
         } finally {
             loading.value = false;
         }
@@ -352,7 +341,11 @@ console.log(resultadosAnalisisSuelo.value.split(','))
             if (res.status === 200) {
                 mostrarFormularioAnalisisSuelo.value = false;
                 listarAnalisisSuelo();
-            }
+            } else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
         } finally {
             loading.value = false;
         }
@@ -360,9 +353,8 @@ console.log(resultadosAnalisisSuelo.value.split(','))
 }
 
 function validarDatos() {
-    alert(resultadosAnalisisSuelo.value);
-    
     let validacion = true;
+
     if (
         !fechaAnalisisSuelo.value &&
         !parcelaAnalisisSuelo.value &&
@@ -373,78 +365,43 @@ function validarDatos() {
         !resultadosAnalisisSuelo.value.trim() &&
         !recomendacionesAnalisisSuelo.value.trim()
     ) {
-        $q.notify({
-            type: "negative",
-            message: "Llena todos los campos",
-            position: "bottom",
-        });
+        notify("Llena todos los campos");
         validacion = false;
     } else {
         if (!fechaAnalisisSuelo.value) {
-            $q.notify({
-                type: "negative",
-                message: "La fecha esta vacia",
-                position: "bottom",
-            });
+            notify("La fecha está vacía");
             validacion = false;
         }
         if (!parcelaAnalisisSuelo.value) {
-            $q.notify({
-                type: "negative",
-                message: "La parcela esta vacia",
-                position: "bottom",
-            });
+            notify("La parcela está vacía");
             validacion = false;
         }
         if (!empleadoAnalisisSuelo.value) {
-            $q.notify({
-                type: "negative",
-                message: "El empleado esta vacio",
-                position: "bottom",
-            });
+            notify("El empleado está vacío");
             validacion = false;
         }
         if (!muestraAnalisisSuelo.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "La muestra esta vacia",
-                position: "bottom",
-            });
+            notify("La muestra está vacía");
             validacion = false;
         }
         if (!cultivoAnalisisSuelo.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El cultivo esta vacio",
-                position: "bottom",
-            });
+            notify("El cultivo está vacío");
             validacion = false;
         }
         if (!laboratorioAnalisisSuelo.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El laboratorio esta vacio",
-                position: "bottom",
-            });
+            notify("El laboratorio está vacío");
             validacion = false;
         }
         if (!resultadosAnalisisSuelo.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El resultado esta vacio",
-                position: "bottom",
-            });
+            notify("El resultado está vacío");
             validacion = false;
         }
         if (!recomendacionesAnalisisSuelo.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "La recomendacion esta vacia",
-                position: "bottom",
-            });
+            notify("La recomendación está vacía");
             validacion = false;
         }
     }
+
     return validacion;
 }
 

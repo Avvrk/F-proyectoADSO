@@ -1,9 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useStoreControl_plagas } from "../stores/control_plagas.js";
-import { useQuasar } from "quasar";
-
-const $q = useQuasar();
+import notify from "../utils/notificaciones.js";
 
 const useControlPlaga = useStoreControl_plagas();
 
@@ -212,12 +210,7 @@ async function listarControlPlagasFechas() {
         const fin = new Date(fechaFin.value);
 
         if (inicio > fin) {
-            $q.notify({
-                type: "negative",
-                message:
-                    "La fecha de inicio no puede ser mayor que la fecha de fin.",
-                position: "bottom",
-            });
+            notify("La fecha de inicio no puede ser mayor que la fecha de fin.")
             return;
         }
         try {
@@ -231,11 +224,7 @@ async function listarControlPlagasFechas() {
             loading.value = false;
         }
     } else {
-        $q.notify({
-            type: "negative",
-            message: "Llena los campos",
-            position: "bottom",
-        });
+        notify("Llena los campos")
     }
 }
 
@@ -251,11 +240,7 @@ async function listarControlPlagasOperario() {
             loading.value = false;
         }
     } else {
-        $q.notify({
-            type: "negative",
-            message: "Llena el campo",
-            position: "bottom",
-        });
+        notify("Llena el campo")
     }
 }
 
@@ -269,11 +254,7 @@ async function listarControlPlagasTipo() {
             loading.value = false;
         }
     } else {
-        $q.notify({
-            type: "negative",
-            message: "Llena el campo",
-            position: "bottom",
-        });
+        notify("Llena el campo")
     }
 }
 
@@ -298,7 +279,11 @@ async function registrar() {
             if (res.status === 200) {
                 mostrarFormularioControlPlaga.value = false;
                 listarControlPlagas();
-            }
+            } else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
         } finally {
             loading.value = false;
         }
@@ -329,7 +314,11 @@ async function editar() {
             if (res.status === 200) {
                 mostrarFormularioControlPlaga.value = false;
                 listarControlPlagas();
-            }
+            } else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
         } finally {
             loading.value = false;
         }
@@ -338,6 +327,7 @@ async function editar() {
 
 function validarDatos() {
     let validacion = true;
+
     if (
         !cultivoControlPlagas.value &&
         !empleadoControlPlagas.value &&
@@ -350,101 +340,54 @@ function validarDatos() {
         !operarioControlPlagas.value &&
         !observacionesControlPlagas.value.trim()
     ) {
-        $q.notify({
-            type: "negative",
-            message: "Llena todos los campos",
-            position: "bottom",
-        });
+        notify("Llena todos los campos");
         validacion = false;
     } else {
         if (!cultivoControlPlagas.value) {
-            $q.notify({
-                type: "negative",
-                message: "El cultivo esta vacio",
-                position: "bottom",
-            });
+            notify("El cultivo está vacío");
             validacion = false;
         }
         if (!empleadoControlPlagas.value) {
-            $q.notify({
-                type: "negative",
-                message: "El empleado esta vacio",
-                position: "bottom",
-            });
+            notify("El empleado está vacío");
             validacion = false;
         }
         if (!fechaControlPlagas.value) {
-            $q.notify({
-                type: "negative",
-                message: "La fecha esta vacia",
-                position: "bottom",
-            });
+            notify("La fecha está vacía");
             validacion = false;
         }
         if (!tipoCultivoControlPlagas.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El tipo del cultivo esta vacio",
-                position: "bottom",
-            });
+            notify("El tipo del cultivo está vacío");
             validacion = false;
         }
         if (!nombreControlPlagas.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El nombre esta vacio",
-                position: "bottom",
-            });
+            notify("El nombre está vacío");
             validacion = false;
         }
         if (!tipoControlPlagas.value) {
-            $q.notify({
-                type: "negative",
-                message: "El tipo esta vacio",
-                position: "bottom",
-            });
+            notify("El tipo está vacío");
             validacion = false;
         }
         if (!ingredientesActivoControlPlagas.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El ingrediente activo esta vacio",
-                position: "bottom",
-            });
+            notify("El ingrediente activo está vacío");
             validacion = false;
         }
         if (!dosisControlPlagas.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "La dosis esta vacia",
-                position: "bottom",
-            });
+            notify("La dosis está vacía");
             validacion = false;
         } else if (isNaN(Number(dosisControlPlagas.value))) {
-            $q.notify({
-                type: "negative",
-                message: "La dosis debe ser un numero",
-                position: "bottom",
-            });
+            notify("La dosis debe ser un número");
             validacion = false;
         }
         if (!operarioControlPlagas.value) {
-            $q.notify({
-                type: "negative",
-                message: "El operario esta vacio",
-                position: "bottom",
-            });
+            notify("El operario está vacío");
             validacion = false;
         }
         if (!observacionesControlPlagas.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "La observacion esta vacia",
-                position: "bottom",
-            });
+            notify("La observación está vacía");
             validacion = false;
         }
     }
+
     return validacion;
 }
 

@@ -1,9 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useStoreComprador } from "../stores/comprador.js";
-import { useQuasar } from "quasar";
-
-const $q = useQuasar();
+import notify from "../utils/notificaciones.js";
 
 const useComprador = useStoreComprador();
 
@@ -198,12 +196,7 @@ async function listarCompradorFechas() {
         const fin = new Date(fechaFin.value);
 
         if (inicio > fin) {
-            $q.notify({
-                type: "negative",
-                message:
-                    "La fecha de inicio no puede ser mayor que la fecha de fin.",
-                position: "bottom",
-            });
+            notify("La fecha de inicio no puede ser mayor que la fecha de fin.")
             return;
         }
         try {
@@ -241,11 +234,7 @@ async function listarCompradorDocumento() {
             loading.value = false;
         }
     } else {
-        $q.notify({
-            type: "negative",
-            message: "Llena el campo",
-            position: "bottom",
-        });
+        notify("Llena el campo")
     }
 }
 
@@ -282,7 +271,11 @@ async function registrar() {
             if (res.status === 200) {
                 mostrarFormularioComprador.value = false;
                 listarComprador();
-            }
+            } else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
         } finally {
             loading.value = false;
         }
@@ -308,7 +301,11 @@ async function editar() {
             if (res.status === 200) {
                 mostrarFormularioComprador.value = false;
                 listarComprador();
-            }
+            } else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
         } finally {
             loading.value = false;
         }
@@ -317,6 +314,7 @@ async function editar() {
 
 function validarDatos() {
     let validacion = true;
+
     if (
         !produccionComprador.value &&
         !fechaComprador.value &&
@@ -327,78 +325,43 @@ function validarDatos() {
         !numeroGuiaTransporteComprador.value.trim() &&
         !valorComprador.value.trim()
     ) {
-        $q.notify({
-            type: "negative",
-            message: "Llena todos los campos",
-            position: "bottom",
-        });
+        notify("Llena todos los campos");
         validacion = false;
     } else {
         if (!produccionComprador.value) {
-            $q.notify({
-                type: "negative",
-                message: "La produccion esta vacia",
-                position: "bottom",
-            });
+            notify("La producción está vacía");
             validacion = false;
         }
         if (!fechaComprador.value) {
-            $q.notify({
-                type: "negative",
-                message: "La fecha esta vacia",
-                position: "bottom",
-            });
+            notify("La fecha está vacía");
             validacion = false;
         }
         if (!especieComprador.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "La especie esta vacia",
-                position: "bottom",
-            });
+            notify("La especie está vacía");
             validacion = false;
         }
         if (!nombreComprador.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El nombre esta vacio",
-                position: "bottom",
-            });
+            notify("El nombre está vacío");
             validacion = false;
         }
         if (!telefonoComprador.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El telefono esta vacio",
-                position: "bottom",
-            });
+            notify("El teléfono está vacío");
             validacion = false;
         }
         if (!cantidadComprador.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "La cantidad esta vacia",
-                position: "bottom",
-            });
+            notify("La cantidad está vacía");
             validacion = false;
         }
         if (!numeroGuiaTransporteComprador.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El Num. guia transporte esta vacio",
-                position: "bottom",
-            });
+            notify("El número de guía de transporte está vacío");
             validacion = false;
         }
         if (!valorComprador.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El total esta vacio",
-                position: "bottom",
-            });
+            notify("El total está vacío");
             validacion = false;
         }
     }
+
     return validacion;
 }
 

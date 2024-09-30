@@ -1,7 +1,8 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import axios from "axios";
 import { useQuasar } from "quasar";
+import axios from "axios";
+import notify from "../utils/notificaciones.js"
 
 export const useStoreAdmins = defineStore(
 	"Admin",
@@ -109,17 +110,9 @@ export const useStoreAdmins = defineStore(
 				});
 				console.log(r.data);
 				if (r.status !== 200) {
-					$q.notify({
-						type: "negative",
-						message: "Parece que hubo un error en el registro",
-						position: "bottom-right",
-					});
+					notify("Parece que hubo un error en el registro")
 				} else {
-					$q.notify({
-						type: "positive",
-						message: "El registro se ha realizado correctamente",
-						position: "bottom-right",
-					});
+					notify("El registro se ha realizado correctamente", "positive")
 				}
 				return r;
 			} catch (error) {
@@ -137,17 +130,9 @@ export const useStoreAdmins = defineStore(
 				});
 				console.log(r.data);
 				if (r.status !== 200) {
-					$q.notify({
-						type: "negative",
-						message: "Parece que hubo un error al editar",
-						position: "bottom-right",
-					});
+					notify("Parece que hubo un error al editar")
 				} else {
-					$q.notify({
-						type: "positive",
-						message: "El editar se ha realizado correctamente",
-						position: "bottom-right",
-					});
+					notify("El editar se ha realizado correctamente", "positive")
 				}
 				return r;
 			} catch (error) {

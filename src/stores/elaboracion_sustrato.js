@@ -130,17 +130,9 @@ export const useStoreElaboracion_sustrato = defineStore(
 				);
 				console.log(r.data);
 				if (r.status !== 200) {
-					$q.notify({
-						type: "negative",
-						message: "Parece que hubo un error en el registro",
-						position: "bottom-right",
-					});
+					notify("Parece que hubo un error en el registro")
 				} else {
-					$q.notify({
-						type: "positive",
-						message: "El registro se ha realizado correctamente",
-						position: "bottom-right",
-					});
+					notify("El registro se ha realizado correctamente", "positive")
 				}
 				return r;
 			} catch (error) {

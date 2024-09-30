@@ -1,9 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useStoreCultivos } from "../stores/cultivos.js";
-import { useQuasar } from "quasar";
-
-const $q = useQuasar();
+import notify from "../utils/notificaciones.js";
 
 const useCultivo = useStoreCultivos();
 
@@ -124,11 +122,7 @@ async function listarCultivosPacerla() {
             loading.value = false;
         }
     } else {
-        $q.notify({
-            type: "negative",
-            message: "Llena el campo",
-            position: "bottom",
-        });
+        notify("Llena el campo")
     }
 }
 
@@ -142,11 +136,7 @@ async function listarCultivosTipo() {
             loading.value = false;
         }
     } else {
-        $q.notify({
-            type: "negative",
-            message: "Llena el campo",
-            position: "bottom",
-        });
+        notify("Llena el campo")
     }
 }
 
@@ -164,7 +154,11 @@ async function registrar() {
             if (res.status === 200) {
                 mostrarFormularioCultivos.value = false;
                 listarCultivos();
-            }
+            } else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
         } finally {
             loading.value = false;
         }
@@ -185,7 +179,11 @@ async function editar() {
             if (res.status === 200) {
                 mostrarFormularioCultivos.value = false;
                 listarCultivos();
-            }
+            } else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
         } finally {
             loading.value = false;
         }
@@ -194,43 +192,29 @@ async function editar() {
 
 function validarDatos() {
     let validacion = true;
+
     if (
         !nombreCultivo.value.trim() &&
         !tipoCultivo.value.trim() &&
         !parcelaCultivo.value
     ) {
-        $q.notify({
-            type: "negative",
-            message: "Llena todos los campos",
-            position: "bottom",
-        });
+        notify("Llena todos los campos");
         validacion = false;
     } else {
         if (!nombreCultivo.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El nombre esta vacio",
-                position: "bottom",
-            });
+            notify("El nombre está vacío");
             validacion = false;
         }
         if (!tipoCultivo.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El tipo esta vacio",
-                position: "bottom",
-            });
+            notify("El tipo está vacío");
             validacion = false;
         }
         if (!parcelaCultivo.value) {
-            $q.notify({
-                type: "negative",
-                message: "La parcela esta vacia",
-                position: "bottom",
-            });
+            notify("La parcela está vacía");
             validacion = false;
         }
     }
+
     return validacion;
 }
 
