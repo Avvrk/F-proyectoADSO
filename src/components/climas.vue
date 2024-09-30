@@ -67,21 +67,21 @@ const columns = ref([
 	},
 	{
 		name: "temperaturaMaxima",
-		label: "Temperatura Maxima",
+		label: "Temperatura Maxima (°C)",
 		field: "temperaturaMaxima",
 		align: "center",
 		sortable: true,
 	},
 	{
 		name: "temperaturaMinima",
-		label: "Temperatura Minima",
+		label: "Temperatura Minima (°C)",
 		field: "temperaturaMinima",
 		align: "center",
 		sortable: true,
 	},
     {
 		name: "pluviometria",
-		label: "Pluviometria",
+		label: "Pluviometria (mm/h)",
 		field: "pluviometria",
 		align: "center",
 		sortable: true,
@@ -532,17 +532,17 @@ onMounted(() => {
 					<q-input
 						standout="bg-green text-while"
 						type="text"
-						label="Temperatura Maxima"
+						label="Temperatura Maxima (°C)"
 						v-model="temperaturaMaximaClima" />
 					<q-input
 						standout="bg-green text-while"
 						type="text"
-						label="Temperatura Minima"
+						label="Temperatura Minima (°C)"
 						v-model="temperaturaMinimaClima" />
 					<q-input
 						standout="bg-green text-while"
 						type="text"
-						label="Pluviometria"
+						label="Pluviometria (mm/h)"
 						v-model="pluviometriaClima" />
 					<q-input
 						:disable="true"
