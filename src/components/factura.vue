@@ -1,9 +1,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { useStoreFacturas } from "../stores/factura.js";
-import { useQuasar } from "quasar";
-
-const $q = useQuasar();
+import notify from "../utils/notificaciones.js";
 
 const useFacturas = useStoreFacturas();
 
@@ -89,14 +87,14 @@ let columns = ref([
         sortable: true,
     },
 ]);
-const comprador = ref([]);
-const inventario = ref([]);
+const compradores = ref([]);
+const producciones = ref([]);
 
 //Variables necesarias en el formulario
 const fechaFactura = ref("");
 const valorFactura = ref("");
 /* Detalle */
-const inventarioFactura = ref("");
+const produccionFactura = ref("");
 const cantidadFactura = ref("");
 const nombreProductoFactura = ref("");
 const subtotalFactura = ref("");
@@ -149,10 +147,10 @@ async function listarComprador() {
     }
 }
 
-async function listarInventario() {
+async function listarProduccion() {
     try {
         loading.value = true;
-        const r = await useFacturas.getInventario();
+        const r = await useFacturas.getProduccion();
         /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
@@ -167,7 +165,7 @@ async function listarInventario() {
                 return router.push("/");
             }
         } */
-        inventarios.value = r.data.inventario;
+        producciones.value = r.data.produccion;
     } finally {
         loading.value = false;
     }
@@ -206,7 +204,7 @@ async function registrar() {
                 valor: valorFactura.value,
                 detalle: [
                     {
-                        id_produccion: inventarioFactura.value,
+                        id_produccion: produccionFactura.value,
                         cantidad: cantidadFactura.value,
                         nombreProducto: nombreProductoFactura.value,
                         subtotal: subtotalFactura.value,
@@ -238,7 +236,7 @@ async function editar() {
                 valor: valorFactura.value,
                 detalle: [
                     {
-                        id_produccion: inventarioFactura.value,
+                        id_produccion: produccionFactura.value,
                         cantidad: cantidadFactura.value,
                         nombreProducto: nombreProductoFactura.value,
                         subtotal: subtotalFactura.value,
@@ -263,6 +261,7 @@ async function editar() {
 
 function validarDatos() {
     let validacion = true;
+
     if (
         !fechaFactura.value &&
         !valorFactura.value.trim() &&
@@ -275,94 +274,51 @@ function validarDatos() {
         !compradorFactura.value &&
         !numeroLoteComercial.value.trim()
     ) {
-        $q.notify({
-            color: "negative",
-            message: "Llena todos los campos",
-            position: "bottom",
-        });
+        notify("Llena todos los campos");
         validacion = false;
     } else {
         if (!fechaFactura.value) {
-            $q.notify({
-                color: "negative",
-                message: "El campo fecha está vacío",
-                position: "bottom",
-            });
+            notify("El campo fecha está vacío");
             validacion = false;
         }
         if (!valorFactura.value) {
-            $q.notify({
-                color: "negative",
-                message: "El campo valor está vacío",
-                position: "bottom",
-            });
+            notify("El campo valor está vacío");
             validacion = false;
         }
         if (!inventarioFactura.value) {
-            $q.notify({
-                color: "negative",
-                message: "El campo inventario está vacío",
-                position: "bottom",
-            });
+            notify("El campo inventario está vacío");
             validacion = false;
         }
         if (!cantidadFactura.value.trim()) {
-            $q.notify({
-                color: "negative",
-                message: "El campo cantidad está vacío",
-                position: "bottom",
-            });
+            notify("El campo cantidad está vacío");
             validacion = false;
         }
         if (!nombreProductoFactura.value.trim()) {
-            $q.notify({
-                color: "negative",
-                message: "El campo nombre del producto está vacío",
-                position: "bottom",
-            });
+            notify("El campo nombre del producto está vacío");
             validacion = false;
         }
         if (!subtotalFactura.value.trim()) {
-            $q.notify({
-                color: "negative",
-                message: "El campo subtotal está vacío",
-                position: "bottom",
-            });
+            notify("El campo subtotal está vacío");
             validacion = false;
         }
         if (!ivaFactura.value.trim()) {
-            $q.notify({
-                color: "negative",
-                message: "El campo iva está vacío",
-                position: "bottom",
-            });
+            notify("El campo iva está vacío");
             validacion = false;
         }
         if (!totalFactura.value.trim()) {
-            $q.notify({
-                color: "negative",
-                message: "El campo total está vacío",
-                position: "bottom",
-            });
+            notify("El campo total está vacío");
             validacion = false;
         }
         if (!compradorFactura.value.trim()) {
-            $q.notify({
-                color: "negative",
-                message: "El campo comprador está vacío",
-                position: "bottom",
-            });
+            notify("El campo comprador está vacío");
             validacion = false;
         }
         if (!numeroLoteComercial.value.trim()) {
-            $q.notify({
-                color: "negative",
-                message: "El campo numero de lote comercial está vacío",
-                position: "bottom",
-            });
+            notify("El campo numero de lote comercial está vacío");
             validacion = false;
         }
     }
+
     return validacion;
 }
 
@@ -401,7 +357,7 @@ function controlFormulario(obj, boolean) {
 
 onMounted(() => {
     listarComprador();
-    listarInventario();
+    listarProduccion();
     listarFactura();
 });
 </script>
@@ -428,16 +384,6 @@ onMounted(() => {
                         </div>
                     </section>
                 </template>
-                <template v-slot:body-cell-estado="props">
-                    <q-td :props="props">
-                        <q-badge
-                            :color="props.row.estado === 1 ? 'green' : 'red'"
-                            align="top"
-                            :label="
-                                props.row.estado === 1 ? 'Activo' : 'Inactivo'
-                            " />
-                    </q-td>
-                </template>
                 <template v-slot:body-cell-opciones="props">
                     <q-td
                         :props="props"
@@ -462,52 +408,26 @@ onMounted(() => {
                         standout="bg-green text-while"
                         type="date"
                         label="Fecha"
-                        v-model="fechaFact" />
+                        v-model="fechaFactura" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Valor"
+                        v-model="valorFactura" />
                     <q-select
                         standout="bg-green text-while"
                         :options="opcionesComprador"
                         label="Comprador"
-                        v-model="compradorFact" />
+                        v-model="compradorFactura" />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Num. Lote Comercia"
+                        v-model="numLoteComerciaFactura" />
+                    <p>Detalles:</p>
                     <q-select
                         standout="bg-green text-while"
-                        :options="opcionesInventario"
-                        label="Inventario"
-                        v-model="inventarioFact" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="text"
-                        label="Nombre Producto"
-                        v-model="nombreProductoFact" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="text"
-                        label="Valor Unitario"
-                        v-model="valorFact" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="text"
-                        label="Cantidad"
-                        v-model="cantidadFact" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="text"
-                        label="Detalles"
-                        v-model="detallesFact" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="text"
-                        label="Subtotal"
-                        v-model="subtotalFact" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="text"
-                        label="IVA"
-                        v-model="ivaFact" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="text"
-                        label="Total"
-                        v-model="totalFact" />
+                        :options="opcionesComprador" />
                     <div class="row justify-end" style="gap: 10px">
                         <q-btn
                             unelevated
