@@ -5,8 +5,6 @@ import { useQuasar } from "quasar";
 
 const $q = useQuasar();
 
-const IVA_TASA = 0.19;
-
 const useFacturas = useStoreFacturas();
 
 let rows = ref([]);
@@ -95,16 +93,17 @@ const comprador = ref([]);
 const inventario = ref([]);
 
 //Variables necesarias en el formulario
-const fechaFact = ref("");
-const compradorFact = ref("");
-const inventarioFact = ref("");
-const nombreProductoFact = ref("");
-const valorFact = ref("");
-const cantidadFact = ref("");
-const detallesFact = ref("");
-const subtotalFact = ref("");
-const ivaFact = ref("");
-const totalFact = ref("");
+const fechaFactura = ref("");
+const valorFactura = ref("");
+/* Detalle */
+const inventarioFactura = ref("");
+const cantidadFactura = ref("");
+const nombreProductoFactura = ref("");
+const subtotalFactura = ref("");
+const ivaFactura = ref(""); // Por si se cambia el iva
+const totalFactura = ref("");
+const compradorFactura = ref("");
+const numLoteComerciaFactura = ref("");
 
 //Variables necesarias para la edición
 const datos = ref([]);
@@ -114,60 +113,15 @@ const mostrarFormularioFactura = ref(false);
 const mostrarBotonEditar = ref(false);
 const loading = ref(true);
 
-function calcularSubtotal(valor, cantidad) {
-    return (parseFloat(valor) || 0) * (parseFloat(cantidad) || 0);
-}
-
-function calcularIVA(subtotal) {
-    return subtotal * IVA_TASA;
-}
-
-function calcularTotal(subtotal, iva) {
-    return subtotal + iva;
-}
-
-watch(
-    [valorFact, cantidadFact],
-    () => {
-        const subtotal = calcularSubtotal(valorFact.value, cantidadFact.value);
-        subtotalFact.value = subtotal.toFixed(2);
-        const iva = calcularIVA(subtotal);
-        ivaFact.value = iva.toFixed(2);
-        const total = calcularTotal(subtotal, iva);
-        totalFact.value = total.toFixed(2);
-    },
-    { immediate: true }
-);
+/* const opcionesInventario = computed(() => {
+    return inventarios.value.map((i) => {
+        return { label: i.nombre, id: i._id }
+    })
+}) */
 
 const opcionesComprador = computed(() => {
-    return comprador.value.map((c) => {
-        return { label: `${c.nombre} ( DNI: ${c.documento})`, id: `${c._id}` };
-    });
-});
-
-const opcionesInventario = computed(() => {
-    return inventario.value.map((i) => {
-        if (i.semillas_id) {
-            return {
-                label: `${i.tipo} / ${i.semillas_id.especieVariedad}`,
-                id: `${i._id}`,
-            };
-        } else if (i.insumos_id) {
-            return {
-                label: `${i.tipo} / ${i.insumos_id.nombre}`,
-                id: `${i._id}`,
-            };
-        } else if (i.maquinaria_id) {
-            return {
-                label: `${i.tipo} / ${i.maquinaria_id.nombre} - ${i.maquinaria_id.tipo}`,
-                id: `${i._id}`,
-            };
-        } else {
-            return {
-                label: "Datos faltantes",
-                id: `${i._id}`,
-            };
-        }
+    return compradores.value.map((c) => {
+        return { label: c.nombre, id: c._id };
     });
 });
 
@@ -175,7 +129,7 @@ async function listarComprador() {
     try {
         loading.value = true;
         const r = await useFacturas.getComprador();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -188,8 +142,8 @@ async function listarComprador() {
                 });
                 return router.push("/");
             }
-        }
-        comprador.value = r.data.compradores;
+        } */
+        compradores.value = r.data.compradores;
     } finally {
         loading.value = false;
     }
@@ -199,7 +153,7 @@ async function listarInventario() {
     try {
         loading.value = true;
         const r = await useFacturas.getInventario();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -212,8 +166,8 @@ async function listarInventario() {
                 });
                 return router.push("/");
             }
-        }
-        inventario.value = r.data.inventario;
+        } */
+        inventarios.value = r.data.inventario;
     } finally {
         loading.value = false;
     }
@@ -223,7 +177,7 @@ async function listarFactura() {
     try {
         loading.value = true;
         const r = await useFacturas.getFacturas();
-        if (r.code == "ERR_BAD_REQUEST") {
+        /* if (r.code == "ERR_BAD_REQUEST") {
             if (
                 r.response.data.msg == "No hay token en la peticion" ||
                 r.response.data.msg == "Token no válido! ." ||
@@ -236,7 +190,7 @@ async function listarFactura() {
                 });
                 return router.push("/");
             }
-        }
+        } */
         rows.value = r.data.facturas;
     } finally {
         loading.value = false;
@@ -248,21 +202,27 @@ async function registrar() {
         try {
             loading.value = true;
             const info = {
-                fecha: fechaFact.value,
-                comprador_id: compradorFact.value.id,
-                inventario_id: inventarioFact.value.id,
-                nombreProducto: nombreProductoFact.value,
-                valor: valorFact.value,
-                cantidad: cantidadFact.value,
-                detalles: detallesFact.value,
-                subtotal: subtotalFact.value,
-                iva: ivaFact.value,
-                total: totalFact.value,
+                fecha: fechaFactura.value,
+                valor: valorFactura.value,
+                detalle: [
+                    {
+                        id_produccion: inventarioFactura.value,
+                        cantidad: cantidadFactura.value,
+                        nombreProducto: nombreProductoFactura.value,
+                        subtotal: subtotalFactura.value,
+                        iva: "NO SE QUE PONER",
+                        total: totalFactura.value,
+                    },
+                ],
+                comprador_id: compradorFactura.value,
+                numeroLoteComercial: numeroLoteComercial.value,
             };
 
             const r = await useFacturas.postFactura(info);
-            mostrarFormularioFactura.value = false;
-            listarFactura();
+            if (res.status === 200) {
+                mostrarFormularioFactura.value = false;
+                listarFactura();
+            }
         } finally {
             loading.value = false;
         }
@@ -274,21 +234,27 @@ async function editar() {
         try {
             loading.value = true;
             const info = {
-                fecha: fechaFact.value,
-                comprador_id: compradorFact.value.id,
-                inventario_id: inventarioFact.value.id,
-                nombreProducto: nombreProductoFact.value,
-                valor: valorFact.value,
-                cantidad: cantidadFact.value,
-                detalles: detallesFact.value,
-                subtotal: subtotalFact.value,
-                iva: ivaFact.value,
-                total: totalFact.value,
+                fecha: fechaFactura.value,
+                valor: valorFactura.value,
+                detalle: [
+                    {
+                        id_produccion: inventarioFactura.value,
+                        cantidad: cantidadFactura.value,
+                        nombreProducto: nombreProductoFactura.value,
+                        subtotal: subtotalFactura.value,
+                        iva: "NO SE QUE PONER",
+                        total: totalFactura.value,
+                    },
+                ],
+                comprador_id: compradorFactura.value,
+                numeroLoteComercial: numeroLoteComercial.value,
             };
 
             const r = await useFacturas.putFactura(datos.value._id, info);
-            mostrarFormularioFactura.value = false;
-            listarFactura();
+            if (res.status === 200) {
+                mostrarFormularioFactura.value = false;
+                listarFactura();
+            }
         } finally {
             loading.value = false;
         }
@@ -298,101 +264,101 @@ async function editar() {
 function validarDatos() {
     let validacion = true;
     if (
-        !fechaFact.value.trim() &&
-        !compradorFact.value &&
-        !inventarioFact.value &&
-        !nombreProductoFact.value.trim() &&
-        !valorFact.value.trim() &&
-        !cantidadFact.value.trim() &&
-        !detallesFact.value.trim() &&
-        !subtotalFact.value.trim() &&
-        !ivaFact.value.trim() &&
-        !totalFact.value.trim()
+        !fechaFactura.value &&
+        !valorFactura.value.trim() &&
+        !inventarioFactura.value &&
+        !cantidadFactura.value.trim() &&
+        !nombreProductoFactura.value.trim() &&
+        !subtotalFactura.value.trim() &&
+        !ivaFactura.value.trim() &&
+        !totalFactura.value.trim() &&
+        !compradorFactura.value &&
+        !numeroLoteComercial.value.trim()
     ) {
         $q.notify({
             color: "negative",
             message: "Llena todos los campos",
-            position: "top",
+            position: "bottom",
         });
         validacion = false;
     } else {
-        if (!fechaFact.value.trim()) {
+        if (!fechaFactura.value) {
             $q.notify({
                 color: "negative",
                 message: "El campo fecha está vacío",
-                position: "top",
+                position: "bottom",
             });
             validacion = false;
         }
-        if (!compradorFact.value) {
-            $q.notify({
-                color: "negative",
-                message: "El campo comprador está vacío",
-                position: "top",
-            });
-            validacion = false;
-        }
-        if (!inventarioFact.value) {
-            $q.notify({
-                color: "negative",
-                message: "El campo inventario está vacío",
-                position: "top",
-            });
-            validacion = false;
-        }
-        if (!nombreProductoFact.value.trim()) {
-            $q.notify({
-                color: "negative",
-                message: "El campo nombre producto está vacío",
-                position: "top",
-            });
-            validacion = false;
-        }
-        if (!valorFact.value.trim()) {
+        if (!valorFactura.value) {
             $q.notify({
                 color: "negative",
                 message: "El campo valor está vacío",
-                position: "top",
+                position: "bottom",
             });
             validacion = false;
         }
-        if (!cantidadFact.value.trim()) {
+        if (!inventarioFactura.value) {
+            $q.notify({
+                color: "negative",
+                message: "El campo inventario está vacío",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!cantidadFactura.value.trim()) {
             $q.notify({
                 color: "negative",
                 message: "El campo cantidad está vacío",
-                position: "top",
+                position: "bottom",
             });
             validacion = false;
         }
-        if (!detallesFact.value.trim()) {
+        if (!nombreProductoFactura.value.trim()) {
             $q.notify({
                 color: "negative",
-                message: "El campo detalles está vacío",
-                position: "top",
+                message: "El campo nombre del producto está vacío",
+                position: "bottom",
             });
             validacion = false;
         }
-        if (!subtotalFact.value.trim()) {
+        if (!subtotalFactura.value.trim()) {
             $q.notify({
                 color: "negative",
                 message: "El campo subtotal está vacío",
-                position: "top",
+                position: "bottom",
             });
             validacion = false;
         }
-        if (!ivaFact.value.trim()) {
+        if (!ivaFactura.value.trim()) {
             $q.notify({
                 color: "negative",
                 message: "El campo iva está vacío",
-                position: "top",
+                position: "bottom",
             });
             validacion = false;
         }
-        if (!totalFact.value.trim()) {
+        if (!totalFactura.value.trim()) {
             $q.notify({
                 color: "negative",
                 message: "El campo total está vacío",
-                position: "top",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!compradorFactura.value.trim()) {
+            $q.notify({
+                color: "negative",
+                message: "El campo comprador está vacío",
+                position: "bottom",
+            });
+            validacion = false;
+        }
+        if (!numeroLoteComercial.value.trim()) {
+            $q.notify({
+                color: "negative",
+                message: "El campo numero de lote comercial está vacío",
+                position: "bottom",
             });
             validacion = false;
         }
@@ -401,35 +367,33 @@ function validarDatos() {
 }
 
 function controlFormulario(obj, boolean) {
-    fechaFact.value = "";
-    compradorFact.value = "";
-    inventarioFact.value = "";
-    nombreProductoFact.value = "";
-    valorFact.value = "";
-    cantidadFact.value = "";
-    detallesFact.value = "";
-    subtotalFact.value = "";
-    ivaFact.value = "";
-    totalFact.value = "";
+    fechaFactura.value = "";
+    valorFactura.value = "";
+    inventarioFactura.value = "";
+    cantidadFactura.value = "";
+    nombreProductoFactura.value = "";
+    subtotalFactura.value = "";
+    ivaFactura.value = "";
+    totalFactura.value = "";
+    compradorFactura.value = "";
+    numLoteComerciaFactura.value = "";
 
     datos.value = obj;
     mostrarBotonEditar.value = false;
     if (obj != null && boolean == true) {
-        fechaFact.value = datos.value.fecha.split("T")[0];
-        // compradorFact.value = datos.value.comprador_id;
-        compradorFact.value = opcionesComprador.value.find(
-            (c) => c.id == datos.value.comprador_id._id
+        fechaFactura.value = datos.value.fecha.split("T")[0];
+        valorFactura.value = datos.value.valor;
+        /* inventarioFactura.value =  inventarios.value.find() .value.inventario_id */ cantidadFactura.value =
+            datos.value.cantidad;
+        nombreProductoFactura.value = datos.value.nombreProducto;
+        subtotalFactura.value = datos.value.subtotal;
+        ivaFactura.value = datos.value.iva;
+        totalFactura.value = datos.value.total;
+        compradorFactura.value = opcionesComprador.value.find(
+            (c) => c.id == datos.value.comprador_id
         );
-        inventarioFact.value = opcionesInventario.value.find(
-            (i) => i.id == datos.value.inventario_id._id
-        );
-        nombreProductoFact.value = datos.value.nombreProducto;
-        valorFact.value = String(datos.value.valor);
-        cantidadFact.value = String(datos.value.cantidad);
-        detallesFact.value = datos.value.detalles;
-        subtotalFact.value = String(datos.value.subtotal);
-        ivaFact.value = String(datos.value.iva);
-        totalFact.value = String(datos.value.total);
+        numLoteComerciaFactura.value = datos.value.numeroLoteComercial;
+
         mostrarBotonEditar.value = true;
     }
     mostrarFormularioFactura.value = boolean;
@@ -449,8 +413,7 @@ onMounted(() => {
                 :rows="rows"
                 :columns="columns"
                 row-key="id"
-                :loading="loading"
-            >
+                :loading="loading">
                 <template v-slot:top>
                     <section class="column full-width q-pr-md">
                         <div class="row items-center">
@@ -461,8 +424,7 @@ onMounted(() => {
                             <q-btn
                                 size="md"
                                 @click="controlFormulario(null, true)"
-                                label="Agregar"
-                            />
+                                label="Agregar" />
                         </div>
                     </section>
                 </template>
@@ -473,16 +435,14 @@ onMounted(() => {
                             align="top"
                             :label="
                                 props.row.estado === 1 ? 'Activo' : 'Inactivo'
-                            "
-                        />
+                            " />
                     </q-td>
                 </template>
                 <template v-slot:body-cell-opciones="props">
                     <q-td
                         :props="props"
                         class="row justify-center"
-                        style="gap: 20px"
-                    >
+                        style="gap: 20px">
                         <q-btn @click="controlFormulario(props.row, true)">
                             ✏️
                         </q-btn>
@@ -494,8 +454,7 @@ onMounted(() => {
             <q-card>
                 <q-form
                     @submit="mostrarBotonEditar ? editar() : registrar()"
-                    class="q-gutter-md"
-                >
+                    class="q-gutter-md">
                     <p class="text-h5 text-center q-pb-md text-green">
                         {{ datos ? "Editar" : "Agregar" }} Factura
                     </p>
@@ -503,84 +462,71 @@ onMounted(() => {
                         standout="bg-green text-while"
                         type="date"
                         label="Fecha"
-                        v-model="fechaFact"
-                    />
+                        v-model="fechaFact" />
                     <q-select
                         standout="bg-green text-while"
                         :options="opcionesComprador"
                         label="Comprador"
-                        v-model="compradorFact"
-                    />
+                        v-model="compradorFact" />
                     <q-select
                         standout="bg-green text-while"
                         :options="opcionesInventario"
                         label="Inventario"
-                        v-model="inventarioFact"
-                    />
+                        v-model="inventarioFact" />
                     <q-input
                         standout="bg-green text-while"
                         type="text"
                         label="Nombre Producto"
-                        v-model="nombreProductoFact"
-                    />
+                        v-model="nombreProductoFact" />
                     <q-input
                         standout="bg-green text-while"
                         type="text"
                         label="Valor Unitario"
-                        v-model="valorFact"
-                    />
+                        v-model="valorFact" />
                     <q-input
                         standout="bg-green text-while"
                         type="text"
                         label="Cantidad"
-                        v-model="cantidadFact"
-                    />
+                        v-model="cantidadFact" />
                     <q-input
                         standout="bg-green text-while"
                         type="text"
                         label="Detalles"
-                        v-model="detallesFact"
-                    />
+                        v-model="detallesFact" />
                     <q-input
                         standout="bg-green text-while"
                         type="text"
                         label="Subtotal"
-                        v-model="subtotalFact"
-                    />
+                        v-model="subtotalFact" />
                     <q-input
                         standout="bg-green text-while"
                         type="text"
                         label="IVA"
-                        v-model="ivaFact"
-                    />
+                        v-model="ivaFact" />
                     <q-input
                         standout="bg-green text-while"
                         type="text"
                         label="Total"
-                        v-model="totalFact"
-                    />
+                        v-model="totalFact" />
                     <div class="row justify-end" style="gap: 10px">
                         <q-btn
                             unelevated
                             v-if="mostrarBotonEditar"
                             label="Editar"
                             type="submit"
-                            color="positive"
-                        />
+                            color="positive" />
                         <q-btn
                             unelevated
                             v-else
                             label="Registrar"
                             type="submit"
-                            color="positive"
-                        />
+                            color="positive" />
                         <q-btn
                             @click="controlFormulario(null, false)"
                             flat
                             class="bg-red text-white"
                             label="Cerrar"
-                            type="button"
-                        />
+                            type="button" />
                     </div>
                 </q-form>
             </q-card>

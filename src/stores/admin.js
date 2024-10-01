@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { useQuasar } from "quasar";
 import axios from "axios";
 import notify from "../utils/notificaciones.js"
 
@@ -10,7 +9,6 @@ export const useStoreAdmins = defineStore(
 		// const url = "http://localhost:3000";
 		const url = "https://b-proyectoadso-production.up.railway.app";
 		const token = ref("");
-		const $q = useQuasar();
 
 		const getMunicipios = async () => {
 			try {

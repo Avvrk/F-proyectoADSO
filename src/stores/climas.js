@@ -1,13 +1,12 @@
 import { defineStore } from "pinia";
-import axios from "axios";
 import { useStoreAdmins } from "./admin.js";
-import { useQuasar } from "quasar";
+import axios from "axios";
+import notify from "../utils/notificaciones.js"
 
 export const useStoreClimas = defineStore("climas", () => {
 	// const url = "http://localhost:3000";
 	const url = "https://b-proyectoadso-production.up.railway.app";
 	const useAdmin = useStoreAdmins();
-	const $q = useQuasar();
 
 	const getFincas = async () => {
 		try {

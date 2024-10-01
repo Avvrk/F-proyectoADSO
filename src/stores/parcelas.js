@@ -5,7 +5,8 @@ import { useStoreAdmins } from "./admin.js";
 export const useStoreParcelas = defineStore(
     "Parcelas",
     () => {
-        const url = "https://b-proyectoadso-production.up.railway.app";
+        const url = "http://localhost:4000";
+        // const url = "https://b-proyectoadso-production.up.railway.app";
         const useAdmin = useStoreAdmins();
 
 		const getFincas = async () => {
@@ -112,7 +113,7 @@ export const useStoreParcelas = defineStore(
 
 		const putParcelaEstado = async (id, estado) => {
 			try {
-				const r = await axios.put(`${url}/Parcelas/${estado == 0 ? 'inactivar' : 'activar'}/${id}`, {}, {
+				const r = await axios.put(`${url}/Parcelas/${estado == 0 ? 'activar' : 'inactivar'}/${id}`, {}, {
 					headers: {
 						token: useAdmin.token
 					}
