@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { useStoreAdmins } from "./admin";
 import axios from "axios";
+import notify from "../utils/notificaciones";
 
 export const useStoreFacturas = defineStore("Facturas", () => {
     // const url = "http://localhost:3000";
@@ -77,22 +78,34 @@ export const useStoreFacturas = defineStore("Facturas", () => {
                 },
             });
             console.log(r.data);
+            if (r.status !== 200) {
+                notify("Parece que hubo un error en el registro")
+            } else {
+                notify("El registro se ha realizado correctamente", "positive")
+            }
             return r;
         } catch (error) {
             console.log(error);
+            return error;
+        }
+    };
+
+    const postFacturaDetalles = async (datos, id) => {
+        try {
+            const r = await axios.post(`${url}/facturas/detalles/${id}`, datos, {
+                headers: {
+                    token: useAdmin.token,
+                },
+            });
+            console.log(r.data);
             if (r.status !== 200) {
-                $q.notify({
-                    type: "negative",
-                    message: "Parece que hubo un error en el registro",
-                    position: "bottom-right",
-                });
+                notify("Parece que hubo un error en el registro")
             } else {
-                $q.notify({
-                    type: "positive",
-                    message: "El registro se ha realizado correctamente",
-                    position: "bottom-right",
-                });
+                notify("El registro se ha realizado correctamente", "positive")
             }
+            return r;
+        } catch (error) {
+            console.log(error);
             return error;
         }
     };
@@ -106,17 +119,29 @@ export const useStoreFacturas = defineStore("Facturas", () => {
             });
             console.log(r.data);
             if (r.status !== 200) {
-                $q.notify({
-                    type: "negative",
-                    message: "Parece que hubo un error al editar",
-                    position: "bottom-right",
-                });
+                notify("Parece que hubo un error al editar")
             } else {
-                $q.notify({
-                    type: "positive",
-                    message: "El editar se ha realizado correctamente",
-                    position: "bottom-right",
-                });
+                notify("El editar se ha realizado correctamente", "positive")
+            }
+            return r;
+        } catch (error) {
+            console.log(error);
+            return error;
+        }
+    };
+
+    const putFacturaDetalles = async (datos, id) => {
+        try {
+            const r = await axios.put(`${url}/facturas/detalles/${id}`, datos, {
+                headers: {
+                    token: useAdmin.token,
+                },
+            });
+            console.log(r.data);
+            if (r.status !== 200) {
+                notify("Parece que hubo un error al editar")
+            } else {
+                notify("El editar se ha realizado correctamente", "positive")
             }
             return r;
         } catch (error) {
@@ -131,6 +156,8 @@ export const useStoreFacturas = defineStore("Facturas", () => {
         getFacturas,
         getFacturasID,
         postFactura,
+        postFacturaDetalles,
         putFactura,
+        putFacturaDetalles,
     };
 });

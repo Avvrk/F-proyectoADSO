@@ -325,7 +325,7 @@ function validarDatos() {
 function controlFormulario(obj, boolean) {
     fechaFactura.value = "";
     valorFactura.value = "";
-    inventarioFactura.value = "";
+    produccionFactura.value = "";
     cantidadFactura.value = "";
     nombreProductoFactura.value = "";
     subtotalFactura.value = "";
@@ -339,8 +339,8 @@ function controlFormulario(obj, boolean) {
     if (obj != null && boolean == true) {
         fechaFactura.value = datos.value.fecha.split("T")[0];
         valorFactura.value = datos.value.valor;
-        /* inventarioFactura.value =  inventarios.value.find() .value.inventario_id */ cantidadFactura.value =
-            datos.value.cantidad;
+        /* produccionFactura.value =  inventarios.value.find() .value.inventario_id */ 
+        cantidadFactura.value = datos.value.cantidad;
         nombreProductoFactura.value = datos.value.nombreProducto;
         subtotalFactura.value = datos.value.subtotal;
         ivaFactura.value = datos.value.iva;
