@@ -24,9 +24,9 @@ export const useStoreFacturas = defineStore("Facturas", () => {
         }
     };
 
-    const getInventario = async () => {
+    const getProduccion = async () => {
         try {
-            const r = await axios.get(`${url}/inventario`, {
+            const r = await axios.get(`${url}/produccion`, {
                 headers: {
                     token: useAdmin.token,
                 },
@@ -151,7 +151,7 @@ export const useStoreFacturas = defineStore("Facturas", () => {
     };
 
     return {
-        getInventario,
+        getProduccion,
         getComprador,
         getFacturas,
         getFacturasID,
