@@ -186,6 +186,7 @@ const nombreProductoFactura = ref("");
 const subtotalFactura = ref("");
 const ivaFactura = ref(""); // Por si se cambia el iva
 const totalFactura = ref("");
+const totalDetallesFactura = ref("");
 const compradorFactura = ref("");
 
 //Variables necesarias para la edición
@@ -287,43 +288,21 @@ async function registrar() {
             const info = {
                 fecha: fechaFactura.value,
                 numFactura: numFactura.value,
-                comprador_id: compradorFactura.value,
+                detalle: [
+                    {
+                        id_produccion: "",
+                        cantidad: "",
+                        nombreProducto: "",
+                        subtotal: "",
+                        iva: "",
+                        total: "",
+                    },
+                ],
+                comprador_id: compradorFactura.value.id,
                 total: totalFactura.value,
             };
 
             const r = await useFacturas.postFactura(info);
-            if (res.status === 200) {
-                mostrarFormularioFactura.value = false;
-                listarFactura();
-            } else if (r.response && r.response.data.errors) {
-                r.response.data.errors.forEach((err) => {
-                    notify(err.msg);
-                });
-            }
-        } finally {
-            loading.value = false;
-        }
-    }
-}
-
-async function registrarDetalle() {
-    if (validarDatosDetalle) {
-        try {
-            loading.value = true;
-            const info = {
-                detalle: [
-                    {
-                        id_produccion: produccionFactura.value,
-                        cantidad: cantidadFactura.value,
-                        nombreProducto: nombreProductoFactura.value,
-                        subtotal: subtotalFactura.value,
-                        iva: ivaFactura.value,
-                        total: totalFactura.value,
-                    },
-                ],
-            };
-
-            const r = await useFacturas.postFacturaDetalles(info /* , id */);
             if (res.status === 200) {
                 mostrarFormularioFactura.value = false;
                 listarFactura();
@@ -352,17 +331,21 @@ async function editar() {
                         nombreProducto: nombreProductoFactura.value,
                         subtotal: subtotalFactura.value,
                         iva: ivaFactura.value,
-                        total: totalFactura.value,
+                        total: totalDetallesFactura.value,
                     },
                 ],
                 comprador_id: compradorFactura.value,
-                numeroLoteComercial: numeroLoteComercial.value,
+                total: totalFactura.value,
             };
 
             const r = await useFacturas.putFactura(datos.value._id, info);
             if (res.status === 200) {
                 mostrarFormularioFactura.value = false;
                 listarFactura();
+            } else if (r.response && r.response.data.errors) {
+                r.response.data.errors.forEach((err) => {
+                    notify(err.msg);
+                });
             }
         } finally {
             loading.value = false;
@@ -376,7 +359,6 @@ function validarDatosFactura() {
     if (
         !fechaFactura.value &&
         !numFactura.value.trim() &&
-        !totalFactura.value.trim() &&
         !compradorFactura.value
     ) {
         notify("Llena todos los campos");
@@ -390,11 +372,7 @@ function validarDatosFactura() {
             notify("El campo valor está vacío");
             validacion = false;
         }
-        if (!totalFactura.value.trim()) {
-            notify("El campo total está vacío");
-            validacion = false;
-        }
-        if (!compradorFactura.value.trim()) {
+        if (!compradorFactura.value) {
             notify("El campo comprador está vacío");
             validacion = false;
         }
@@ -499,40 +477,28 @@ function validarDatos() {
     return validacion;
 }
 
-/* function controlFormulario(obj, boolean) {
+function controlFormulario(obj, boolean) {
     fechaFactura.value = "";
     numFactura.value = "";
-    produccionFactura.value = "";
-    cantidadFactura.value = "";
-    nombreProductoFactura.value = "";
-    subtotalFactura.value = "";
-    ivaFactura.value = "";
     totalFactura.value = "";
     compradorFactura.value = "";
-    numLoteComerciaFactura.value = "";
 
     datos.value = obj;
     mostrarBotonEditar.value = false;
     if (obj != null && boolean == true) {
         fechaFactura.value = datos.value.fecha.split("T")[0];
         numFactura.value = datos.value.numFactura;
-        produccionFactura.value =  inventarios.value.find() .value.inventario_id
-        cantidadFactura.value = datos.value.cantidad;
-        nombreProductoFactura.value = datos.value.nombreProducto;
-        subtotalFactura.value = datos.value.subtotal;
-        ivaFactura.value = datos.value.iva;
         totalFactura.value = datos.value.total;
         compradorFactura.value = opcionesComprador.value.find(
             (c) => c.id == datos.value.comprador_id
         );
-        numLoteComerciaFactura.value = datos.value.numeroLoteComercial;
 
         mostrarBotonEditar.value = true;
     }
     mostrarFormularioFactura.value = boolean;
-} */
+}
 
-function controlFormulario(obj, boolean) {
+function controlFormularioDetalles(obj, boolean) {
     rowsDetalles.value = obj.detalles;
 }
 
@@ -570,7 +536,7 @@ onMounted(() => {
                         :props="props"
                         class="row justify-center"
                         style="gap: 20px">
-                        <q-btn @click="controlFormulario(props.row, true)">
+                        <q-btn @click="controlFormularioDetalles(props.row, true)">
                             ✏️
                         </q-btn>
                     </q-td>
@@ -624,6 +590,7 @@ onMounted(() => {
                 </template>
                 <template v-slot:body-cell-cantidad="props">
                     <q-td :props="props">
+                        {{ props.row.cantidad }}
                         <q-popup-edit
                             v-model="props.row.cantidad"
                             auto-save
@@ -730,6 +697,7 @@ onMounted(() => {
                         label="Comprador"
                         v-model="compradorFactura" />
                     <q-input
+                        :disable="true"
                         standout="bg-green text-while"
                         type="text"
                         label="Total"

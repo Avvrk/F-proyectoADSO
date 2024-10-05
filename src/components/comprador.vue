@@ -271,8 +271,8 @@ async function registrar() {
             if (res.status === 200) {
                 mostrarFormularioComprador.value = false;
                 listarComprador();
-            } else if (r.response && r.response.data.errors) {
-				r.response.data.errors.forEach((err) => {
+            } else if (res.response && res.response.data.errors) {
+				res.response.data.errors.forEach((err) => {
 					notify(err.msg);
 				});
 			} 
