@@ -185,7 +185,7 @@ const cantidadFactura = ref("");
 const nombreProductoFactura = ref("");
 const subtotalFactura = ref("");
 const ivaFactura = ref(""); // Por si se cambia el iva
-const totalFactura = ref("");
+const totalFactura = ref(0);
 const totalDetallesFactura = ref("");
 const compradorFactura = ref("");
 
@@ -303,7 +303,7 @@ async function registrar() {
             };
 
             const r = await useFacturas.postFactura(info);
-            if (res.status === 200) {
+            if (r.status === 200) {
                 mostrarFormularioFactura.value = false;
                 listarFactura();
             } else if (r.response && r.response.data.errors) {
@@ -339,7 +339,7 @@ async function editar() {
             };
 
             const r = await useFacturas.putFactura(datos.value._id, info);
-            if (res.status === 200) {
+            if (r.status === 200) {
                 mostrarFormularioFactura.value = false;
                 listarFactura();
             } else if (r.response && r.response.data.errors) {
@@ -480,7 +480,7 @@ function validarDatos() {
 function controlFormulario(obj, boolean) {
     fechaFactura.value = "";
     numFactura.value = "";
-    totalFactura.value = "";
+    totalFactura.value = 0;
     compradorFactura.value = "";
 
     datos.value = obj;
