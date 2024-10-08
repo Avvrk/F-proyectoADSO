@@ -53,6 +53,7 @@ const numeroLote = ref("");
 const cantidad = ref("");
 const cantidadTrabajadores = ref("");
 const observaciones = ref("");
+const precioUnitario = ref("");
 
 const selectedOption = ref("Todos");
 const options = [
@@ -128,6 +129,12 @@ const columns = ref([
 		format: (val) => (val ? val.substring(0, 20) : ""),
 	},
 	{
+		name: "precioUnitario",
+		label: "Precio Unitario",
+		field: "precioUnitario",
+		align: "center",
+	},
+	{
 		name: "estado",
 		label: "Estado",
 		field: "estado",
@@ -198,7 +205,7 @@ const cargarProduccionParaEdicion = (produccion) => {
 	cantidad.value = produccion.cantidad;
 	cantidadTrabajadores.value = produccion.cantidadTrabajadores;
 	observaciones.value = produccion.observaciones;
-
+	precioUnitario.value = produccion.precioUnitario;
 	esEdicion.value = true;
 	mostrarFormulario.value = true;
 	console.log("Datos del produccion a editar:", produccion);
@@ -224,6 +231,7 @@ const agregarProduccion = async () => {
 		cantidad: cantidad.value,
 		cantidadTrabajadores: cantidadTrabajadores.value,
 		observaciones: observaciones.value,
+		precioUnitario: precioUnitario.value,
 	};
 
 	console.log("Produccion agregado exitosamente", produccionData);
@@ -259,6 +267,7 @@ const editarProduccion = async () => {
 		cantidad: cantidad.value,
 		cantidadTrabajadores: cantidadTrabajadores.value,
 		observaciones: observaciones.value,
+		precioUnitario: precioUnitario.value,
 	};
 
 	if (await validarDatosProduccion(produccionEditado)) {
@@ -279,6 +288,7 @@ const limpiarCampos = () => {
 	cantidad.value = "";
 	cantidadTrabajadores.value = "";
 	observaciones.value = "";
+	precioUnitario.value = "";
 	esEdicion.value = false;
 };
 
@@ -348,6 +358,7 @@ watch(selectedOption, () => {
 						<q-input v-model="cantidad" standout="bg-green text-while" label="Cantidad" type="number" filled class="q-mb-md" required min="0" outlined />
 						<q-input v-model="cantidadTrabajadores" standout="bg-green text-while" label="Cantidad de trabajadores" type="number" filled class="q-mb-md" required min="0" outlined />
 						<q-input v-model.trim="observaciones" standout="bg-green text-while" label="Observaciones" filled class="q-mb-md" required />
+						<q-input v-model.trim="precioUnitario" standout="bg-green text-while" label="Precio Unitario" type="number" filled class="q-mb-md" required />
 
 						<div class="q-mt-md row justify-end">
 							<q-btn :loading="useProduccion.loading" :disable="useProduccion.loading" type="submit" color="positive" class="q-mr-sm"
