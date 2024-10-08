@@ -25,10 +25,7 @@ const tooltipVisible = ref(false);
 const tooltipPosition = ref({ top: 0, left: 0 });
 
 // Variables del input para peticiones get
-const fecha1 = ref("");
-const fecha2 = ref("");
-const empleadoC = ref("");
-const listarCultivo = ref("");
+const fecha = ref("");
 
 // Arrays de modelos
 const cultivos = ref([]);
@@ -46,7 +43,7 @@ const fecha_final = ref("");
 async function actualizarListadoProcesos() {
 	loadingg.value = true;
 	try {
-		const procesosPromise = selectedOption.value === "Activos" ? useProceso.getProcesosActivos() : selectedOption.value === "Inactivos" ? useProceso.getProcesosInactivos() : useProceso.getProcesos();
+		const procesosPromise = selectedOption.value === "Tipo" ? useProceso.getProcesosTipo() : selectedOption.value === "Fechas" ? useProceso.getProcesosFechas() : selectedOption.value === "Inactivos" ? useProceso.getProcesosInactivos() : selectedOption.value === "Activos" ? useProceso.getProcesosActivos() : useProceso.getProcesos();
 
 		rows.value = (await procesosPromise).data.procesos;
 		console.log("Procesos", rows.value);
@@ -90,12 +87,10 @@ const empleadoOptions = computed(() => {
 const selectedOption = ref("Todos");
 const options = [
 	{ label: "Todos", value: "Todos" },
-	{
-		label: "Fechas",
-		value: "Fechas",
-	},
 	{ label: "Activos", value: "Activos" },
 	{ label: "Inactivos", value: "Inactivos" },
+	{ label: "Fechas", value: "Fechas" },
+	{ label: "Tipo", value: "Tipo" },
 ];
 
 let rows = ref([]);
@@ -149,37 +144,6 @@ const columns = ref([
 	{ name: "estado", label: "Estado", field: "estado", align: "center" },
 	{ name: "opciones", label: "Opciones", field: "opciones", align: "center" },
 ]);
-
-const filtrarFilas = computed(() => {
-	if (loadingg.value) {
-		return []; // Retorna una lista vacía mientras se está cargando
-	}
-
-	if (selectedOption.value === "Fechas") {
-		if (fecha1.value && fecha2.value) {
-			const normalizeDate = (date) => new Date(date).toISOString().slice(0, 10);
-			const startDate = normalizeDate(fecha1.value);
-			const endDate = normalizeDate(fecha2.value);
-
-			const filteredByDate = rows.value.filter((proceso) => {
-				const procesoDate = normalizeDate(proceso.fecha_inicio);
-				return procesoDate >= startDate && procesoDate <= endDate;
-			});
-
-			if (filteredByDate.length === 0) {
-				// Notificar que no hay datos disponibles
-				console.log("No data available for the selected date range.");
-				// Opcionalmente, puedes mostrar una notificación en la interfaz de usuario aquí
-				return rows.value; // Retorna todos los procesos si no hay datos en el rango de fechas
-			}
-
-			return filteredByDate;
-		}
-		return rows.value; // Retorna todos los procesos si no se proporcionan fechas válidas
-	}
-
-	return rows.value;
-});
 
 async function editarEstado(props) {
 	if (props.estado == 1) {
@@ -380,7 +344,7 @@ watch(selectedOption, () => {
 			</q-card>
 		</q-dialog>
 
-		<q-table flat bordered :rows="filtrarFilas" :columns="columns" row-key="id" :loading="loadingg">
+		<q-table flat bordered :rows="rows" :columns="columns" row-key="id" :loading="loadingg">
 			<template v-slot:top>
 				<h4 class="text-green-7 q-pl-xl text-h4" style="position: absolute; top: -10px">Procesos</h4>
 				<div class="q-pa-lg q-gutter-lg q-ml-auto" style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end">
@@ -388,11 +352,12 @@ watch(selectedOption, () => {
 						<q-tooltip>Agregar Proceso</q-tooltip>
 					</q-btn>
 
-					<div class="contSelect" style="margin-left: 5%; text-align: end; margin-right: 5%">
-						<q-input standout v-if="selectedOption === 'Fechas'" label="Fecha" v-model="fecha1" class="q-my-md" type="date" name="search" id="fecha1" placeholder="Ingrese la fecha" />
+					<div class="contSelect">
+						<q-input standout v-if="selectedOption === 'Fechas'" label="Fecha" v-model="fecha" type="date" name="search" id="fecha" />
+						<q-input standout v-if="selectedOption === 'Tipo'" label="Tipo" v-model="tipo" name="search" id="q-select" />
 						<q-space />
 
-						<q-btn @click="actualizarListadoProcesos()" style="height: 55px; border: none;"> Buscar </q-btn>
+						<q-btn v-if="selectedOption == 'Fechas' || selectedOption == 'Tipo'" @click="actualizarListadoProcesos()" style="border: none"> Buscar </q-btn>
 						<q-space />
 						<q-select standout="bg-green text-while" background-color="green" id="q-select" v-model="selectedOption" label="Filtro por" options-dense :options="options" emit-value style="width: 200px" />
 					</div>
@@ -437,7 +402,7 @@ watch(selectedOption, () => {
 			</template>
 
 			<template v-slot:loading>
-				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal" label-style="font-size: 1.1em"/>
+				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal" label-style="font-size: 1.1em" />
 			</template>
 		</q-table>
 	</div>

@@ -110,17 +110,17 @@ export const useStoreProcesos = defineStore(
 			}
 		};
 
-		const getProcesosCultivo = async (cultivo_id) => {
+		const getProcesosTipo = async (tipo_id) => {
 			try {
 				loading.value = true;
-				const r = await axios.get(`${url}/procesos/cultivo/${cultivo_id}`, {
+				const r = await axios.get(`${url}/procesos/tipo/${tipo_id}`, {
 					headers: {
 						token: useAdmin.token,
 					},
 				});
 				return r;
 			} catch (error) {
-				console.error("Error al buscar procesos por el id del cultivo:", error.response.data);
+				console.error("Error al buscar procesos por su tipo:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -221,7 +221,7 @@ export const useStoreProcesos = defineStore(
 			getProcesosActivos,
 			getProcesosInactivos,
 			getProcesosFechas,
-			getProcesosCultivo,
+			getProcesosTipo,
 			getProcesoID,
 			postProceso,
 			putProceso,
