@@ -6,7 +6,7 @@ import { useStoreRiego } from "../stores/riego.js";
 // import { useStoreEmpleados } from "../stores/empleados.js";
 import { format } from "date-fns";
 
-// Para colocar puntos decimales a los nuemros
+// Para colocar puntos decimales a los números
 function formatoNumerico(numero) {
 	return typeof numero === "number" ? numero.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") : undefined;
 }
@@ -41,13 +41,13 @@ const hora_fin = ref("");
 const dosis = ref("");
 const cantidad_agua = ref("");
 
-const selectedOption = ref("Listar Riegos");
+const selectedOption = ref("Todos");
 const options = [
-	{ label: "Listar Riegos", value: "Listar Riegos" },
+	{ label: "Todos", value: "Todos" },
 	{ label: "Listar Riegos por Cultivo", value: "Listar Riegos por Cultivo" },
 	{ label: "Listar Riegos por fechas", value: "Listar Riegos por fechas" },
-	{ label: "Listar Riegos Activos", value: "Listar Riegos Activos" },
-	{ label: "Listar Riegos Inactivos", value: "Listar Riegos Inactivos" },
+	{ label: "Activos", value: "Activos" },
+	{ label: "Inactivos", value: "Inactivos" },
 ];
 
 let rows = ref([]);
@@ -133,7 +133,7 @@ async function listarCultivos() {
 
 async function listarEmpleados() {
 	const r = await useRiego.getEmpleados();
-	empleados.value = r.data.empleados;
+	empleados.value = r.data.admins;
 	console.log("empleados:", empleados.value);
 }
 
@@ -149,6 +149,7 @@ const cultivoOptions = computed(() => {
 const empleadoOptions = computed(() => {
 	return empleados.value
 		.filter((empleado) => empleado.estado != 0)
+		.filter(({ rol }) => rol == "Empleado")
 		.map((empleado) => ({
 			label: empleado.nombre,
 			id: empleado._id,
@@ -190,7 +191,7 @@ const filtrarFilas = computed(() => {
 async function actualizarListadoRiegos() {
 	loadingg.value = true;
 	try {
-		const riegoPromise = selectedOption.value === "Listar Riegos Activos" ? useRiego.getRiegoActivos() : selectedOption.value === "Listar Riegos Inactivos" ? useRiego.getRiegoInactivos() : useRiego.getRiego();
+		const riegoPromise = selectedOption.value === "Activos" ? useRiego.getRiegoActivos() : selectedOption.value === "Inactivos" ? useRiego.getRiegoInactivos() : useRiego.getRiego();
 
 		rows.value = (await riegoPromise).data.riegos;
 		console.log("Riegos", rows.value);
@@ -343,85 +344,71 @@ watch(selectedOption, () => {
 
 <template>
 	<div class="q-pa-md" v-if="!visible">
-		<div>
-			<h3 style="text-align: center; margin: 10px">Riegos</h3>
-			<hr style="width: 70%; height: 5px; background-color: green" />
-		</div>
+		<q-dialog v-model="mostrarFormulario" v-bind="!mostrarFormulario && limpiarCampos()">
+			<q-card style="width: 30rem">
+				<q-card-section style="padding-bottom: 0">
+					<div class="text-h5 text-center text-green q-pt-lg">{{ esEdicion ? "Editar" : "Agregar" }} Riego</div>
+				</q-card-section>
 
-		<div class="contSelect" style="margin-left: 5%; text-align: end; margin-right: 5%">
-			<q-select background-color="green" class="q-my-md" id="q-select" v-model="selectedOption" outlined dense options-dense emit-value :options="options" />
+				<q-card-section>
+					<q-form @submit.prevent="esEdicion ? editarRiego() : agregarRiego()" class="q-pa-md">
+						<q-select v-model="cultivo_id" standout="bg-green text-while" label="Cultivo" filled outlined :options="cultivoOptions" class="q-mb-md" required>
+							<template v-slot:no-option>
+								<q-item>
+									<q-item-section>No results</q-item-section>
+								</q-item>
+							</template>
+						</q-select>
+						<q-select v-model="empleado_id" standout="bg-green text-while" label="Empleado" filled outlined :options="empleadoOptions" class="q-mb-md" required>
+							<template v-slot:no-option>
+								<q-item>
+									<q-item-section>No results</q-item-section>
+								</q-item>
+							</template>
+						</q-select>
+						<q-input v-model="fecha" standout="bg-green text-while" label="Fecha" type="date" filled class="q-mb-md" required />
+						<q-input v-model="dias_transplante" standout="bg-green text-while" label="Días_transplante" type="number" filled class="q-mb-md" required min="0" outlined />
+						<q-select v-model="estado_fenologico" standout="bg-green text-while" label="Estado_fenológico" filled outlined :options="['Inicial', 'Floracion', 'Cosecha']" class="q-mb-md" required>
+							<template v-slot:no-option>
+								<q-item>
+									<q-item-section>No results</q-item-section>
+								</q-item>
+							</template>
+						</q-select>
+						<q-input v-model.trim="hora_inicio" standout="bg-green text-while" label="Hora_inicio" type="time" filled class="q-mb-md" required />
+						<q-input v-model.trim="hora_fin" standout="bg-green text-while" label="Hora_fin" type="time" filled class="q-mb-md" required />
+						<q-input v-model="dosis" standout="bg-green text-while" label="Dosis" type="number" filled outlined class="q-mb-md" min="0" required />
+						<q-input v-model="cantidad_agua" standout="bg-green text-while" label="Cantidad de Agua" type="number" filled outlined class="q-mb-md" min="0" required />
 
-			<input v-if="selectedOption === 'Listar Riegos por Cultivo'" v-model="listarCodigo" class="q-my-md" type="text" name="search" id="search" placeholder="Cultivo" />
-
-			<div v-if="selectedOption === 'Listar Riegos por fechas'" style="display: flex; flex-direction: row; text-align: center; flex-wrap: wrap; position: absolute; top: 150px; left: 240px">
-				<label for="listarFechasOne" style="height: 100%; line-height: 88px; margin-left: 40px">De:</label>
-				<q-input v-model="listarFechasOne" class="q-my-md" type="date" name="search" id="listarFechasOne" placeholder="Ingrese la fecha" />
-
-				<label for="listarFechasTwo" style="height: 100%; line-height: 88px; margin-left: 40px">A:</label>
-				<q-input v-model="listarFechasTwo" class="q-my-md" type="date" name="search" id="listarFechasTwo" placeholder="Ingrese la fecha" />
-			</div>
-		</div>
-
-		<div>
-			<div style="margin-left: 5%; text-align: end; margin-right: 5%" class="q-mb-md">
-				<q-btn label="Agregar Riego" @click="mostrarFormulario = true">
-					<!-- <q-btn label="Editar Riego" @click="mostrarFormularioEditarRiego = true" /> -->
-					<q-tooltip> Agregar Riego </q-tooltip>
-				</q-btn>
-			</div>
-
-			<!-- Diálogo para agregar o editar riego -->
-			<q-dialog v-model="mostrarFormulario"  v-bind="!mostrarFormulario && limpiarCampos()">
-				<q-card>
-					<q-card-section>
-						<div class="text-h6">
-							{{ esEdicion ? "Editar Riego" : "Agregar Riego" }}
+						<div class="q-mt-md row justify-end">
+							<q-btn :loading="useRiego.loading" :disable="useRiego.loading" type="submit" color="positive" class="q-mr-sm">
+								Registrar
+								<q-tooltip>Registrar</q-tooltip>
+								<template v-slot:loading>
+									<q-spinner color="white" size="1em" />
+								</template>
+							</q-btn>
+							<q-btn @click="mostrarFormulario = false" class="bg-red text-white"
+								>Cerrar
+								<q-tooltip>Cerrar</q-tooltip>
+							</q-btn>
 						</div>
-					</q-card-section>
-					<q-card-section>
-						<q-form @submit.prevent="esEdicion ? editarRiego() : agregarRiego()">
-							<!-- Campos del formulario de agregar o editar riego -->
-							<q-select v-model="cultivo_id" label="Cultivo" filled outlined :options="cultivoOptions" class="q-mb-md" required>
-								<template v-slot:no-option>
-									<q-item>
-										<q-item-section>No results</q-item-section>
-									</q-item>
-								</template>
-							</q-select>
-							<q-select v-model="empleado_id" label="Empleado" filled outlined :options="empleadoOptions" class="q-mb-md" required>
-								<template v-slot:no-option>
-									<q-item>
-										<q-item-section>No results</q-item-section>
-									</q-item>
-								</template>
-							</q-select>
-							<q-input v-model="fecha" label="Fecha" type="date" filled class="q-mb-md" required />
-							<q-input v-model="dias_transplante" label="Días_transplante" type="number" filled class="q-mb-md" required min="0" outlined />
-							<q-input v-model.trim="estado_fenologico" label="Estado_fenológico (Inicial, Floración o Cosecha)" filled class="q-mb-md" required />
-							<q-input v-model.trim="hora_inicio" label="Hora_inicio" filled class="q-mb-md" required />
-							<q-input v-model.trim="hora_fin" label="Hora_fin" filled class="q-mb-md" required />
-							<q-input v-model="dosis" label="Dosis" type="number" filled outlined class="q-mb-md" min="0" required />
-							<q-input v-model="cantidad_agua" label="Cantidad de Agua" type="number" filled outlined class="q-mb-md" min="0" required />
+					</q-form>
+				</q-card-section>
+			</q-card>
+		</q-dialog>
 
-							<!-- Botones de acción -->
-							<div class="q-mt-md">
-								<q-btn @click="mostrarFormulario = false" label="Cancelar" color="negative" class="q-ma-sm">
-									<q-tooltip>Cancelar</q-tooltip>
-								</q-btn>
-								<q-btn :loading="useRiego.loading" :disable="useRiego.loading" type="submit" :label="esEdicion ? 'Guardar Cambios' : 'Guardar Riego'" color="primary" class="q-ma-sm">
-									<q-tooltip>{{ esEdicion ? "Guardar Cambios" : "Guardar Riego" }}</q-tooltip>
-									<template v-slot:loading>
-										<q-spinner color="white" size="1em" />
-									</template>
-								</q-btn>
-							</div>
-						</q-form>
-					</q-card-section>
-				</q-card>
-			</q-dialog>
-		</div>
+		<q-table flat bordered :rows="filtrarFilas" :columns="columns" row-key="id" :loading="loadingg">
+			<template v-slot:top>
+				<h4 class="text-green-7 q-pl-xl text-h4" style="position: absolute; top: -10px">Riegos</h4>
+				<div class="q-pa-lg q-gutter-lg q-ml-auto" style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end">
+					<q-btn label="Agregar" @click="mostrarFormulario = true">
+						<q-tooltip>Agregar Riego</q-tooltip>
+					</q-btn>
+					<q-select standout="bg-green text-while" background-color="green" id="q-select" v-model="selectedOption" label="Filtro por" options-dense :options="options" style="width: 200px" />
+				</div>
+			</template>
 
-		<q-table flat bordered title="Riegos" title-class="text-green text-weight-bolder text-h5" :rows="filtrarFilas" :columns="columns" row-key="id" :loading="loadingg">
 			<template v-slot:body-cell-opciones="props">
 				<q-td :props="props">
 					<q-btn @click="cargarRiegoParaEdicion(props.row)">
@@ -452,7 +439,7 @@ watch(selectedOption, () => {
 			</template>
 
 			<template v-slot:loading>
-				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal" label-style="font-size: 1.1em"> </q-inner-loading>
+				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal" label-style="font-size: 1.1em"/>
 			</template>
 		</q-table>
 	</div>

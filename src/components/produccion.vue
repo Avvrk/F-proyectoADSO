@@ -54,20 +54,20 @@ const cantidad = ref("");
 const cantidadTrabajadores = ref("");
 const observaciones = ref("");
 
-const selectedOption = ref("Listar Producciones"); // Establecer 'Listar Producciones' como valor por defecto
+const selectedOption = ref("Todos");
 const options = [
-	{ label: "Listar Producciones", value: "Listar Producciones" },
+	{ label: "Todos", value: "Todos" },
 	{
 		label: "Listar Producción por su Cultivo",
 		value: "Listar Producción por su Cultivo",
 	},
 	{
-		label: "Listar Producciones Activos",
-		value: "Listar Producciones Activos",
+		label: "Activos",
+		value: "Activos",
 	},
 	{
-		label: "Listar Producciones Inactivos",
-		value: "Listar Producciones Inactivos",
+		label: "Inactivos",
+		value: "Inactivos",
 	},
 	{
 		label: "Listar Producciones por Fechas",
@@ -144,7 +144,7 @@ const columns = ref([
 async function actualizarListadoProducciones() {
 	loadingg.value = true;
 	try {
-		const produccionesPromise = selectedOption.value === "Listar Producciones Activos" ? useProduccion.getProduccionActivas() : selectedOption.value === "Listar Producciones Inactivos" ? useProduccion.getProduccionInactivas() : useProduccion.getProduccion();
+		const produccionesPromise = selectedOption.value === "Activos" ? useProduccion.getProduccionActivas() : selectedOption.value === "Inactivos" ? useProduccion.getProduccionInactivas() : useProduccion.getProduccion();
 
 		rows.value = (await produccionesPromise).data.producciones;
 		console.log("Producciones", rows.value);
@@ -226,12 +226,12 @@ const agregarProduccion = async () => {
 		observaciones: observaciones.value,
 	};
 
+	console.log("Produccion agregado exitosamente", produccionData);
 	if (await validarDatosProduccion(produccionData)) {
 		const r = await useProduccion.postProduccion(produccionData);
 		if (r.status == 200) {
 			mostrarFormulario.value = false;
 			actualizarListadoProducciones();
-			console.log("Produccion agregado exitosamente", produccionData);
 		}
 	}
 };
@@ -327,79 +327,57 @@ watch(selectedOption, () => {
 
 <template>
 	<div class="q-pa-md" v-if="!visible">
-		<div>
-			<h3 style="text-align: center; margin: 10px">Producciones</h3>
-			<hr style="width: 70%; height: 5px; background-color: green" />
-		</div>
+		<q-dialog v-model="mostrarFormulario" v-bind="!mostrarFormulario && limpiarCampos()">
+			<q-card style="width: 30rem">
+				<q-card-section style="padding-bottom: 0">
+					<div class="text-h5 text-center text-green q-pt-lg">{{ esEdicion ? "Editar" : "Agregar" }} Producción</div>
+				</q-card-section>
 
-		<div class="contSelect" style="margin-left: 5%; text-align: end; margin-right: 5%">
-			<q-select background-color="green" class="q-my-md" v-model="selectedOption" outlined dense options-dense emit-value :options="options" />
+				<q-card-section>
+					<q-form @submit.prevent="esEdicion ? editarProduccion() : agregarProduccion()" class="q-pa-md">
+						<q-select v-model="cultivo_id" standout="bg-green text-while" filled outlined label="Cultivo" :options="cultivosOptions" class="q-mb-md" style="max-width: 100%">
+							<template v-slot:no-option>
+								<q-item>
+									<q-item-section> No results </q-item-section>
+								</q-item>
+							</template>
+						</q-select>
+						<q-input v-model="fecha" standout="bg-green text-while" label="Fecha" type="date" filled class="q-mb-md" required />
+						<q-input v-model="numeroLote" standout="bg-green text-while" label="Número de Lote" type="number" filled class="q-mb-md" required min="0" />
+						<q-input v-model.trim="especie" standout="bg-green text-while" label="Especie" type="textarea" filled class="q-mb-md" required />
+						<q-input v-model="cantidad" standout="bg-green text-while" label="Cantidad" type="number" filled class="q-mb-md" required min="0" outlined />
+						<q-input v-model="cantidadTrabajadores" standout="bg-green text-while" label="Cantidad de trabajadores" type="number" filled class="q-mb-md" required min="0" outlined />
+						<q-input v-model.trim="observaciones" standout="bg-green text-while" label="Observaciones" filled class="q-mb-md" required />
 
-			<input v-if="selectedOption === 'Listar Producción por su Cultivo'" v-model="nombreCultivoProduccion" class="q-my-md" type="text" name="search" id="searchCultivo" @dblclick="selectAllText" placeholder="Cultivo" />
-
-			<div v-if="selectedOption === 'Listar Producciones por Fechas'" style="display: flex; flex-direction: row; text-align: center; flex-wrap: wrap; position: absolute; top: 147px; left: 350px">
-				<label for="fecha1" style="height: 100%; line-height: 88px; margin-left: 40px">De:</label>
-				<q-input v-model="fecha1" class="q-my-md" type="date" name="search" id="fecha1" />
-
-				<label for="fecha2" style="height: 100%; line-height: 88px; margin-left: 40px">A:</label>
-				<q-input v-model="fecha2" class="q-my-md" type="date" name="search" id="fecha2" />
-			</div>
-		</div>
-
-		<div>
-			<div style="margin-left: 5%; text-align: end; margin-right: 5%" class="q-mb-md">
-				<q-btn label="Agregar Producción" @click="mostrarFormulario = true">
-					<q-tooltip> Agregar Producción </q-tooltip>
-				</q-btn>
-			</div>
-
-			<!-- Diálogo para agregar o editar producción -->
-			<q-dialog v-model="mostrarFormulario" v-bind="!mostrarFormulario && limpiarCampos()">
-				<q-card>
-					<q-card-section>
-						<div class="text-h5" style="padding: 10px 0 0 25px">
-							{{ esEdicion ? "Editar Producción" : "Agregar Producción" }}
+						<div class="q-mt-md row justify-end">
+							<q-btn :loading="useProduccion.loading" :disable="useProduccion.loading" type="submit" color="positive" class="q-mr-sm"
+								>Registrar
+								<q-tooltip> Registrar </q-tooltip>
+								<template v-slot:loading>
+									<q-spinner color="white" size="1em" />
+								</template>
+							</q-btn>
+							<q-btn @click="mostrarFormulario = false" class="bg-red text-white"
+								>Cerrar
+								<q-tooltip> Cerrar </q-tooltip>
+							</q-btn>
 						</div>
-					</q-card-section>
+					</q-form>
+				</q-card-section>
+			</q-card>
+		</q-dialog>
 
-					<q-card-section>
-						<div class="q-pa-md">
-							<q-form @submit.prevent="esEdicion ? editarProduccion : agregarProduccion">
-								<!-- Campos del formulario de producción -->
-								<q-select v-model="cultivo_id" filled outlined label="Cultivo" :options="cultivosOptions" class="q-mb-md" style="max-width: 100%">
-									<template v-slot:no-option>
-										<q-item>
-											<q-item-section> No results </q-item-section>
-										</q-item>
-									</template>
-								</q-select>
-								<q-input v-model="fecha" label="Fecha" type="date" filled class="q-mb-md" required />
-								<q-input v-model="numeroLote" label="Número de Lote" type="number" filled class="q-mb-md" required min="0" />
-								<q-input v-model.trim="especie" label="Especie" type="textarea" filled class="q-mb-md" required />
-								<q-input v-model="cantidad" label="Cantidad" type="number" filled class="q-mb-md" required min="0" outlined />
-								<q-input v-model="cantidadTrabajadores" label="Cantidad de trabajadores" type="number" filled class="q-mb-md" required min="0" outlined />
-								<q-input v-model.trim="observaciones" label="Observaciones" filled class="q-mb-md" required />
+		<q-table flat bordered :rows="filtrarFilas" :columns="columns" row-key="id" :loading="loadingg">
+			<template v-slot:top>
+				<h4 class="text-green-7 q-pl-xl text-h4" style="position: absolute; top: -10px">Producciones</h4>
+				<div class="q-pa-lg q-gutter-lg q-ml-auto" style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end">
+					<q-btn label="Agregar" @click="mostrarFormulario = true">
+						<q-tooltip>Agregar Producción</q-tooltip>
+					</q-btn>
+					<q-select standout="bg-green text-while" background-color="green" id="q-select" v-model="selectedOption" label="Filtro por" options-dense :options="options" style="width: 200px" />
+				</div>
+			</template>
 
-								<!-- Botones del formulario -->
-								<div class="q-mt-md">
-									<q-btn @click="mostrarFormulario = false" label="Cancelar" color="negative" class="q-ma-sm">
-										<q-tooltip> Cancelar </q-tooltip>
-									</q-btn>
-									<q-btn :loading="useProduccion.loading" :disable="useProduccion.loading" type="submit" :label="esEdicion ? 'Guardar Cambios' : 'Guardar Producción'" color="primary" class="q-ma-sm">
-										<q-tooltip> {{ esEdicion ? "Guardar Cambios" : "Guardar Producción" }} </q-tooltip>
-										<template v-slot:loading>
-											<q-spinner color="white" size="1em" />
-										</template>
-									</q-btn>
-								</div>
-							</q-form>
-						</div>
-					</q-card-section>
-				</q-card>
-			</q-dialog>
-		</div>
-
-		<q-table flat bordered title="Producciones" title-class="text-green text-weight-bolder text-h5" :rows="filtrarFilas" :columns="columns" row-key="id" :loading="loadingg">
 			<template v-slot:body-cell-opciones="props">
 				<q-td :props="props">
 					<q-btn @click="cargarProduccionParaEdicion(props.row)">
@@ -429,7 +407,6 @@ watch(selectedOption, () => {
 				</q-td>
 			</template>
 
-			<!-- Observaciones Column -->
 			<template v-slot:body-cell-observaciones="props">
 				<q-td :props="props" class="relative">
 					<div class="truncated-text" @mouseover="checkAndShowTooltip($event, props.row.observaciones, 20)" @mouseleave="hideTooltip">
@@ -439,7 +416,7 @@ watch(selectedOption, () => {
 			</template>
 
 			<template v-slot:loading>
-				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal" label-style="font-size: 1.1em"> </q-inner-loading>
+				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal" label-style="font-size: 1.1em"/>
 			</template>
 		</q-table>
 	</div>

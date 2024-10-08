@@ -5,8 +5,8 @@ import axios from "axios";
 import notify from "../utils/notificaciones";
 
 export const useStoreFacturas = defineStore("Facturas", () => {
-    const url = "http://localhost:3000";
-    // const url = "https://b-proyectoadso-production.up.railway.app";
+    // const url = "http://localhost:3000";
+    const url = "https://b-proyectoadso-production.up.railway.app";
     const useAdmin = useStoreAdmins();
 
     const getComprador = async () => {

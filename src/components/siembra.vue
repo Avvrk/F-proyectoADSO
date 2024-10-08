@@ -37,9 +37,9 @@ const listarCultivoAnterior = ref("");
 const fecha1 = ref("");
 const fecha2 = ref("");
 
-const selectedOption = ref("Listar Siembras");
+const selectedOption = ref("Todas");
 const options = [
-	{ label: "Listar Siembras", value: "Listar Siembras" },
+	{ label: "Todas", value: "Todas" },
 	{
 		label: "Listar Siembra por Cultivo Actual",
 		value: "Listar Siembra por Cultivo Actual",
@@ -48,8 +48,8 @@ const options = [
 		label: "Listar Siembras por Fechas de Siembra",
 		value: "Listar Siembras por Fechas de Siembra",
 	},
-	{ label: "Listar Siembras Activas", value: "Listar Siembras Activas" },
-	{ label: "Listar Siembras Inactivas", value: "Listar Siembras Inactivas" },
+	{ label: "Activas", value: "Activas" },
+	{ label: "Inactivas", value: "Inactivas" },
 	{
 		label: "Listar Siembras por Empleado",
 		value: "Listar Siembras por Empleado",
@@ -120,7 +120,7 @@ async function listarCultivos() {
 
 async function listarEmpleados() {
 	const r = await useSiembra.getEmpleados();
-	empleados.value = r.data.empleados;
+	empleados.value = r.data.admins;
 	console.log("Empleados", empleados.value);
 }
 
@@ -142,6 +142,7 @@ const cultivoOptions = computed(() => {
 const empleadoOptions = computed(() => {
 	return empleados.value
 		.filter((plan) => plan.estado != 0)
+		.filter(({ rol }) => rol == "Empleado")
 		.map((empleado) => ({
 			label: empleado.nombre,
 			id: empleado._id,
@@ -196,7 +197,7 @@ const filteredFilas = computed(() => {
 async function actualizarListadoSiembras() {
 	loadingg.value = true;
 	try {
-		const siembraPromise = selectedOption.value === "Listar Siembras Activas" ? useSiembra.getSiembraActivas() : selectedOption.value === "Listar Siembras Inactivas" ? useSiembra.getSiembraInactivas() : useSiembra.getSiembra();
+		const siembraPromise = selectedOption.value === "Activas" ? useSiembra.getSiembraActivas() : selectedOption.value === "Inactivas" ? useSiembra.getSiembraInactivas() : useSiembra.getSiembra();
 
 		rows.value = (await siembraPromise).data.siembras;
 		console.log("Siembras", rows.value);
@@ -354,94 +355,71 @@ watch(selectedOption, () => {
 
 <template>
 	<div class="q-pa-md" v-if="!visible">
-		<div>
-			<h3 style="text-align: center; margin: 10px">Siembras</h3>
-			<hr style="width: 70%; height: 5px; background-color: green" />
-		</div>
+		<q-dialog v-model="mostrarFormulario" v-bind="!mostrarFormulario && limpiarCampos()">
+			<q-card style="width: 30rem">
+				<q-card-section style="padding-bottom: 0">
+					<div class="text-h5 text-center text-green q-pt-lg">{{ esEdicion ? "Editar" : "Agregar" }} Siembra</div>
+				</q-card-section>
 
-		<div class="contSelect" style="margin-left: 5%; text-align: end; margin-right: 5%">
-			<!-- Select para las opciones -->
-			<q-select background-color="green" class="q-my-md" v-model="selectedOption" outlined dense options-dense emit-value :options="options" />
+				<q-card-section>
+					<q-form @submit.prevent="esEdicion ? editarSiembra() : agregarSiembra()" class="q-pa-md">
+						<q-select v-model="id_cultivo" standout="bg-green text-while" label="Cultivo" filled outlined :options="cultivoOptions" class="q-mb-md" style="max-width: 100%" required>
+							<template v-slot:no-option>
+								<q-item>
+									<q-item-section> No results </q-item-section>
+								</q-item>
+							</template>
+						</q-select>
+						<q-select v-model="empleado_id" standout="bg-green text-while" label="Empleado" filled outlined :options="empleadoOptions" class="q-mb-md" style="max-width: 100%" required>
+							<template v-slot:no-option>
+								<q-item>
+									<q-item-section> No results </q-item-section>
+								</q-item>
+							</template>
+						</q-select>
 
-			<!-- Input para 'Listar Siembra por Cultivo Actual' -->
-			<input v-if="selectedOption === 'Listar Siembra por Cultivo Actual'" v-model="listarCultivo" class="q-my-md" type="text" name="listarCultivo" id="listarCultivo" placeholder="Cultivo Actual" />
+						<q-input v-model="fechaSiembra" standout="bg-green text-while" label="Fecha de Siembra" type="date" filled required class="q-mb-md" />
+						<q-input v-model="fechaCosecha" standout="bg-green text-while" label="Fecha de Cosecha" type="date" filled required class="q-mb-md" />
+						<q-input v-model="transplante" standout="bg-green text-while" label="Transplante (true o false)" filled required class="q-mb-md" />
+						<q-input v-model.trim="cultivoAnterior" standout="bg-green text-while" label="Cultivo Anterior" filled required class="q-mb-md" />
 
-			<!-- Input para 'Listar Siembra por Empleado' -->
-			<input v-if="selectedOption === 'Listar Siembras por Empleado'" v-model="listarEmpleado" class="q-my-md" type="text" name="listarEmpleado" id="listarEmpleado" placeholder="Empleado" />
+						<q-select v-model="inventario_id" standout="bg-green text-while" label="Producto" filled outlined :options="inventarioOptions" class="q-mb-md" style="max-width: 100%" required>
+							<template v-slot:no-option>
+								<q-item>
+									<q-item-section> No results </q-item-section>
+								</q-item>
+							</template>
+						</q-select>
 
-			<!-- Input para 'Listar Siembras por Cultivo Anterior' -->
-			<input v-if="selectedOption === 'Listar Siembras por Cultivo Anterior'" v-model="listarCultivoAnterior" class="q-my-md" type="text" name="listarCultivoAnterior" id="listarCultivoAnterior" placeholder="Cultivo Anterior" />
-
-			<div v-if="selectedOption === 'Listar Siembras por Fechas de Siembra'" style="display: flex; flex-direction: row; text-align: center; flex-wrap: wrap; position: absolute; top: 147px; left: 350px">
-				<label for="fecha1" style="height: 100%; line-height: 88px; margin-left: 80px">De:</label>
-				<q-input v-model="fecha1" class="q-my-md" type="date" name="search" id="fecha1" />
-
-				<label for="fecha2" style="height: 100%; line-height: 88px; margin-left: 80px">A:</label>
-				<q-input v-model="fecha2" class="q-my-md" type="date" name="search" id="fecha2" />
-			</div>
-		</div>
-
-		<div>
-			<div style="margin-left: 5%; text-align: end; margin-right: 5%" class="q-mb-md">
-				<q-btn label="Agregar Siembra" @click="mostrarFormulario = true">
-					<q-tooltip> Agregar Siembra </q-tooltip>
-				</q-btn>
-			</div>
-			<q-dialog v-model="mostrarFormulario" v-bind="!mostrarFormulario && limpiarCampos()">
-				<q-card>
-					<q-card-section>
-						<div class="text-h6">{{ esEdicion ? "Editar Siembra" : "Agregar Siembra" }}</div>
-					</q-card-section>
-
-					<q-card-section>
-						<q-form @submit.prevent="esEdicion ? editarSiembra() : agregarSiembra()">
-							<q-select v-model="id_cultivo" label="Cultivo" filled outlined :options="cultivoOptions" class="q-mb-md" style="max-width: 100%" required>
-								<template v-slot:no-option>
-									<q-item>
-										<q-item-section> No results </q-item-section>
-									</q-item>
+						<div class="q-mt-md row justify-end">
+							<q-btn :loading="useSiembra.loading" :disable="useSiembra.loading" type="submit" color="positive" class="q-mr-sm">
+								Registrar
+								<q-tooltip> Registrar </q-tooltip>
+								<template v-slot:loading>
+									<q-spinner color="white" size="1em" />
 								</template>
-							</q-select>
-							<q-select v-model="empleado_id" label="Empleado" filled outlined :options="empleadoOptions" class="q-mb-md" style="max-width: 100%" required>
-								<template v-slot:no-option>
-									<q-item>
-										<q-item-section> No results </q-item-section>
-									</q-item>
-								</template>
-							</q-select>
+							</q-btn>
+							<q-btn @click="mostrarFormulario = false" class="bg-red text-white"
+								>Cerrar
+								<q-tooltip> Cerrar </q-tooltip>
+							</q-btn>
+						</div>
+					</q-form>
+				</q-card-section>
+			</q-card>
+		</q-dialog>
 
-							<q-input v-model="fechaSiembra" label="Fecha de Siembra" type="date" filled required class="q-mb-md" />
-							<q-input v-model="fechaCosecha" label="Fecha de Cosecha" type="date" filled required class="q-mb-md" />
-							<q-input v-model="transplante" label="Transplante (true o false)" filled required class="q-mb-md" />
-							<q-input v-model.trim="cultivoAnterior" label="Cultivo Anterior" filled required class="q-mb-md" />
+		<q-table flat bordered :rows="filteredFilas" :columns="columns" row-key="id" style="text-align: center" :loading="loadingg">
+			<template v-slot:top>
+				<h4 class="text-green-7 q-pl-xl text-h4" style="position: absolute; top: -10px">Siembras</h4>
+				<div class="q-pa-lg q-gutter-lg q-ml-auto" style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end">
+					<q-btn label="Agregar" @click="mostrarFormulario = true">
+						<q-tooltip>Agregar Siembra</q-tooltip>
+					</q-btn>
+					<q-select standout="bg-green text-while" background-color="green" id="q-select" v-model="selectedOption" label="Filtro por" options-dense :options="options" style="width: 200px" />
+				</div>
+			</template>
 
-							<q-select v-model="inventario_id" label="Producto" filled outlined :options="inventarioOptions" class="q-mb-md" style="max-width: 100%" required>
-								<template v-slot:no-option>
-									<q-item>
-										<q-item-section> No results </q-item-section>
-									</q-item>
-								</template>
-							</q-select>
-
-							<!-- Botones de acción -->
-							<div class="q-mt-md">
-								<q-btn @click="mostrarFormulario = false" label="Cancelar" class="q-mr-sm">
-									<q-tooltip> Cancelar </q-tooltip>
-								</q-btn>
-								<q-btn :loading="useSiembra.loading" :disable="useSiembra.loading" type="submit" :label="esEdicion ? 'Guardar Cambios' : 'Guardar Siembra'" color="primary" class="q-ma-sm">
-									<q-tooltip> {{ esEdicion ? "Guardar Cambios" : "Guardar Siembra" }} </q-tooltip>
-									<template v-slot:loading>
-										<q-spinner color="white" size="1em" />
-									</template>
-								</q-btn>
-							</div>
-						</q-form>
-					</q-card-section>
-				</q-card>
-			</q-dialog>
-		</div>
-
-		<q-table flat bordered title="Siembras" title-class="text-green text-weight-bolder text-h5" :rows="filteredFilas" :columns="columns" row-key="id" style="text-align: center" :loading="loadingg">
 			<template v-slot:body-cell-opciones="props">
 				<q-td :props="props">
 					<q-btn @click="mostrarDatosParaEditar(props.row)">
@@ -472,7 +450,7 @@ watch(selectedOption, () => {
 			</template>
 
 			<template v-slot:loading>
-				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal" label-style="font-size: 1.1em"> </q-inner-loading>
+				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal" label-style="font-size: 1.1em"/>
 			</template>
 		</q-table>
 	</div>
