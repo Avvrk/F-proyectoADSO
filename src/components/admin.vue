@@ -184,8 +184,8 @@ async function registrar() {
             if (res.status === 200) {
                 mostrarFormularioAdmin.value = false;
                 listarAdmin();
-            } else if (r.response && r.response.data.errors) {
-				r.response.data.errors.forEach((err) => {
+            } else if (res.response && res.response.data.errors) {
+				res.response.data.errors.forEach((err) => {
 					notify(err.msg);
 				});
 			} 
@@ -208,8 +208,8 @@ async function editar() {
                 rol: rolAdmin.value,
             };
 
-            const res = await useAdmin.putAdmin(datos.value._id, info);
-            if (res.status === 200) {
+            const r = await useAdmin.putAdmin(datos.value._id, info);
+            if (r.status === 200) {
                 mostrarFormularioAdmin.value = false;
                 listarAdmin();
             } else if (r.response && r.response.data.errors) {

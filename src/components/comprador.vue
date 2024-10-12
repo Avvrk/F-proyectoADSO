@@ -267,12 +267,12 @@ async function registrar() {
                 valor: valorComprador.value,
             };
 
-            const res = await useComprador.postComprador(info);
-            if (res.status === 200) {
+            const r = await useComprador.postComprador(info);
+            if (r.status === 200) {
                 mostrarFormularioComprador.value = false;
                 listarComprador();
-            } else if (res.response && res.response.data.errors) {
-				res.response.data.errors.forEach((err) => {
+            } else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
 					notify(err.msg);
 				});
 			} 
@@ -297,8 +297,8 @@ async function editar() {
                 valor: valorComprador.value,
             };
 
-            const res = await useComprador.putComprador(datos.value._id, info);
-            if (res.status === 200) {
+            const r = await useComprador.putComprador(datos.value._id, info);
+            if (r.status === 200) {
                 mostrarFormularioComprador.value = false;
                 listarComprador();
             } else if (r.response && r.response.data.errors) {

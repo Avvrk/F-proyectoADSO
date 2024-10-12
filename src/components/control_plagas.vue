@@ -275,8 +275,8 @@ async function registrar() {
                 observaciones: observacionesControlPlagas.value,
             };
 
-            const res = await useControlPlaga.postControlPlagas(info);
-            if (res.status === 200) {
+            const r = await useControlPlaga.postControlPlagas(info);
+            if (r.status === 200) {
                 mostrarFormularioControlPlaga.value = false;
                 listarControlPlagas();
             } else if (r.response && r.response.data.errors) {
@@ -307,11 +307,11 @@ async function editar() {
                 observaciones: observacionesControlPlagas.value,
             };
 
-            const res = await useControlPlaga.putControlPlagas(
+            const r = await useControlPlaga.putControlPlagas(
                 datos.value._id,
                 info
             );
-            if (res.status === 200) {
+            if (r.status === 200) {
                 mostrarFormularioControlPlaga.value = false;
                 listarControlPlagas();
             } else if (r.response && r.response.data.errors) {

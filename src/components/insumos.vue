@@ -6,7 +6,7 @@ import { router } from "../routes/routes.js";
 
 const $q = useQuasar();
 
-const UseInsumo = useStoreInsumos();
+const useInsumo = useStoreInsumos();
 
 const proveedores = ref([]);
 
@@ -53,7 +53,7 @@ const opcionesProveedores = computed (()=> {
 async function listarProveedores() {
 	try {
 		loading.value = true;
-		const r = await UseInsumo.getProveedores();
+		const r = await useInsumo.getProveedores();
 		if (r.code == "ERR_BAD_REQUEST") {
 			if (
 				r.response.data.msg == "No hay token en la peticion" ||
@@ -80,7 +80,7 @@ async function listarProveedores() {
 async function listarInsumos() {
 	try {
 		loading.value = true;
-		const r = await UseInsumo.getInsumos();
+		const r = await useInsumo.getInsumos();
 		if (r.code == "ERR_BAD_REQUEST") {
 			if (
 				r.response.data.msg == "No hay token en la peticion" ||
@@ -119,7 +119,7 @@ async function registrar() {
 				observaciones: observacionesInsumo.value,
 			};
 
-			const r = await UseInsumo.postInsumos(info);
+			const r = await useInsumo.postInsumos(info);
 			if ( r.status === 200) {
 				mostrarFormularioInsumo.value = false;
 				listarInsumos();
@@ -145,7 +145,7 @@ async function editar() {
 				observaciones: observacionesInsumo.value,
 			};
 
-			const r = await UseInsumo.putInsumos(info);
+			const r = await useInsumo.putInsumos(info);
 			if ( r.status === 200) {
 				mostrarFormularioInsumo.value = false;
 				listarInsumos();

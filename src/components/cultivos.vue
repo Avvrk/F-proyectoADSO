@@ -150,8 +150,8 @@ async function registrar() {
                 id_parcela: parcelaCultivo.value.id,
             };
 
-            const res = await useCultivo.postCultivos(info);
-            if (res.status === 200) {
+            const r = await useCultivo.postCultivos(info);
+            if (r.status === 200) {
                 mostrarFormularioCultivos.value = false;
                 listarCultivos();
             } else if (r.response && r.response.data.errors) {
@@ -175,8 +175,8 @@ async function editar() {
                 id_parcela: parcelaCultivo.value.id,
             };
 
-            const res = await useCultivo.putCultivos(datos.value._id, info);
-            if (res.status === 200) {
+            const r = await useCultivo.putCultivos(datos.value._id, info);
+            if (r.status === 200) {
                 mostrarFormularioCultivos.value = false;
                 listarCultivos();
             } else if (r.response && r.response.data.errors) {

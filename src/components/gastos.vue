@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import { useStoreGastos } from "../stores/gastos.js";
 import { useQuasar } from "quasar";
-import { router } from "../routes/routes.js";
+import notify from "../utils/notificaciones.js";
 
 const $q = useQuasar();
 const useGasto = useStoreGastos();
@@ -21,19 +21,15 @@ let columns = ref([
         align: "center",
         label: "Fecha",
         field: (row) => {
-            // Verifica si row.fecha está definido
-            if (row.fecha) {
-                return row.fecha.split("T")[0]; // Devuelve la fecha formateada
-            }
-            return ""; // Devuelve un string vacío si row.fecha es undefined
+            return row.fecha.split("T")[0];
         },
         sortable: true,
     },
     {
-        name: "numeroFactura",
+        name: "codigo",
         align: "center",
-        label: "Número de Factura",
-        field: "numeroFactura",
+        label: "Codigo",
+        field: "codigo",
         sortable: true,
     },
     {
@@ -51,27 +47,15 @@ let columns = ref([
         sortable: true,
     },
     {
-        name: "insumos_id",
+        name: "informacion",
         align: "center",
-        label: "Insumo",
-        field: (row) =>
-            row.insumos_id ? `${row.insumos_id.nombre}` : "Sin información",
-        sortable: true,
-    },
-    {
-        name: "semillas_id",
-        align: "center",
-        label: "Semilla",
-        field: (row) =>
-            row.semillas_id
-                ? `${row.semillas_id.especieVariedad} (Origen: ${row.semillas_id.origen})`
-                : "Sin información",
-        sortable: true,
+        label: "Informacion",
+        field: "informacion",
     },
     {
         name: "opciones",
         align: "center",
-        label: "Editar",
+        label: "Opciones",
         field: "opciones",
         sortable: true,
     },
@@ -84,19 +68,19 @@ const fincas = ref([]);
 
 // Variables para el formulario
 const nombreGasto = ref("");
+const fincaGasto = ref("");
 const fechaGasto = ref("");
-const numeroFacturaGasto = ref("");
+const codigoGasto = ref("");
 const descripcionGasto = ref("");
 const totalGasto = ref("");
+const totalISGasto = ref("");
+const proveedorGastos = ref("");
 const insumoGasto = ref("");
 const semillaGasto = ref("");
-const mantenimientoGasto = ref("");
-const proveedorGastos = ref("");
-const fincaGasto = ref("");
-const cantidad = ref("");
-const unidad = ref("");
+const cantidadGasto = ref("");
+const unidadGasto = ref("Kl");
 //queso
-const tipoSeleccionado = ref("Insumos");
+const tipoSeleccionado = ref("Otro");
 
 // Variable necesaria para la edición
 const datos = ref([]);
@@ -109,13 +93,13 @@ const loading = ref(true);
 // Computed para opciones de insumos, semillas y mantenimientos
 const opcionesFinca = computed(() => {
     return fincas.value.map((item) => {
-        return { label: item.nombre, id: item.id };
+        return { label: `${item.nombre} (rut: ${item.rut})`, id: item._id };
     });
 });
 
 const opcionesInsumos = computed(() => {
     return insumo.value.map((item) => {
-        return { label: item.nombre, id: item.id };
+        return { label: item.nombre, id: item._id };
     });
 });
 
@@ -123,7 +107,7 @@ const opcionesSemillas = computed(() => {
     return semilla.value.map((item) => {
         return {
             label: `${item.especieVariedad} (Origen: ${item.origen})`,
-            id: item.id,
+            id: item._id,
         };
     });
 });
@@ -134,14 +118,10 @@ const opcionesProveedores = computed(() => {
     });
 });
 
-// Funciones para listar insumos, semillas, proveedores y gastos
 async function listarInsumos() {
     try {
         loading.value = true;
         const r = await useGasto.getInsumos();
-        if (r.code == "ERR_BAD_REQUEST") {
-            handleError(r, "Error al listar los insumos");
-        }
         insumo.value = r.data.insumos;
     } finally {
         loading.value = false;
@@ -152,9 +132,6 @@ async function listarSemillas() {
     try {
         loading.value = true;
         const r = await useGasto.getSemillas();
-        if (r.code == "ERR_BAD_REQUEST") {
-            handleError(r, "Error al listar las semillas");
-        }
         semilla.value = r.data.semillas;
     } finally {
         loading.value = false;
@@ -165,9 +142,6 @@ async function listarGastos() {
     try {
         loading.value = true;
         const r = await useGasto.getGastos();
-        if (r.code == "ERR_BAD_REQUEST") {
-            handleError(r, "Error al listar los gastos");
-        }
         rows.value = r.data.gastos;
     } finally {
         loading.value = false;
@@ -178,9 +152,6 @@ async function listarfincas() {
     try {
         loading.value = true;
         const r = await useGasto.getFincas();
-        if (r.code == "ERR_BAD_REQUEST") {
-            handleError(r, "Error al listar los gastos");
-        }
         fincas.value = r.data.fincas;
     } finally {
         loading.value = false;
@@ -188,35 +159,12 @@ async function listarfincas() {
 }
 
 async function listarProveedores() {
-    // Cambia el nombre de la función
     try {
         loading.value = true;
-        const r = await useGasto.getProveedores(); // Asegúrate de que esta función esté definida en la store
-        if (r.code === "ERR_BAD_REQUEST") {
-            handleError(r, "Error al listar los proveedores");
-        }
-        proveedor.value = r.data.proveedores; // Cambia 'r.data.Proveedor' a 'r.data.proveedores'
+        const r = await useGasto.getProveedores();
+        proveedor.value = r.data.proveedores;
     } finally {
         loading.value = false;
-    }
-}
-
-function handleError(r, defaultMessage) {
-    if (
-        r.response.data.msg == "No hay token en la peticion" ||
-        r.response.data.msg == "Token no válido! ." ||
-        r.response.data.msg == "Token no válido!!  " ||
-        r.response.data.msg == "Token no valido"
-    ) {
-        $q.notify({ type: "negative", message: "Token no válido" });
-        setTimeout(() => {
-            router.push("/");
-        }, 2000);
-    } else {
-        $q.notify({
-            type: "negative",
-            message: r.response.data.msg || defaultMessage,
-        });
     }
 }
 
@@ -226,19 +174,39 @@ async function registrar() {
             loading.value = true;
             const info = {
                 nombre: nombreGasto.value,
+                fincas_id: fincaGasto.value.id,
                 fecha: fechaGasto.value,
-                numeroFactura: numeroFacturaGasto.value,
+                codigo: codigoGasto.value,
                 descripcion: descripcionGasto.value,
                 total: totalGasto.value,
-                insumos_id: insumoGasto.value,
-                semillas_id: semillaGasto.value,
-                fincaGasto: fincaGasto.value,
+                insumos: {
+                    id_proveedor: tipoSeleccionado == "Insumos" ? proveedorGastos.value : null,
+                    id_insumos: insumoGasto.value,
+                    unidad: unidadGasto.value,
+                    total: totalISGasto.value,
+                    canidad: cantidadGasto.value,
+                },
+                semillas: {
+                    id_proveedor: proveedorGastos.value,
+                    id_semilla: semillaGasto.value,
+                    unidad: unidadGasto.value,
+                    total: totalISGasto.value,
+                    canidad: cantidadGasto.value,
+                },
             };
             console.log(info);
 
-            await useGasto.postGastos(info);
-            mostrarFormularioGasto.value = false;
-            listarGastos();
+            const r = await useGasto.postGastos(info);
+            if (r.status === 200) {
+                mostrarFormularioGasto.value = false;
+                listarGastos();
+            } else if (r.response && r.response.data.errors) {
+                r.response.data.errors.forEach((err) => {
+                    notify(err.msg);
+                });
+            } else if (r.response && r.response.data.error) {
+                notify(r.response.data.error);
+            }
         } finally {
             loading.value = false;
         }
@@ -251,19 +219,37 @@ async function editar() {
             loading.value = true;
             const info = {
                 nombre: nombreGasto.value,
+                fincas_id: fincaGasto.value.id,
                 fecha: fechaGasto.value,
-                numeroFactura: numeroFacturaGasto.value,
+                codigo: codigoGasto.value,
                 descripcion: descripcionGasto.value,
                 total: totalGasto.value,
-                insumos_id: insumoGasto.value,
-                semillas_id: semillaGasto.value,
-                fincaGasto: fincaGasto.value,
+                insumos: {
+                    id_proveedor: proveedorGastos.value,
+                    id_insumos: insumoGasto.value,
+                    unidad: unidadGasto.value,
+                    total: totalISGasto.value,
+                    canidad: cantidadGasto.value,
+                },
+                semillas: {
+                    id_proveedor: proveedorGastos.value,
+                    id_semilla: semillaGasto.value,
+                    unidad: unidadGasto.value,
+                    total: totalISGasto.value,
+                    canidad: cantidadGasto.value,
+                },
             };
             console.log(info);
 
-            await useGasto.putGastos(datos.value.id, info);
-            mostrarFormularioGasto.value = false;
-            listarGastos();
+            const r = await useGasto.putGastos(datos.value.id, info);
+            if (r.status === 200) {
+                mostrarFormularioGasto.value = false;
+                listarGastos();
+            } else if (r.response && r.response.data.errors) {
+                r.response.data.errors.forEach((err) => {
+                    notify(err.msg);
+                });
+            }
         } finally {
             loading.value = false;
         }
@@ -272,15 +258,13 @@ async function editar() {
 
 function validarDatos() {
     let validacion = true;
+
     if (
-        !nombreGasto.value ||
-        !fechaGasto.value ||
-        !numeroFacturaGasto.value ||
-        !descripcionGasto.value ||
-        !totalGasto.value ||
-        !insumoGasto.value ||
-        !semillaGasto.value ||
-        !mantenimientoGasto.value
+        !nombreGasto.value.trim() &&
+        !fincaGasto.value &&
+        !fechaGasto.value &&
+        !codigoGasto.value.trim() &&
+        !descripcionGasto.value.trim()
     ) {
         $q.notify({
             color: "negative",
@@ -289,10 +273,18 @@ function validarDatos() {
         });
         validacion = false;
     } else {
-        if (!nombreGasto.value) {
+        if (!nombreGasto.value.trim()) {
             $q.notify({
                 color: "negative",
-                message: "El nombre es obligatorio",
+                message: "El nombre esta vacio",
+                position: "top",
+            });
+            validacion = false;
+        }
+        if (!fincaGasto.value) {
+            $q.notify({
+                color: "negative",
+                message: "La finca esta vacia",
                 position: "top",
             });
             validacion = false;
@@ -300,15 +292,15 @@ function validarDatos() {
         if (!fechaGasto.value) {
             $q.notify({
                 color: "negative",
-                message: "La fecha es obligatoria",
+                message: "La fecha esta vacia",
                 position: "top",
             });
             validacion = false;
         }
-        if (!numeroFacturaGasto.value) {
+        if (!codigoGasto.value) {
             $q.notify({
                 color: "negative",
-                message: "El número de factura es obligatorio",
+                message: "El codigo esta vacio",
                 position: "top",
             });
             validacion = false;
@@ -316,89 +308,51 @@ function validarDatos() {
         if (!descripcionGasto.value) {
             $q.notify({
                 color: "negative",
-                message: "La descripción es obligatoria",
-                position: "top",
-            });
-            validacion = false;
-        }
-        if (!totalGasto.value) {
-            $q.notify({
-                color: "negative",
-                message: "El total es obligatorio",
-                position: "top",
-            });
-            validacion = false;
-        }
-        if (!insumoGasto.value) {
-            $q.notify({
-                color: "negative",
-                message: "El insumo es obligatorio",
-                position: "top",
-            });
-            validacion = false;
-        }
-        if (!semillaGasto.value) {
-            $q.notify({
-                color: "negative",
-                message: "La semilla es obligatoria",
-                position: "top",
-            });
-            validacion = false;
-        }
-        if (!mantenimientoGasto.value) {
-            $q.notify({
-                color: "negative",
-                message: "El mantenimiento es obligatorio",
+                message: "La descripción esta vacia",
                 position: "top",
             });
             validacion = false;
         }
     }
+
     return validacion;
 }
 
 function controlFormulario(obj, boolean) {
     nombreGasto.value = "";
     fechaGasto.value = "";
-    numeroFacturaGasto.value = "";
+    codigoGasto.value = "";
     descripcionGasto.value = "";
-    totalGasto.value = "";
     fincaGasto.value = "";
+    proveedorGastos.value = "";
     insumoGasto.value = "";
     semillaGasto.value = "";
-    mantenimientoGasto.value = "";
+    totalGasto.value = "";
+    cantidadGasto.value = "";
+    totalISGasto.value = "";
     console.log(obj);
 
     datos.value = obj;
     mostrarBotonEditar.value = false;
     if (obj != null && boolean == true) {
         nombreGasto.value = datos.value.nombre;
+        fincaGasto.value = opcionesFinca.value.find(
+            ({ id }) => id == datos.value.finca_id
+        );
         fechaGasto.value = datos.value.fecha;
-        numeroFacturaGasto.value = datos.value.numeroFactura;
+        codigoGasto.value = datos.value.codigo;
         descripcionGasto.value = datos.value.descripcion;
-        totalGasto.value = datos.value.total;
-        insumoGasto.value = datos.value.insumos_id
-            ? datos.value.insumos_id.id
-            : "";
-        fincaGasto.value = datos.value.finca_id ? datos.value.finca_id.id : "";
-        semillaGasto.value = datos.value.semillas_id
-            ? datos.value.semillas_id.id
-            : "";
-        mantenimientoGasto.value = datos.value.mantenimiento_id
-            ? datos.value.mantenimiento_id.id
-            : "";
-        mostrarBotonEditar.value = true;
+        totalISGasto.value = datos.value.total ? datos.value.total : "";
     }
     mostrarFormularioGasto.value = boolean;
 }
 
-// Llamadas iniciales
-onMounted(async () => {
-    await listarGastos();
-    await listarInsumos();
-    await listarSemillas();
-    await listarProveedores();
-    await listarfincas();
+onMounted(() => {
+    listarInsumos();
+    listarSemillas();
+    listarProveedores();
+    listarfincas();
+    listarGastos();
 });
 </script>
 
@@ -422,14 +376,21 @@ onMounted(async () => {
                         </div>
                     </section>
                 </template>
-
                 <template v-slot:body-cell-opciones="props">
-                    <q-td
-                        :props="props"
-                        class="row justify-center"
-                        style="gap: 20px">
+                    <q-td :props="props">
                         <q-btn @click="controlFormulario(props.row, true)">
                             ✏️
+                        </q-btn>
+                    </q-td>
+                </template>
+                <template v-slot:body-cell-informacion="props">
+                    <q-td :props="props">
+                        <q-btn
+                            v-if="
+                                props.row.insumos.id_proveedor != null &&
+                                props.row.semillas.id_proveedor != null
+                            ">
+                            👁️
                         </q-btn>
                     </q-td>
                 </template>
@@ -443,6 +404,11 @@ onMounted(async () => {
                     <p class="text-h5 text-center q-pb-md text-green">
                         {{ datos ? "Editar" : "Agregar" }} Gasto
                     </p>
+                    <q-input
+                        standout="bg-green text-white"
+                        type="text"
+                        label="Codigo"
+                        v-model="codigoGasto" />
                     <q-select
                         standout="bg-green text-white"
                         :options="opcionesFinca"
@@ -461,60 +427,60 @@ onMounted(async () => {
                     <q-input
                         standout="bg-green text-white"
                         type="text"
-                        label="Número de Factura"
-                        v-model="numeroFacturaGasto" />
-                    <q-input
-                        standout="bg-green text-white"
-                        type="text"
                         label="Descripción"
                         v-model="descripcionGasto" />
                     <q-input
+                        v-if="
+                            tipoSeleccionado != 'Insumos' &&
+                            tipoSeleccionado != 'Semillas'
+                        "
                         standout="bg-green text-white"
                         type="text"
                         label="Total"
                         v-model="totalGasto" />
-
                     <!-- Selección de Insumo o Semilla -->
                     <q-select
                         standout="bg-green text-white"
-                        :options="['Insumos', 'Semillas']"
+                        :options="['Otro', 'Insumos', 'Semillas']"
                         label="Seleccionar Tipo"
                         v-model="tipoSeleccionado" />
-
                     <!-- Formulario adicional para agregar datos de insumos/semillas -->
                     <q-select
+                        v-if="tipoSeleccionado != 'Otro'"
                         standout="bg-green text-white"
                         label="Proveedor"
                         v-model="proveedorGastos"
                         :options="opcionesProveedores" />
                     <q-select
+                        v-if="tipoSeleccionado == 'Insumos'"
                         standout="bg-green text-white"
-                        :label="
-                            tipoSeleccionado == 'Semillas'
-                                ? 'Semilla'
-                                : 'Insumo'
-                        "
-                        :options="
-                            tipoSeleccionado == 'Semillas'
-                                ? opcionesSemillas
-                                : opcionesInsumos
-                        "
-                        :v-model="
-                            tipoSeleccionado == 'Semillas'
-                                ? insumoGasto
-                                : semillaGasto
-                        " />
-                    <q-input
+                        label="Insumo"
+                        :options="opcionesInsumos"
+                        v-model="insumoGasto" />
+                    <q-select
+                        v-if="tipoSeleccionado == 'Semillas'"
                         standout="bg-green text-white"
-                        type="number"
-                        label="Unidad"
-                        v-model="unidad" />
+                        label="Semilla"
+                        :options="opcionesSemillas"
+                        v-model="semillaGasto" />                      
                     <q-input
+                        v-if="tipoSeleccionado != 'Otro'"
+                        standout="bg-green text-white"
+                        type="text"
+                        label="Unidad de medida"
+                        v-model="unidadGasto" />
+                    <q-input
+                        v-if="tipoSeleccionado != 'Otro'"
                         standout="bg-green text-white"
                         type="number"
                         label="Cantidad"
-                        v-model="cantidad" />
-
+                        v-model="cantidadGasto" />
+                    <q-input
+                        v-if="tipoSeleccionado != 'Otro'"
+                        standout="bg-green text-white"
+                        type="number"
+                        label="Total"
+                        v-model="totalISGasto" />
                     <div class="row justify-end" style="gap: 10px">
                         <q-btn
                             unelevated

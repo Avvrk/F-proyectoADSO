@@ -303,8 +303,8 @@ async function registrar() {
                 recomendaciones: recomendacionesAnalisisSuelo.value,
             };
 
-            const res = await useAnalisisSuelo.postAnalisisSuelo(info);
-            if (res.status === 200) {
+            const r = await useAnalisisSuelo.postAnalisisSuelo(info);
+            if (r.status === 200) {
                 mostrarFormularioAnalisisSuelo.value = false;
                 listarAnalisisSuelo();
             } else if (r.response && r.response.data.errors) {
@@ -334,11 +334,11 @@ console.log(resultadosAnalisisSuelo.value.split(','))
                 recomendaciones: recomendacionesAnalisisSuelo.value,
             };
 
-            const res = await useAnalisisSuelo.putAnalisisSuelo(
+            const r = await useAnalisisSuelo.putAnalisisSuelo(
                 datos.value._id,
                 info
             );
-            if (res.status === 200) {
+            if (r.status === 200) {
                 mostrarFormularioAnalisisSuelo.value = false;
                 listarAnalisisSuelo();
             } else if (r.response && r.response.data.errors) {
