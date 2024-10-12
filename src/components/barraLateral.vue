@@ -4,9 +4,9 @@
             <q-toolbar>
                 <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
                 <q-toolbar-title>
-                    <em>campo</em>
+                    <em>CampoSoft</em>
                 </q-toolbar-title>
-                <button style="color: red; font-weight: 600; font-size: large; background-color: transparent; border: 0px; display: flex; flex-direction: row-reverse; cursor: pointer;" @click="cerrar()">
+                <button style="color: white; font-weight: 600; font-size: large; background-color: transparent; border: 0px; display: flex; flex-direction: row-reverse; cursor: pointer;" @click="cerrar()">
                     Cerrar Sesión
                     <q-item-section avatar>
                         <q-icon name="login" />
