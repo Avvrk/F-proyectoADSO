@@ -88,102 +88,102 @@ const useFacturas = useStoreFacturas();
 const rowsDetalles = ref([]);
 const rows = ref([]);
 let columns1 = ref([
-    {
-        name: "numFactura",
-        align: "center",
-        label: "Numero de Factura",
-        field: "numFactura",
-        sortable: true,
-    },
-    {
-        name: "fecha",
-        align: "center",
-        label: "Fecha",
-        field: (row) => {
-            return row.fecha.split("T")[0];
-        },
-        sortable: true,
-    },
-    {
-        name: "comprador_id",
-        align: "center",
-        label: "Comprador",
-        field: (row) => `${row.comprador_id.nombre}`,
-        sortable: true,
-    },
-    {
-        name: "total",
-        align: "center",
-        label: "Total",
-        field: "total",
-        sortable: true,
-    },
-    {
-        name: "opciones",
-        align: "center",
-        label: "Opciones",
-        field: "opciones",
-        sortable: true,
-    },
+	{
+		name: "numFactura",
+		align: "center",
+		label: "Numero de Factura",
+		field: "numFactura",
+		sortable: true,
+	},
+	{
+		name: "fecha",
+		align: "center",
+		label: "Fecha",
+		field: (row) => {
+			return row.fecha.split("T")[0];
+		},
+		sortable: true,
+	},
+	{
+		name: "comprador_id",
+		align: "center",
+		label: "Comprador",
+		field: (row) => `${row.comprador_id.nombre}`,
+		sortable: true,
+	},
+	{
+		name: "total",
+		align: "center",
+		label: "Total",
+		field: "total",
+		sortable: true,
+	},
+	{
+		name: "opciones",
+		align: "center",
+		label: "Opciones",
+		field: "opciones",
+		sortable: true,
+	},
 ]);
 
 let columns2 = ref([
-    {
-        name: "codigo",
-        align: "center",
-        label: "Codigo",
-        field: "codigo",
-        sortable: true,
-    },
-    {
-        name: "nombreProducto",
-        align: "center",
-        label: "Nombre de Producto",
-        field: "nombreProducto",
-        sortable: true,
-    },
-    {
-        name: "valor",
-        align: "center",
-        label: "Valor Unitario",
-        field: "valor",
-        sortable: true,
-    },
-    {
-        name: "cantidad",
-        align: "center",
-        label: "Cantidad",
-        field: "cantidad",
-        sortable: true,
-    },
-    {
-        name: "subtotal",
-        align: "center",
-        label: "Subtotal",
-        field: "subtotal",
-        sortable: true,
-    },
-    {
-        name: "iva",
-        align: "center",
-        label: "IVA (%)",
-        field: "iva",
-        sortable: true,
-    },
-    {
-        name: "total",
-        align: "center",
-        label: "Total",
-        field: "total",
-        sortable: true,
-    },
-    {
-        name: "opciones",
-        align: "center",
-        label: "Opciones",
-        field: "opciones",
-        sortable: true,
-    },
+	{
+		name: "codigo",
+		align: "center",
+		label: "Codigo",
+		field: "codigo",
+		sortable: true,
+	},
+	{
+		name: "nombreProducto",
+		align: "center",
+		label: "Nombre de Producto",
+		field: "nombreProducto",
+		sortable: true,
+	},
+	{
+		name: "precioUnitario",
+		align: "center",
+		label: "Valor Unitario",
+		field: "precioUnitario",
+		sortable: true,
+	},
+	{
+		name: "cantidad",
+		align: "center",
+		label: "Cantidad",
+		field: "cantidad",
+		sortable: true,
+	},
+	{
+		name: "subtotal",
+		align: "center",
+		label: "Subtotal",
+		field: "subtotal",
+		sortable: true,
+	},
+	{
+		name: "iva",
+		align: "center",
+		label: "IVA (%)",
+		field: "iva",
+		sortable: true,
+	},
+	{
+		name: "total",
+		align: "center",
+		label: "Total",
+		field: "total",
+		sortable: true,
+	},
+	{
+		name: "opciones",
+		align: "center",
+		label: "Opciones",
+		field: "opciones",
+		sortable: true,
+	},
 ]);
 
 const compradores = ref([]);
@@ -210,6 +210,7 @@ const datos = ref([]);
 
 //Variables que controla lo que se va a mostrar en la pantalla
 const mostrarFormularioFactura = ref(false);
+const mostrarDetalles = ref(false);
 const mostrarBotonEditar = ref(false);
 const loading = ref(true);
 
@@ -219,486 +220,468 @@ const loading = ref(true);
     })
 }) */
 
-const calcular = computed(() => {
+/* const calcular = computed(() => {
     subtotalFactura.value = cantidadFactura.value * cantidadUnitaria.value;
     totalDetallesFactura.value =
         subtotalFactura.value + subtotalFactura.value * ivaFactura.value;
-});
+}); */
 
 const opcionesProduccion = computed(() => {
-    return producciones.value.map((p) => {
-        return { label: p.cultivo_id.nombre, id: p._id };
-    });
+	return producciones.value.map((p) => {
+		return { label: p.cultivo_id.nombre, id: p._id };
+	});
 });
 
 const opcionesComprador = computed(() => {
-    return compradores.value.map((c) => {
-        return { label: c.nombre, id: c._id };
-    });
+	return compradores.value.map((c) => {
+		return { label: c.nombre, id: c._id };
+	});
 });
 
+const actualizarDatos = (fila) => {
+	console.log(fila);
+
+	const subtotal = fila.precioUnitario * fila.cantidad;
+	const total = subtotal + subtotal * (fila.iva / 100);
+
+	fila.subtotal = subtotal;
+	fila.total = total;
+
+	totalGeneral();
+};
+
+const totalGeneral = () => {
+	totalFactura.value = rowsDetalles.value.reduce((acc, v) => {
+		return acc + v.total;
+	}, 0);
+};
+
 async function listarComprador() {
-    try {
-        loading.value = true;
-        const r = await useFacturas.getComprador();
-        /* if (r.code == "ERR_BAD_REQUEST") {
-            if (
-                r.response.data.msg == "No hay token en la peticion" ||
-                r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  " ||
-                r.response.data.msg == "Token no valido"
-            ) {
-                $q.notify({
-                    type: "negative",
-                    message: "Token no valido",
-                });
-                return router.push("/");
-            }
-        } */
-        compradores.value = r.data.compradores;
-    } finally {
-        loading.value = false;
-    }
+	try {
+		loading.value = true;
+		const r = await useFacturas.getComprador();
+		compradores.value = r.data.compradores;
+	} finally {
+		loading.value = false;
+	}
 }
 
 async function listarProduccion() {
-    try {
-        loading.value = true;
-        const r = await useFacturas.getProduccion();
-        /* if (r.code == "ERR_BAD_REQUEST") {
-            if (
-                r.response.data.msg == "No hay token en la peticion" ||
-                r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  " ||
-                r.response.data.msg == "Token no valido"
-            ) {
-                $q.notify({
-                    type: "negative",
-                    message: "Token no valido",
-                });
-                return router.push("/");
-            }
-        } */
-        producciones.value = r.data.producciones;
-    } finally {
-        loading.value = false;
-    }
+	try {
+		loading.value = true;
+		const r = await useFacturas.getProduccion();
+		producciones.value = r.data.producciones;
+	} finally {
+		loading.value = false;
+	}
 }
 
 async function listarFactura() {
-    try {
-        loading.value = true;
-        const r = await useFacturas.getFacturas();
-        /* if (r.code == "ERR_BAD_REQUEST") {
-            if (
-                r.response.data.msg == "No hay token en la peticion" ||
-                r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  " ||
-                r.response.data.msg == "Token no valido"
-            ) {
-                $q.notify({
-                    type: "negative",
-                    message: "Token no valido",
-                });
-                return router.push("/");
-            }
-        } */
-        rows.value = r.data.facturas;
-    } finally {
-        loading.value = false;
-    }
+	try {
+		loading.value = true;
+		const r = await useFacturas.getFacturas();
+		rows.value = r.data.facturas;
+	} finally {
+		loading.value = false;
+	}
 }
 
 async function registrar() {
-    if (validarDatosFactura()) {
-        try {
-            loading.value = true;
-            const info = {
-                fecha: fechaFactura.value,
-                numFactura: numFactura.value,
-                detalle: [
-                    {
-                        id_produccion: "",
-                        cantidad: "",
-                        nombreProducto: "",
-                        subtotal: "",
-                        iva: "",
-                        total: "",
-                    },
-                ],
-                comprador_id: compradorFactura.value.id,
-                total: totalFactura.value,
-            };
+	if (validarDatosFactura()) {
+		try {
+			loading.value = true;
+			const info = {
+				fecha: fechaFactura.value,
+				numFactura: numFactura.value,
+				detalles: [
+					{
+						id_produccion: "",
+						cantidad: "",
+						nombreProducto: "",
+						subtotal: "",
+						iva: "",
+						total: "",
+					},
+				],
+				comprador_id: compradorFactura.value.id,
+				total: totalFactura.value,
+			};
 
-            const r = await useFacturas.postFactura(info);
-            if (r.status === 200) {
-                mostrarFormularioFactura.value = false;
-                listarFactura();
-            } else if (r.response && r.response.data.errors) {
-                r.response.data.errors.forEach((err) => {
-                    notify(err.msg);
-                });
-            }
-        } finally {
-            loading.value = false;
-        }
-    }
+			const r = await useFacturas.postFactura(info);
+			if (r.status === 200) {
+				mostrarFormularioFactura.value = false;
+				listarFactura();
+			} else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			}
+		} finally {
+			loading.value = false;
+		}
+	}
 }
 
 async function editar() {
-    if (validarDatos()) {
-        try {
-            loading.value = true;
-            const info = {
-                fecha: fechaFactura.value,
-                numFactura: numFactura.value,
-                detalle: rowsDetalles.value,
-                comprador_id: compradorFactura.value,
-                total: totalFactura.value,
-            };
+	if (validarDatos()) {
+		try {
+			loading.value = true;
+			const d = JSON.parse(JSON.stringify(rowsDetalles.value));
+			const info = {
+				fecha: fechaFactura.value,
+				numFactura: numFactura.value,
+				detalles: d,
+				comprador_id: compradorFactura.value.id,
+				total: totalFactura.value,
+			};
 
-            const r = await useFacturas.putFactura(datos.value._id, info);
-            if (r.status === 200) {
-                mostrarFormularioFactura.value = false;
-                listarFactura();
-            } else if (r.response && r.response.data.errors) {
-                r.response.data.errors.forEach((err) => {
-                    notify(err.msg);
-                });
-            }
-        } finally {
-            loading.value = false;
-        }
-    }
+			const r = await useFacturas.putFactura(datos.value._id, info);
+			if (r.status === 200) {
+				mostrarFormularioFactura.value = false;
+				listarFactura();
+			} else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			}
+		} finally {
+			loading.value = false;
+		}
+	}
 }
 
 function validarDatosFactura() {
-    let validacion = true;
-
-    if (
-        !fechaFactura.value &&
-        !numFactura.value.trim() &&
-        !compradorFactura.value
-    ) {
-        notify("Llena todos los campos");
-        validacion = false;
-    } else {
-        if (!fechaFactura.value) {
-            notify("El campo fecha está vacío");
-            validacion = false;
-        }
-        if (!numFactura.value) {
-            notify("El campo valor está vacío");
-            validacion = false;
-        }
-        if (!compradorFactura.value) {
-            notify("El campo comprador está vacío");
-            validacion = false;
-        }
-    }
-
-    return validacion;
-}
-
-/* function validarDatosDetalle() {
 	let validacion = true;
 
 	if (
-		!produccionFactura.value &&
-		!cantidadFactura.value.trim() &&
-		!nombreProductoFactura.value.trim() &&
-		!subtotalFactura.value.trim() &&
-		!ivaFactura.value.trim()
+		!fechaFactura.value &&
+		!numFactura.value.trim() &&
+		!compradorFactura.value
 	) {
 		notify("Llena todos los campos");
 		validacion = false;
 	} else {
-		if (!produccionFactura.value) {
-			notify("El campo produccion está vacío");
+		if (!fechaFactura.value) {
+			notify("El campo fecha está vacío");
 			validacion = false;
 		}
-		if (!cantidadFactura.value.trim()) {
-			notify("El campo cantidad está vacío");
+		if (!numFactura.value) {
+			notify("El campo valor está vacío");
 			validacion = false;
 		}
-		if (!nombreProductoFactura.value.trim()) {
-			notify("El campo nombre del producto está vacío");
-			validacion = false;
-		}
-		if (!subtotalFactura.value.trim()) {
-			notify("El campo subtotal está vacío");
-			validacion = false;
-		}
-		if (!ivaFactura.value.trim()) {
-			notify("El campo iva está vacío");
+		if (!compradorFactura.value) {
+			notify("El campo comprador está vacío");
 			validacion = false;
 		}
 	}
 
 	return validacion;
-} */
-
-function validarDatos() {
-    let validacion = true;
-
-    if (
-        !fechaFactura.value &&
-        !numFactura.value.trim() &&
-        !produccionFactura.value &&
-        !cantidadFactura.value.trim() &&
-        !subtotalFactura.value.trim() &&
-        !ivaFactura.value.trim() &&
-        !totalFactura.value.trim() &&
-        !compradorFactura.value
-    ) {
-        notify("Llena todos los campos");
-        validacion = false;
-    } else {
-        if (!fechaFactura.value) {
-            notify("El campo fecha está vacío");
-            validacion = false;
-        }
-        if (!numFactura.value) {
-            notify("El campo numero de la factura está vacío");
-            validacion = false;
-        }
-        if (!produccionFactura.value) {
-            notify("El campo produccion está vacío");
-            validacion = false;
-        }
-        if (!cantidadFactura.value.trim()) {
-            notify("El campo cantidad está vacío");
-            validacion = false;
-        }
-        if (!subtotalFactura.value.trim()) {
-            notify("El campo subtotal está vacío");
-            validacion = false;
-        }
-        if (!ivaFactura.value.trim()) {
-            notify("El campo iva está vacío");
-            validacion = false;
-        }
-        if (!totalFactura.value.trim()) {
-            notify("El campo total está vacío");
-            validacion = false;
-        }
-        if (!compradorFactura.value.trim()) {
-            notify("El campo comprador está vacío");
-            validacion = false;
-        }
-    }
-
-    return validacion;
 }
 
-function controlFormulario(obj, boolean) {
-    fechaFactura.value = "";
-    numFactura.value = "";
-    totalFactura.value = 0;
-    compradorFactura.value = "";
+function validarDatos() {
+	let validacion = true;
 
-    datos.value = obj;
-    mostrarBotonEditar.value = false;
-    if (obj != null && boolean == true) {
-        fechaFactura.value = datos.value.fecha.split("T")[0];
-        numFactura.value = datos.value.numFactura;
-        totalFactura.value = datos.value.total;
-        compradorFactura.value = opcionesComprador.value.find(
-            (c) => c.id == datos.value.comprador_id
-        );
+	// Validación general de campos vacíos
+	if (!fechaFactura.value) {
+		notify("El campo fecha está vacío");
+		validacion = false;
+	}
 
-        mostrarBotonEditar.value = true;
-    }
-    mostrarFormularioFactura.value = boolean;
+	if (!numFactura.value) {
+		notify("El campo número de factura está vacío");
+		validacion = false;
+	}
+
+	if (!compradorFactura.value) {
+		notify("El campo comprador está vacío");
+		validacion = false;
+	}
+
+	// Validación de detalles (asegurarse de que hay al menos un producto)
+	if (!rowsDetalles.value.length) {
+		notify("Debe agregar al menos un producto");
+		validacion = false;
+	}
+
+	// Validación de cada detalle (por ejemplo, cantidad, subtotal, iva)
+	rowsDetalles.value.forEach((detalle, index) => {
+		if (detalle.cantidad == undefined || detalle.cantidad <= 0) {
+			notify(`La cantidad en el producto ${index + 1} no es válida`);
+			validacion = false;
+		}
+		if (detalle.subtotal <= 0) {
+			notify(`El subtotal en el producto ${index + 1} no es válido`);
+			validacion = false;
+		}
+		if (detalle.iva == undefined || detalle.iva <= -1) {
+			notify(`El IVA en el producto ${index + 1} no es válido `);
+			validacion = false;
+		}
+		if (detalle.total <= 0) {
+			notify(`El total en el producto ${index + 1} no es válido`);
+			validacion = false;
+		}
+	});
+
+	return validacion;
+}
+
+function controlFormulario(boolean) {
+	fechaFactura.value = "";
+	numFactura.value = "";
+	totalFactura.value = 0;
+	compradorFactura.value = "";
+	mostrarFormularioFactura.value = boolean;
 }
 
 function controlFormularioDetalles(obj, boolean) {
-    rowsDetalles.value = obj.detalles;
-    fechaFactura.value = obj.fecha.split("T")[0];
-    numFactura.value = obj.numFactura;
-    totalFactura.value = obj.total;
-    compradorFactura.value = opcionesComprador.value.find(
-        (c) => c.id == obj.comprador_id._id
-    );
+	datos.value = obj;
+	rowsDetalles.value = "";
+	fechaFactura.value = "";
+	numFactura.value = "";
+	totalFactura.value = "";
+
+	if (obj != null && boolean == true) {
+		rowsDetalles.value = obj.detalles;
+		fechaFactura.value = obj.fecha.split("T")[0];
+		numFactura.value = obj.numFactura;
+		totalFactura.value = obj.total;
+		compradorFactura.value = opcionesComprador.value.find(
+			(c) => c.id == obj.comprador_id._id
+		);
+	}
+
+	mostrarDetalles.value = boolean;
 }
 
 function controlProducto() {
-    const producto = producciones.value.find(
-        ({ _id }) => _id == produccion.value.id
-    );
-    codigoFactura.value = rowsDetalles.value.length + 1;
+	if (!produccion.value) {
+		notify("No hay un producto seleccionado");
+		return;
+	}
+	const producto = producciones.value.find(
+		({ _id }) => _id == produccion.value.id
+	);
+	codigoFactura.value = rowsDetalles.value.length + 1;
 
-    if (codigoFactura.value == 1) {
-        rowsDetalles.value.push({
-            codigo: codigoFactura.value,
-            id_produccion: producto._id,
-            cantidad: 0,
-            nombreProducto: producto.cultivo_id.nombre,
-            subtotal: subtotalFactura.value,
-            iva: ivaFactura.value,
-            total: totalDetallesFactura.value,
-        });
-    } else {
-        const repetido = rowsDetalles.value.find(
-            ({ id_produccion: id }) => id == producto._id
-        );
+	if (codigoFactura.value == 1) {
+		rowsDetalles.value.push({
+			codigo: codigoFactura.value,
+			id_produccion: producto._id,
+			precioUnitario: producto.precioUnitario,
+			cantidad: (cantidadFactura.value = 1),
+			nombreProducto: producto.cultivo_id.nombre,
+			subtotal: subtotalFactura.value,
+			iva: (ivaFactura.value = 0),
+			total: totalDetallesFactura.value,
+		});
 
-        if (!repetido) {
-            rowsDetalles.value.push({
-                codigo: codigoFactura.value,
-                id_produccion: producto._id,
-                cantidad: 0,
-                nombreProducto: producto.cultivo_id.nombre,
-                subtotal: subtotalFactura.value,
-                iva: ivaFactura.value,
-                total: totalDetallesFactura.value,
-            });
+		actualizarDatos(rowsDetalles.value[0]);
+	} else {
+		const repetido = rowsDetalles.value.find(
+			({ id_produccion: id }) => id == producto._id
+		);
 
-            return
-        }
+		if (!repetido) {
+			rowsDetalles.value.push({
+				codigo: codigoFactura.value,
+				id_produccion: producto._id,
+				precioUnitario: producto.precioUnitario,
+				cantidad: (cantidadFactura.value = 1),
+				nombreProducto: producto.cultivo_id.nombre,
+				subtotal: subtotalFactura.value,
+				iva: (ivaFactura.value = 0),
+				total: totalDetallesFactura.value,
+			});
 
-        notify('El producto ya se encuentra', 'warning')
-    }
+			actualizarDatos(rowsDetalles.value[rowsDetalles.value.length - 1]);
+
+			return;
+		}
+
+		notify("El producto ya se encuentra", "warning");
+	}
+}
+
+function borrarDetalle(index) {
+	rowsDetalles.value.splice(index, 1);
+
+	rowsDetalles.value.forEach((obj, i) => {
+		obj.codigo = i += 1;
+	});
+}
+
+function validateAndSet(scope, row = null) {
+	// Asegura que el valor no sea negativo
+	if (scope.value < 0) {
+		scope.value = 0;
+	}
+	scope.set(); // Guarda el valor
+
+	// Si se pasa la fila, actualiza los datos
+	if (row) {
+		actualizarDatos(row);
+	}
 }
 
 onMounted(() => {
-    listarComprador();
-    listarProduccion();
-    listarFactura();
+	listarComprador();
+	listarProduccion();
+	listarFactura();
 });
 </script>
 
 <template>
-    <div>
-        <div class="q-pa-lg">
-            <q-table
-                :rows="rows"
-                :columns="columns1"
-                row-key="id"
-                :loading="loading">
-                <template v-slot:top>
-                    <section class="column full-width q-pr-md">
-                        <div class="row items-center">
-                            <h1 class="text-h4 q-pl-xl text-green-7">
-                                Facturas
-                            </h1>
-                            <q-space />
-                            <q-btn
-                                size="md"
-                                @click="controlFormulario(null, true)"
-                                label="Agregar" />
-                        </div>
-                    </section>
-                </template>
-                <template v-slot:body-cell-opciones="props">
-                    <q-td
-                        :props="props"
-                        class="row justify-center"
-                        style="gap: 20px">
-                        <q-btn
-                            @click="controlFormularioDetalles(props.row, true)">
-                            ✏️
-                        </q-btn>
-                    </q-td>
-                </template>
-            </q-table>
-        </div>
-        <div class="q-pa-lg">
-            <q-table
-                :rows="rowsDetalles"
-                :columns="columns2"
-                row-key="id"
-                :loading="loading">
-                <template v-slot:top>
-                    <h2 class="text-h4 q-pl-xl text-green-7">
-                        Detalles de Factura
-                    </h2>
-                    <section class="column full-width q-pr-md">
-                        <div class="row justify-evenly items-center">
-                            <q-input
-                                standout="bg-green text-while"
-                                type="text"
-                                label="Numero de Factura"
-                                v-model="numFactura" />
-                            <q-input
-                                standout="bg-green text-while"
-                                type="date"
-                                label="Fecha"
-                                v-model="fechaFactura" />
-                            <q-select
-                                standout="bg-green text-while"
-                                :options="opcionesComprador"
-                                label="Comprador"
-                                v-model="compradorFactura" />
-                            <q-input
-                                :disable="true"
-                                standout="bg-green text-while"
-                                type="text"
-                                label="Total"
-                                v-model="totalFactura" />
-                        </div>
-                        <div class="row items-center">
-                            <h1 class="text-h4 q-pl-xl text-green-7">
-                                Productos
-                            </h1>
-                            <q-space />
-                            <q-select
-                                :options="opcionesProduccion"
-                                v-model="produccion"
-                                label="Productos" />
-                            <q-btn
-                                size="md"
-                                @click="controlProducto()"
-                                label="Agregar" />
-                        </div>
-                    </section>
-                </template>
-                <template v-slot:body-cell-cantidad="props">
-                    <q-td :props="props">
-                        {{ props.row.cantidad }}
-                        <q-popup-edit
-                            v-model="props.row.cantidad"
-                            auto-save
-                            v-slot="scope">
-                            <q-input
-                                type="text"
-                                v-model="scope.value"
-                                dense
-                                autofocus
-                                @keyup.enter="scope.set"
-                                @blur="updateCantidad(props.row)" />
-                        </q-popup-edit>
-                    </q-td>
-                </template>
-                <template v-slot:body-cell-iva="props">
-                    <q-td :props="props">
-                        {{ props.row.iva }}
-                        <q-popup-edit
-                            v-model="props.row.iva"
-                            auto-save
-                            v-slot="scope">
-                            <q-input
-                                type="text"
-                                v-model="scope.value"
-                                dense
-                                autofocus
-                                @keyup.enter="scope.set"
-                                @blur="updateCantidad(props.row)" />
-                        </q-popup-edit>
-                    </q-td>
-                </template>
-                <template v-slot:body-cell-opciones="props">
-                    <q-td
-                        :props="props"
-                        class="row justify-center"
-                        style="gap: 20px">
-                        <q-btn @click="controlFormulario(props.row, true)">
-                            ✏️
-                        </q-btn>
-                    </q-td>
-                </template>
-            </q-table>
-            <!-- <q-dialog v-model="mostrarFormularioFacturaDetalle">
+	<div>
+		<div v-if="!mostrarDetalles" class="q-pa-lg">
+			<q-table
+				:rows="rows"
+				:columns="columns1"
+				row-key="id"
+				:loading="loading">
+				<template v-slot:top>
+					<section class="column full-width q-pr-md">
+						<div class="row items-center">
+							<h1 class="text-h4 q-pl-xl text-green-7">
+								Facturas
+							</h1>
+							<q-space />
+							<q-btn
+								size="md"
+								@click="controlFormulario(true)"
+								label="Agregar" />
+						</div>
+					</section>
+				</template>
+				<template v-slot:body-cell-opciones="props">
+					<q-td
+						:props="props"
+						class="row justify-center"
+						style="gap: 20px">
+						<q-btn
+							@click="controlFormularioDetalles(props.row, true)">
+							👁️
+						</q-btn>
+					</q-td>
+				</template>
+			</q-table>
+		</div>
+		<div v-if="mostrarDetalles" class="q-pa-lg absolute full-width">
+			<div class="row full-width q-mb-md">
+				<q-space />
+				<q-btn flat @click="controlFormularioDetalles(null, false)">
+					❌
+				</q-btn>
+			</div>
+			<q-table
+				:rows="rowsDetalles"
+				:columns="columns2"
+				row-key="id"
+				:loading="loading">
+				<template v-slot:top>
+					<section
+						class="row full-width justify-evenly items-center q-pr-md">
+						<h2 class="text-h4 q-pl-xl text-green-7">
+							Detalles de Factura
+						</h2>
+						<q-space />
+						<q-btn
+							size="md"
+							@click="editar()"
+							label="Guardar Detalles" />
+					</section>
+					<section class="column full-width q-pr-md">
+						<div class="row justify-evenly items-center q-mb-md">
+							<q-input
+								standout="bg-green text-while"
+								type="text"
+								label="Numero de Factura"
+								v-model="numFactura" />
+							<q-input
+								standout="bg-green text-while"
+								type="date"
+								label="Fecha"
+								v-model="fechaFactura" />
+							<q-select
+								style="width: 200px"
+								standout="bg-green text-while"
+								option-value="id"
+								:options="opcionesComprador"
+								label="Comprador"
+								v-model="compradorFactura" />
+							<q-input
+								:disable="true"
+								standout="bg-green text-while"
+								type="text"
+								label="Total"
+								v-model="totalFactura" />
+						</div>
+						<div class="row items-center">
+							<h1 class="text-h4 q-pl-xl text-green-7">
+								Productos
+							</h1>
+							<q-space />
+							<q-select
+								standout="bg-green text-while"
+								style="width: 200px; margin-right: 30px"
+								:options="opcionesProduccion"
+								v-model="produccion"
+								label="Productos" />
+							<q-btn
+								size="md"
+								@click="controlProducto()"
+								label="Agregar Producto" />
+						</div>
+					</section>
+				</template>
+				<template v-slot:body-cell-cantidad="props">
+					<q-td :props="props">
+						{{ props.row.cantidad }}
+						<q-popup-edit
+							v-model="props.row.cantidad"
+							auto-save
+							v-slot="scope">
+							<q-input
+								type="number"
+								min="0"
+								v-model="scope.value"
+								dense
+								autofocus
+								@keyup.enter="validateAndSet(scope)"
+								@focusout="validateAndSet(scope, props.row)" />
+						</q-popup-edit>
+					</q-td>
+				</template>
+				<template v-slot:body-cell-iva="props">
+					<q-td :props="props">
+						{{ props.row.iva }}
+						<q-popup-edit
+							v-model="props.row.iva"
+							auto-save
+							v-slot="scope">
+							<q-input
+								type="number"
+								min="0"
+								v-model="scope.value"
+								dense
+								autofocus
+								@keyup.enter="validateAndSet(scope)"
+								@focusout="validateAndSet(scope, props.row)" />
+						</q-popup-edit>
+					</q-td>
+				</template>
+				<template v-slot:body-cell-opciones="props">
+					<q-td
+						:props="props"
+						class="row justify-center"
+						style="gap: 20px">
+						<q-btn @click="borrarDetalle(props.rowIndex)">
+							❌
+						</q-btn>
+					</q-td>
+				</template>
+			</q-table>
+			<!-- <q-dialog v-model="mostrarFormularioFacturaDetalle">
                 <q-card>
                     <q-form
                         @submit="mostrarBotonEditar ? editar() : registrar()"
@@ -754,74 +737,65 @@ onMounted(() => {
                     </q-form>
                 </q-card>
             </q-dialog> -->
-        </div>
-        <q-dialog v-model="mostrarFormularioFactura">
-            <q-card>
-                <q-form
-                    @submit="mostrarBotonEditar ? editar() : registrar()"
-                    class="q-gutter-md">
-                    <p class="text-h5 text-center q-pb-md text-green">
-                        {{ datos ? "Editar" : "Agregar" }} Factura
-                    </p>
-                    <q-input
-                        standout="bg-green text-while"
-                        type="text"
-                        label="Numero de Factura"
-                        v-model="numFactura" />
-                    <q-input
-                        standout="bg-green text-while"
-                        type="date"
-                        label="Fecha"
-                        v-model="fechaFactura" />
-                    <q-select
-                        standout="bg-green text-while"
-                        :options="opcionesComprador"
-                        label="Comprador"
-                        v-model="compradorFactura" />
-                    <q-input
-                        :disable="true"
-                        standout="bg-green text-while"
-                        type="text"
-                        label="Total"
-                        v-model="totalFactura" />
-                    <div class="row justify-end" style="gap: 10px">
-                        <q-btn
-                            unelevated
-                            v-if="mostrarBotonEditar"
-                            label="Editar"
-                            type="submit"
-                            color="positive" />
-                        <q-btn
-                            unelevated
-                            v-else
-                            label="Registrar"
-                            type="submit"
-                            color="positive" />
-                        <q-btn
-                            @click="controlFormulario(null, false)"
-                            flat
-                            class="bg-red text-white"
-                            label="Cerrar"
-                            type="button" />
-                    </div>
-                </q-form>
-            </q-card>
-        </q-dialog>
-    </div>
+		</div>
+		<q-dialog v-model="mostrarFormularioFactura">
+			<q-card>
+				<q-form @submit="registrar()" class="q-gutter-md">
+					<p class="text-h5 text-center q-pb-md text-green">
+						{{ datos ? "Editar" : "Agregar" }} Factura
+					</p>
+					<q-input
+						standout="bg-green text-while"
+						type="text"
+						label="Numero de Factura"
+						v-model="numFactura" />
+					<q-input
+						standout="bg-green text-while"
+						type="date"
+						label="Fecha"
+						v-model="fechaFactura" />
+					<q-select
+						standout="bg-green text-while"
+						:options="opcionesComprador"
+						label="Comprador"
+						v-model="compradorFactura" />
+					<q-input
+						:disable="true"
+						standout="bg-green text-while"
+						type="text"
+						label="Total"
+						v-model="totalFactura" />
+					<div class="row justify-end" style="gap: 10px">
+						<q-btn
+							unelevated
+							label="Registrar"
+							type="submit"
+							color="positive" />
+						<q-btn
+							@click="controlFormulario(false)"
+							flat
+							class="bg-red text-white"
+							label="Cerrar"
+							type="button" />
+					</div>
+				</q-form>
+			</q-card>
+		</q-dialog>
+	</div>
 </template>
 
 <style scoped>
 .q-card {
-    background-color: rgb(255, 255, 255);
-    padding: 40px 30px 40px 30px;
-    border-radius: 1pc;
-    width: 30rem;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border: 0;
+	background-color: rgb(255, 255, 255);
+	padding: 40px 30px 40px 30px;
+	border-radius: 1pc;
+	width: 30rem;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	border: 0;
 }
 
 .q-form .q-input,
 .q-form {
-    margin-bottom: 15px;
+	margin-bottom: 15px;
 }
 </style>
