@@ -77,7 +77,7 @@ export const useStoreProduccion = defineStore(
 			}
 		};
 
-		const getProduccionFechas = async () => {
+		const getProduccionFechas = async (fechaInicio, fechaFin) => {
 			try {
 				loading.value = true;
 				const r = await axios.get(`${url}/produccion/fechas/${fechaInicio}/${fechaFin}`, {

@@ -93,10 +93,10 @@ export const useStoreProcesos = defineStore(
 			}
 		};
 
-		const getProcesosFechas = async () => {
+		const getProcesosFechas = async (fecha1, fecha2) => {
 			try {
 				loading.value = true;
-				const r = await axios.get(`${url}/procesos/fechas/${fechaInicio}/${fechaFin}`, {
+				const r = await axios.get(`${url}/procesos/fechas/${fecha1}/${fecha2}`, {
 					headers: {
 						token: useAdmin.token,
 					},

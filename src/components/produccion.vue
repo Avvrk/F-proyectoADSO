@@ -17,16 +17,17 @@ const tooltipText = ref("");
 const tooltipVisible = ref(false);
 const tooltipPosition = ref({ top: 0, left: 0 });
 
+// Variables del input para peticiones get
+const fechaInicio = ref("");
+const fechaFin = ref("");
+const listarCultivo = ref("");
+
 // Variables para mostrar formularios
 const mostrarFormulario = ref(false);
 const esEdicion = ref(false);
 
 // const useCultivo = useStoreCultivos();
 const useProduccion = useStoreProduccion();
-
-const nombreCultivoProduccion = ref("");
-const fecha1 = ref("");
-const fecha2 = ref("");
 
 const cultivos = ref([]);
 
@@ -56,25 +57,7 @@ const observaciones = ref("");
 const precioUnitario = ref("");
 
 const selectedOption = ref("Todos");
-const options = [
-	{ label: "Todos", value: "Todos" },
-	{
-		label: "Listar Producción por su Cultivo",
-		value: "Listar Producción por su Cultivo",
-	},
-	{
-		label: "Activos",
-		value: "Activos",
-	},
-	{
-		label: "Inactivos",
-		value: "Inactivos",
-	},
-	{
-		label: "Listar Producciones por Fechas",
-		value: "Listar Producciones por Fechas",
-	},
-];
+const options = [ "Todos", "Activos", "Inactivos", "Fechas", "Cultivo"];
 
 let rows = ref([]);
 const columns = ref([
@@ -161,41 +144,6 @@ async function actualizarListadoProducciones() {
 	}
 }
 
-const filtrarFilas = computed(() => {
-	if (loadingg.value) {
-		return []; // Retorna una lista vacía mientras se está cargando
-	}
-
-	return rows.value.filter((produccion) => {
-		switch (selectedOption.value) {
-			case "Listar Producción por su Cultivo":
-				return produccion.cultivo_id.nombre.includes(nombreCultivoProduccion.value);
-
-			case "Listar Producciones por Fechas":
-				if (fecha1.value && fecha2.value) {
-					const normalizeDate = (date) => new Date(date).toISOString().slice(0, 10);
-					const startDate = normalizeDate(fecha1.value);
-					const endDate = normalizeDate(fecha2.value);
-
-					const produccionDate = normalizeDate(produccion.fecha);
-					const isWithinDateRange = produccionDate >= startDate && produccionDate <= endDate;
-
-					if (isWithinDateRange) {
-						return true;
-					}
-
-					// No data available for the selected date range
-					console.log("No data available for the selected date range.");
-					return false; // Exclude this production as it does not match the date range
-				}
-				return rows.value; // Retorna todos los producciones si no se proporcionan fechas válidas
-
-			default:
-				return true; // No filtra si la opción seleccionada no coincide
-		}
-	});
-});
-
 const cargarProduccionParaEdicion = (produccion) => {
 	idProduccionSeleccionado.value = produccion._id;
 	cultivo_id.value = produccion.cultivo_id.nombre;
@@ -222,7 +170,7 @@ async function validarDatosProduccion(produccion) {
 	return true;
 }
 
-const agregarProduccion = async () => {
+async function agregarProduccion () {
 	const produccionData = {
 		cultivo_id: cultivo_id.value.id,
 		fecha: fecha.value,
@@ -244,7 +192,7 @@ const agregarProduccion = async () => {
 	}
 };
 
-const editarProduccion = async () => {
+async function editarProduccion () {
 	let cultivo_idSeleccionada = cultivo_id.value.id;
 
 	for (let cultivo of cultivos.value) {
@@ -279,6 +227,16 @@ const editarProduccion = async () => {
 		}
 	}
 };
+
+async function listarProduccionCultivoYFechas() {
+	loadingg.value = true;
+	try {
+		rows.value = (await (selectedOption.value === "Fechas" ? useProduccion.getProduccionFechas(fechaInicio.value, fechaFin.value) : useProduccion.getProduccionCultivo(listarCultivo.value))).data.producciones;
+	} finally {
+		loadingg.value = false;
+		visible.value = false;
+	}
+}
 
 const limpiarCampos = () => {
 	cultivo_id.value = "";
@@ -378,14 +336,28 @@ watch(selectedOption, () => {
 			</q-card>
 		</q-dialog>
 
-		<q-table flat bordered :rows="filtrarFilas" :columns="columns" row-key="id" :loading="loadingg">
+		<q-table flat bordered :rows="rows" :columns="columns" row-key="id" :loading="loadingg">
 			<template v-slot:top>
 				<h4 class="text-green-7 q-pl-xl text-h4" style="position: absolute; top: -10px">Producciones</h4>
 				<div class="q-pa-lg q-gutter-lg q-ml-auto" style="display: flex; flex-direction: column; gap: 10px; align-items: flex-end">
 					<q-btn label="Agregar" @click="mostrarFormulario = true">
 						<q-tooltip>Agregar Producción</q-tooltip>
 					</q-btn>
-					<q-select standout="bg-green text-while" background-color="green" id="q-select" v-model="selectedOption" label="Filtro por" options-dense :options="options" style="width: 200px" />
+
+					<div class="contSelect">
+						<q-input standout v-if="selectedOption === 'Fechas'" label="Fecha" v-model="fechaInicio" type="date" name="search" id="fecha" />
+						<q-input standout v-if="selectedOption === 'Fechas'" label="Fecha" v-model="fechaFin" type="date" name="search" id="fecha" />
+						<q-input standout v-if="selectedOption === 'Cultivo'" label="Cultivo" v-model="listarCultivo" name="search" id="q-select" />
+
+						<q-btn
+							v-if="selectedOption == 'Fechas' || selectedOption == 'Cultivo'"
+							@click="listarProduccionCultivoYFechas()"
+							style="border: none">
+							Buscar
+						</q-btn>
+						<q-space />
+						<q-select standout="bg-green text-while" background-color="green" id="q-select" v-model="selectedOption" label="Filtro por" options-dense :options="options" style="width: 200px" />
+					</div>
 				</div>
 			</template>
 
