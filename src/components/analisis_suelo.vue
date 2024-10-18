@@ -57,7 +57,7 @@ const columns = ref([
     {
         name: "resultados",
         label: "Resultados",
-        field: "resultados",
+        field: (row) => row.resultados.join(", "),
         align: "center",
         sortable: true,
     },
@@ -110,10 +110,9 @@ const mostraInput = ref(false);
 const loading = ref(true);
 
 const opcionesResponsables = computed(() => {
-    return empleados.value.filter(({estado}) => estado === 1).filter(({rol}) => rol === "Empleado").map((e) => {
-        return { label: `${e.nombre} (correo: ${e.correo})`, id: e._id };
+    return empleados.value.map((e) => {
+        return { label: `${e.nombre} (dni: ${e.documento})`, id: e._id };
     });
-
 });
 
 const opcionesParcelas = computed(() => {
@@ -125,38 +124,11 @@ const opcionesParcelas = computed(() => {
     });
 });
 
-/* function agregarResultado() {
-    if (nuevoResultado.value.trim()) {
-        resultadosAnalisisSuelo.push(nuevoResultado.value.trim());
-        nuevoResultado.value = ""; // Limpiar el input
-    } else {
-        $q.notify({
-            type: "negative",
-            message: "El resultado no puede estar vacío",
-            position: "bottom",
-        });
-    }
-} */
-
 async function listarEmpleado() {
     try {
         loading.value = true;
         const r = await useAnalisisSuelo.getEmpleado();
-        /* if (r.code == "ERR_BAD_REQUEST") {
-            if (
-                r.response.data.msg == "No hay token en la peticion" ||
-                r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  " ||
-                r.response.data.msg == "Token no valido"
-            ) {
-                $q.notify({
-                    type: "negative",
-                    message: "Token no valido",
-                });
-                return router.push("/");
-            }
-        } */
-        empleados.value = r.data.admins;
+        empleados.value = r.data.empleados;        ;
     } finally {
         loading.value = false;
     }
@@ -166,20 +138,6 @@ async function listarParcela() {
     try {
         loading.value = true;
         const r = await useAnalisisSuelo.getParcela();
-        /* if (r.code == "ERR_BAD_REQUEST") {
-            if (
-                r.response.data.msg == "No hay token en la peticion" ||
-                r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  " ||
-                r.response.data.msg == "Token no valido"
-            ) {
-                $q.notify({
-                    type: "negative",
-                    message: "Token no valido",
-                });
-                return router.push("/");
-            }
-        } */
         parcelas.value = r.data.parcelas;
     } finally {
         loading.value = false;
@@ -190,20 +148,6 @@ async function listarAnalisisSuelo() {
     try {
         loading.value = true;
         const r = await useAnalisisSuelo.getAnalisisSuelo();
-        /* if (r.code == "ERR_BAD_REQUEST") {
-            if (
-                r.response.data.msg == "No hay token en la peticion" ||
-                r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  " ||
-                r.response.data.msg == "Token no valido"
-            ) {
-                $q.notify({
-                    type: "negative",
-                    message: "Token no valido",
-                });
-                return router.push("/");
-            }
-        } */
         rows.value = r.data.suelos;
     } finally {
         loading.value = false;
@@ -477,7 +421,7 @@ onMounted(() => {
                     <section class="column full-width q-pr-md">
                         <div class="row items-center">
                             <h1 class="text-h4 q-pl-xl text-green-7">
-                                Analisi del Suelo
+                                Analisis del Suelo
                             </h1>
                             <q-space />
                             <q-btn

@@ -25,7 +25,7 @@ export const useStoreAnalisisSuelos = defineStore("AnalisisSuelo", () => {
 
 	const getEmpleado = async () => {
 		try {
-			const r = await axios.get(`${url}/admin`, {
+			const r = await axios.get(`${url}/empleados`, {
 				headers: {
 					token: useAdmin.token,
 				},

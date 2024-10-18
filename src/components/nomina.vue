@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useStoreNomina } from "../stores/nomina.js";
-import { Notify } from "quasar";
+import notify from "../utils/notificaciones.js";
 
 // Variables usadas en el filtro
 const opcionesTabla = ["Todos", "Fechas", "Empleados"];

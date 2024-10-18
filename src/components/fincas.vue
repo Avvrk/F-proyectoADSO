@@ -680,7 +680,7 @@ onMounted(() => {
         </q-dialog>
         <q-dialog v-model="mostrarDialogLimites">
     <q-card>
-        <q-div class="text-center">
+        <div class="text-center">
             <p class="text-h5  q-pb-md text-green">
                 Límites de la Finca: {{ datosLimites.nombre }}
             </p>
@@ -691,7 +691,7 @@ onMounted(() => {
             <div class="row justify-end" style="gap: 10px">
                 <q-btn @click="mostrarDialogLimites = false" flat label="Cerrar" />
             </div>
-        </q-div>
+        </div>
     </q-card>
 </q-dialog>
     </div>

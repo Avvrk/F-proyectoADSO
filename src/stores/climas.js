@@ -25,7 +25,7 @@ export const useStoreClimas = defineStore("climas", () => {
 
 	const getEmpleados = async () => {
 		try {
-			const r = await axios.get(`${url}/admin`, {
+			const r = await axios.get(`${url}/empleados`, {
 				headers: {
 					token: useAdmin.token,
 				},

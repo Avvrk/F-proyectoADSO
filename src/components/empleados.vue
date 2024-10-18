@@ -1,9 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useStoreEmpleados } from "../stores/empleados.js";
-import { useQuasar } from "quasar";
-
-const $q = useQuasar();
+import notify from "../utils/notificaciones.js";
 
 const useEmpleado = useStoreEmpleados();
 
@@ -14,6 +12,13 @@ const columns = ref([
         name: "nombre",
         label: "Nombre",
         field: "nombre",
+        align: "center",
+        sortable: true,
+    },
+    {
+        name: "documento",
+        label: "Documento",
+        field: "documento",
         align: "center",
         sortable: true,
     },
@@ -51,6 +56,7 @@ const columns = ref([
 
 // Variables necesarias en el formulario
 const nombreEmpleado = ref("");
+const documentoEmpleado = ref("");
 const direccionEmpleado = ref("");
 const telefonoEmpleado = ref("");
 const estudiosEmpleado = ref("");
@@ -81,20 +87,6 @@ async function listarEmpleadoActivo() {
     try {
         loading.value = true;
         const r = await useEmpleado.getEmpleadosActivos();
-        if (r.code == "ERR_BAD_REQUEST") {
-            if (
-                r.response.data.msg == "No hay token en la peticion" ||
-                r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  " ||
-                r.response.data.msg == "Token no valido"
-            ) {
-                $q.notify({
-                    type: "negative",
-                    message: "Token no valido",
-                });
-                return router.push("/");
-            }
-        }
         rows.value = r.data.empleados;
     } finally {
         loading.value = false;
@@ -131,15 +123,22 @@ async function registrar() {
             loading.value = true;
             const info = {
                 nombre: nombreEmpleado.value,
+                documento: documentoEmpleado.value,
                 direccion: direccionEmpleado.value,
                 telefono: telefonoEmpleado.value,
                 estudios: estudiosEmpleado.value,
                 descripcion: descripcionEmpleado.value,
             };
 
-            const res = await useEmpleado.postEmpleados(info);
-            mostrarFormularioEmpleado.value = false;
-            listarEmpleado();
+            const r = await useEmpleado.postEmpleados(info);
+            if (r.status === 200) {
+                mostrarFormularioEmpleado.value = false;
+                listarEmpleado();
+            } else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
         } finally {
             loading.value = false;
         }
@@ -152,15 +151,22 @@ async function editar() {
             loading.value = true;
             const info = {
                 nombre: nombreEmpleado.value,
+                documento: documentoEmpleado.value,
                 direccion: direccionEmpleado.value,
                 telefono: telefonoEmpleado.value,
                 estudios: estudiosEmpleado.value,
                 descripcion: descripcionEmpleado.value,
             };
 
-            const res = await useEmpleado.putEmpleados(datos.value._id, info);
-            mostrarFormularioEmpleado.value = false;
-            listarEmpleado();
+            const r = await useEmpleado.putEmpleados(datos.value._id, info);
+            if (r.status === 200) {
+                mostrarFormularioEmpleado.value = false;
+                listarEmpleado();
+            } else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
         } finally {
             loading.value = false;
         }
@@ -169,66 +175,50 @@ async function editar() {
 
 function validarDatos() {
     let validacion = true;
+
     if (
         !nombreEmpleado.value.trim() &&
+        !documentoEmpleado.value.trim() &&
         !direccionEmpleado.value.trim() &&
         !telefonoEmpleado.value.trim() &&
         !estudiosEmpleado.value.trim() &&
         !descripcionEmpleado.value.trim()
     ) {
-        $q.notify({
-            type: "negative",
-            message: "Llena todos los campos",
-            position: "bottom",
-        });
+        notify("Llena todos los campos");
         validacion = false;
     } else {
         if (!nombreEmpleado.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El nombre está vacío",
-                position: "bottom",
-            });
+            notify("El nombre está vacío");
+            validacion = false;
+        }
+        if (!documentoEmpleado.value.trim()) {
+            notify("El documento está vacío");
             validacion = false;
         }
         if (!direccionEmpleado.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "La direccion está vacía",
-                position: "bottom",
-            });
+            notify("La dirección está vacía");
             validacion = false;
         }
         if (!telefonoEmpleado.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El teléfono está vacío",
-                position: "bottom",
-            });
+            notify("El teléfono está vacío");
             validacion = false;
         }
         if (!estudiosEmpleado.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El campo estudios está vacía",
-                position: "bottom",
-            });
+            notify("El campo estudios está vacío");
             validacion = false;
         }
         if (!descripcionEmpleado.value.trim()) {
-            $q.notify({
-                type: "negative",
-                message: "El campo descripción está vacía",
-                position: "bottom",
-            });
+            notify("El campo descripción está vacío");
             validacion = false;
         }
     }
+
     return validacion;
 }
 
 function controlFormulario(obj, boolean) {
     nombreEmpleado.value = "";
+    documentoEmpleado.value = "";
     direccionEmpleado.value = "";
     telefonoEmpleado.value = "";
     estudiosEmpleado.value = "";
@@ -238,6 +228,7 @@ function controlFormulario(obj, boolean) {
     mostrarBotonEditar.value = false;
     if (obj != null && boolean == true) {
         nombreEmpleado.value = datos.value.nombre;
+        documentoEmpleado.value = datos.value.documento;
         direccionEmpleado.value = datos.value.direccion;
         telefonoEmpleado.value = datos.value.telefono;
         estudiosEmpleado.value = datos.value.estudios;
@@ -248,8 +239,6 @@ function controlFormulario(obj, boolean) {
 }
 
 function estadoTabla() {
-    console.log(opcionTabla.value);
-
     if (opcionTabla.value == "Activos") {
         listarEmpleadoActivo();
     } else if (opcionTabla.value == "Inactivos") {
@@ -346,6 +335,12 @@ onMounted(() => {
                         type="text"
                         label="Nombre"
                         v-model="nombreEmpleado"
+                    />
+                    <q-input
+                        standout="bg-green text-while"
+                        type="text"
+                        label="Documento"
+                        v-model="documentoEmpleado"
                     />
                     <q-input
                         standout="bg-green text-while"

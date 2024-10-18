@@ -3,7 +3,6 @@ import { ref, onMounted, computed, watch } from "vue";
 import { notifyErrorRequest } from "../routes/routes.js";
 // import { useStoreCultivos } from "../stores/cultivos.js";
 // import { useStoreEmpleados } from "../stores/empleados.js";
-import { useStoreInventario } from "../stores/inventario.js";
 import { useStoreSiembra } from "../stores/siembra.js";
 import { format } from "date-fns";
 

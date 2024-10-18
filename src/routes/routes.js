@@ -16,8 +16,6 @@ import Fertilizacion from "../components/fertilizacion.vue";
 import Fincas from "../components/fincas.vue";
 import Gastos from "../components/gastos.vue";
 import Insumos from "../components/insumos.vue";
-import Inventario from "../components/inventario.vue";
-import Mantenimiento from "../components/mantenimiento.vue";
 import Maquinaria_de_herramientas from "../components/maquinaria_herramientas.vue";
 import Nomina from "../components/nomina.vue";
 import Parcelas from "../components/parcelas.vue";
@@ -87,8 +85,6 @@ const routes = [
             { path: "Fincas", component: Fincas, beforeEnter: auth },
             { path: "Gastos", component: Gastos, beforeEnter: auth },
             { path: "Insumos", component: Insumos, beforeEnter: auth },
-            { path: "Inventario", component: Inventario, beforeEnter: auth },
-            { path: "Mantenimiento", component: Mantenimiento, beforeEnter: auth },
             { path: "MaquinariaHerramientas", component: Maquinaria_de_herramientas, beforeEnter: auth },
             { path: "Nomina", component: Nomina, beforeEnter: auth },
             { path: "Parcelas", component: Parcelas, beforeEnter: auth },
