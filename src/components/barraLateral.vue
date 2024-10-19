@@ -174,14 +174,14 @@
                         <q-icon name="spa" />
                     </q-item-section>
                 </q-item>
-<!--                 <q-item clickable tag="router-link" to="/Procesos">
+                <q-item clickable tag="router-link" to="/Procesos">
                     <q-item-section>
                         <q-item-label>Procesos</q-item-label>
                     </q-item-section>
                     <q-item-section avatar>
                         <q-icon name="autorenew" />
                     </q-item-section>
-                </q-item> -->
+                </q-item>
                 <q-item clickable tag="router-link" to="/Produccion">
                     <q-item-section>
                         <q-item-label>Producciones</q-item-label>
