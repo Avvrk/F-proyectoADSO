@@ -149,7 +149,6 @@ const cultivoOptions = computed(() => {
 const empleadoOptions = computed(() => {
 	return empleados.value
 		.filter((empleado) => empleado.estado != 0)
-		.filter(({ rol }) => rol == "Empleado")
 		.map((empleado) => ({
 			label: empleado.nombre,
 			id: empleado._id,

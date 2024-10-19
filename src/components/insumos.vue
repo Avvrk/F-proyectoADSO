@@ -54,23 +54,6 @@ async function listarProveedores() {
 	try {
 		loading.value = true;
 		const r = await useInsumo.getProveedores();
-		if (r.code == "ERR_BAD_REQUEST") {
-			if (
-				r.response.data.msg == "No hay token en la peticion" ||
-                r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  " ||
-                r.response.data.msg == "Token no valido"
-			) {
-				$q.notify({
-					color: "red-4",
-					position: "top",
-					message: "No hay token en la petición",
-					icon: "report_problem",
-				});
-				return router.push("/");
-
-			}
-		}
 		proveedores.value = r.data.proveedores;
 	} finally {
 		loading.value = false;
@@ -81,23 +64,6 @@ async function listarInsumos() {
 	try {
 		loading.value = true;
 		const r = await useInsumo.getInsumos();
-		if (r.code == "ERR_BAD_REQUEST") {
-			if (
-				r.response.data.msg == "No hay token en la peticion" ||
-				r.response.data.msg == "Token no válido! ." ||
-				r.response.data.msg == "Token no válido!!  " ||
-				r.response.data.msg == "Token no valido"
-			) {
-				$q.notify({
-					color: "red-4",
-					position: "top",
-					message: "No hay token en la petición",
-					icon: "report_problem",
-				});
-				return router.push("/");
-
-			}
-		}
 		rows.value = r.data.insumos;
 	} finally {
 		loading.value = false;
@@ -332,47 +298,42 @@ onMounted(() => {
                         standout="bg-green text-white"
                         :options="opcionesProveedores"
                         label="Proveedor"
-                        v-model="proveedores_id" />
+                        v-model="proveedorInsumo" />
                     <q-input
                         standout="bg-green text-white"
                         type="text"
                         label="Nombre"
-                        v-model="nombre" />
+                        v-model="nombreInsumo" />
                     <q-input
                         standout="bg-green text-white"
                         type="text"
                         label="Relación NPK"
-                        v-model="relacionNPK" />
+                        v-model="relacionNPKInsumo" />
                     <q-input
                         standout="bg-green text-white"
                         type="text"
                         label="Cantidad"
-                        v-model="cantidad" />
-                    <q-input
-                        standout="bg-green text-white"
-                        type="text"
-                        label="Dosis"
-                        v-model="dosisControlPlagas" />
+                        v-model="cantidadInsumo" />
                     <q-input
                         standout="bg-green text-white"
                         type="text"
                         label="Unidad"
-                        v-model="unidad" />
+                        v-model="unidadInsumo" />
                     <q-input
                         standout="bg-green text-white"
                         type="text"
                         label="Responsable"
-                        v-model="responsable" />
-						<q-input
+                        v-model="responsableInsumo" />
+					<q-input
                         standout="bg-green text-white"
                         type="text"
                         label="Observaciones"
-                        v-model="observaciones" />
-						<q-input
+                        v-model="observacionesInsumo" />
+					<q-input
                         standout="bg-green text-white"
                         type="text"
                         label="Total"
-                        v-model="total" />
+                        v-model="totalInsumo" />
                     <div class="row justify-end" style="gap: 10px">
                         <q-btn
                             unelevated

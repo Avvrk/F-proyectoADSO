@@ -6,8 +6,8 @@ import { useQuasar } from "quasar";
 export const useStoreInsumos = defineStore(
 	"Insumos",
 	() => {
-		const url = "http://localhost:4000";
-		// const url = "https://b-proyectoadso-production.up.railway.app";
+		// const url = "http://localhost:4000";
+		const url = "https://b-proyectoadso-production.up.railway.app";
 		const useAdmin = useStoreAdmins();
 		const $q = useQuasar();
 

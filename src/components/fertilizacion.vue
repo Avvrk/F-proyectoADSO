@@ -65,25 +65,6 @@ let columns = ref([
         sortable: true,
     },
     {
-        name: "inventario_id",
-        align: "center",
-        label: "Inventario",
-        field: (row) => {
-            // Verifica si inventario_id no es null o undefined antes de acceder a sus propiedades
-            if (row.inventario_id) {
-                return (
-                    row.inventario_id.insumos_id?.nombre ||
-                    row.inventario_id.semillas_id?.nombre ||
-                    row.inventario_id.maquinaria_id?.nombre ||
-                    "N/A"
-                );
-            }
-            // Si inventario_id es null o undefined, retorna "N/A"
-            return "N/A";
-        },
-        sortable: true,
-    },
-    {
         name: "opciones",
         align: "center",
         label: "Editar",
@@ -94,7 +75,6 @@ let columns = ref([
 
 const cultivo = ref([]);
 const empleado = ref([]);
-const inventario = ref([]);
 
 //Variables necesarias en el formulario
 const cultivoFer = ref("");
@@ -104,7 +84,6 @@ const estadoFenologicoFer = ref("");
 const tipoFer = ref("");
 const nombreFertilizanteFer = ref("");
 const cantidadFer = ref("");
-const inventarioFer = ref("");
 
 //Variables necesarias para la edición
 const datos = ref([]);
@@ -126,54 +105,10 @@ const opcionesCultivos = computed(() => {
     });
 });
 
-const opcionesInventario = computed(() => {
-    return inventario.value.map((i) => {
-        if (i.semillas_id) {
-            return {
-                label: `${i.tipo} / ${i.semillas_id.especieVariedad}`,
-                id: `${i._id}`,
-            };
-        } else if (i.insumos_id) {
-            return {
-                label: `${i.tipo} / ${i.insumos_id.nombre}`,
-                id: `${i._id}`,
-            };
-        } else if (i.maquinaria_id) {
-            return {
-                label: `${i.tipo} / ${i.maquinaria_id.nombre} - ${i.maquinaria_id.tipo}`,
-                id: `${i._id}`,
-            };
-        } else {
-            return {
-                label: "Datos faltantes",
-                id: `${i._id}`,
-            };
-        }
-    });
-});
-
-const buscarInventario = (row) => {
-    console.log(row);
-};
-
 async function listarCultivo() {
     try {
         loading.value = true;
         const r = await useFertilizacion.getCultivos();
-        if (r.code == "ERR_BAD_REQUEST") {
-            if (
-                r.response.data.msg == "No hay token en la peticion" ||
-                r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  " ||
-                r.response.data.msg == "Token no valido"
-            ) {
-                $q.notify({
-                    type: "negative",
-                    message: "Token no valido",
-                });
-                return router.push("/");
-            }
-        }
         cultivo.value = r.data.cultivos;
     } finally {
         loading.value = false;
@@ -184,45 +119,7 @@ async function listarEmpleado() {
     try {
         loading.value = true;
         const r = await useFertilizacion.getEmpleados();
-        if (r.code == "ERR_BAD_REQUEST") {
-            if (
-                r.response.data.msg == "No hay token en la peticion" ||
-                r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  " ||
-                r.response.data.msg == "Token no valido"
-            ) {
-                $q.notify({
-                    type: "negative",
-                    message: "Token no valido",
-                });
-                return router.push("/");
-            }
-        }
         empleado.value = r.data.empleados;
-    } finally {
-        loading.value = false;
-    }
-}
-
-async function listarInventario() {
-    try {
-        loading.value = true;
-        const r = await useFertilizacion.getInventario();
-        if (r.code == "ERR_BAD_REQUEST") {
-            if (
-                r.response.data.msg == "No hay token en la peticion" ||
-                r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  " ||
-                r.response.data.msg == "Token no valido"
-            ) {
-                $q.notify({
-                    type: "negative",
-                    message: "Token no valido",
-                });
-                return router.push("/");
-            }
-        }
-        inventario.value = r.data.inventario;
     } finally {
         loading.value = false;
     }
@@ -232,20 +129,6 @@ async function listarFertilizacion() {
     try {
         loading.value = true;
         const r = await useFertilizacion.getFertilizacion();
-        if (r.code == "ERR_BAD_REQUEST") {
-            if (
-                r.response.data.msg == "No hay token en la peticion" ||
-                r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  " ||
-                r.response.data.msg == "Token no valido"
-            ) {
-                $q.notify({
-                    type: "negative",
-                    message: "Token no valido",
-                });
-                return router.push("/");
-            }
-        }
         rows.value = r.data.fertilizaciones;
     } finally {
         loading.value = false;
@@ -264,7 +147,6 @@ async function registrar() {
                 tipo: tipoFer.value,
                 nombreFertilizante: nombreFertilizanteFer.value,
                 cantidad: cantidadFer.value,
-                inventario_id: inventarioFer.value.id,
             };
             console.log(info);
 
@@ -289,7 +171,6 @@ async function editar() {
                 tipo: tipoFer.value,
                 nombreFertilizante: nombreFertilizanteFer.value,
                 cantidad: cantidadFer.value,
-                inventario_id: inventarioFer.value.id,
             };
 
             const r = await useFertilizacion.putFertilizacion(
@@ -313,8 +194,7 @@ function validarDatos() {
         !estadoFenologicoFer.value &&
         !tipoFer.value &&
         !nombreFertilizanteFer.value &&
-        !cantidadFer.value &&
-        !inventarioFer.value
+        !cantidadFer.value
     ) {
         $q.notify({
             color: "negative",
@@ -379,14 +259,6 @@ function validarDatos() {
             });
             validacion = false;
         }
-        if (!inventarioFer.value) {
-            $q.notify({
-                color: "negative",
-                message: "El campo inventario está vacío",
-                position: "top",
-            });
-            validacion = false;
-        }
     }
     return validacion;
 }
@@ -399,7 +271,6 @@ function controlFormulario(obj, boolean) {
     tipoFer.value = "";
     nombreFertilizanteFer.value = "";
     cantidadFer.value = "";
-    inventarioFer.value = "";
     console.log(obj);
 
     datos.value = obj;
@@ -416,9 +287,6 @@ function controlFormulario(obj, boolean) {
         tipoFer.value = datos.value.tipo;
         nombreFertilizanteFer.value = datos.value.nombreFertilizante;
         cantidadFer.value = datos.value.cantidad;
-        inventarioFer.value = opcionesInventario.value.find(
-            (i) => i.id == datos.value.inventario_id._id
-        );
         mostrarBotonEditar.value = true;
     }
 
@@ -430,7 +298,6 @@ function controlFormulario(obj, boolean) {
 onMounted(() => {
     listarCultivo();
     listarEmpleado();
-    listarInventario();
     listarFertilizacion();
 });
 </script>
@@ -533,12 +400,6 @@ onMounted(() => {
                         type="text"
                         label="Cantidad"
                         v-model="cantidadFer"
-                    />
-                    <q-select
-                        standout="bg-green text-while"
-                        :options="opcionesInventario"
-                        label="Inventario"
-                        v-model="inventarioFer"
                     />
                     <div class="row justify-end" style="gap: 10px">
                         <q-btn
