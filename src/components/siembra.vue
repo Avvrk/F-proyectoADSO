@@ -1,8 +1,9 @@
-<script setup>
+<!-- <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { notifyErrorRequest } from "../routes/routes.js";
 // import { useStoreCultivos } from "../stores/cultivos.js";
 // import { useStoreEmpleados } from "../stores/empleados.js";
+import { useStoreInventario } from "../stores/inventario.js";
 import { useStoreSiembra } from "../stores/siembra.js";
 import { format } from "date-fns";
 
@@ -350,10 +351,10 @@ watch(selectedOption, () => {
 	isLoading;
 	loadingg;
 });
-</script>
+</script> -->
 
 <template>
-	<div class="q-pa-md" v-if="!visible">
+<!-- 	<div class="q-pa-md" v-if="!visible">
 		<q-dialog v-model="mostrarFormulario" v-bind="!mostrarFormulario && limpiarCampos()">
 			<q-card style="width: 30rem">
 				<q-card-section style="padding-bottom: 0">
@@ -452,11 +453,11 @@ watch(selectedOption, () => {
 				<q-inner-loading :showing="loadingg" label="Por favor espere..." label-class="text-teal" label-style="font-size: 1.1em"/>
 			</template>
 		</q-table>
-	</div>
-	<q-inner-loading :showing="isLoading" label="Por favor espere..." label-class="text-teal" label-style="font-size: 1.1em" />
+	</div> -->
+	<q-inner-loading label="Por favor espere..." label-class="text-teal" label-style="font-size: 1.1em" />
 </template>
 
-<style scoped>
+<!-- <style scoped>
 .contSelect {
 	display: flex;
 	flex-direction: row;
@@ -467,4 +468,4 @@ watch(selectedOption, () => {
 	max-width: 500px;
 	padding-left: 10px;
 }
-</style>
+</style> -->

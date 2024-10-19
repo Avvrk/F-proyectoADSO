@@ -25,7 +25,9 @@ const tooltipVisible = ref(false);
 const tooltipPosition = ref({ top: 0, left: 0 });
 
 // Variables del input para peticiones get
-const fecha = ref("");
+const fechaInicio = ref("");
+const fechaFin = ref("");
+const listarTipo = ref("");
 
 // Arrays de modelos
 const cultivos = ref([]);
@@ -43,7 +45,7 @@ const fecha_final = ref("");
 async function actualizarListadoProcesos() {
 	loadingg.value = true;
 	try {
-		const procesosPromise = selectedOption.value === "Tipo" ? useProceso.getProcesosTipo() : selectedOption.value === "Fechas" ? useProceso.getProcesosFechas() : selectedOption.value === "Inactivos" ? useProceso.getProcesosInactivos() : selectedOption.value === "Activos" ? useProceso.getProcesosActivos() : useProceso.getProcesos();
+		const procesosPromise = selectedOption.value === "Inactivos" ? useProceso.getProcesosInactivos() : selectedOption.value === "Activos" ? useProceso.getProcesosActivos() : useProceso.getProcesos();
 
 		rows.value = (await procesosPromise).data.procesos;
 		console.log("Procesos", rows.value);
@@ -85,13 +87,7 @@ const empleadoOptions = computed(() => {
 });
 
 const selectedOption = ref("Todos");
-const options = [
-	{ label: "Todos", value: "Todos" },
-	{ label: "Activos", value: "Activos" },
-	{ label: "Inactivos", value: "Inactivos" },
-	{ label: "Fechas", value: "Fechas" },
-	{ label: "Tipo", value: "Tipo" },
-];
+const options = [ "Todos", "Activos", "Inactivos", "Fechas", "Tipo"];
 
 let rows = ref([]);
 const columns = ref([
@@ -262,6 +258,16 @@ async function editarProceso() {
 	}
 }
 
+async function listarProcesoTipoYFechas() {
+	loadingg.value = true;
+	try {
+		rows.value = (await (selectedOption.value === "Fechas" ? useProceso.getProcesosFechas(fechaInicio.value, fechaFin.value) : useProceso.getProcesosTipo(listarTipo.value) )).data.procesos;
+	} finally {
+		loadingg.value = false;
+		visible.value = false;
+	}
+}
+
 // Funciones auxiliares
 function showTooltip(event, text) {
 	tooltipText.value = text;
@@ -353,11 +359,16 @@ watch(selectedOption, () => {
 					</q-btn>
 
 					<div class="contSelect">
-						<q-input standout v-if="selectedOption === 'Fechas'" label="Fecha" v-model="fecha" type="date" name="search" id="fecha" />
-						<q-input standout v-if="selectedOption === 'Tipo'" label="Tipo" v-model="tipo" name="search" id="q-select" />
-						<q-space />
+						<q-input standout v-if="selectedOption === 'Fechas'" label="Fecha" v-model="fechaInicio" type="date" name="search" id="fecha" />
+						<q-input standout v-if="selectedOption === 'Fechas'" label="Fecha" v-model="fechaFin" type="date" name="search" id="fecha" />
+						<q-input standout v-if="selectedOption === 'Tipo'" label="Tipo" v-model="listarTipo" name="search" id="q-select" />
 
-						<q-btn v-if="selectedOption == 'Fechas' || selectedOption == 'Tipo'" @click="actualizarListadoProcesos()" style="border: none"> Buscar </q-btn>
+						<q-btn
+							v-if="selectedOption == 'Fechas' || selectedOption == 'Tipo'"
+							@click="listarProcesoTipoYFechas()"
+							style="border: none">
+							Buscar
+						</q-btn>
 						<q-space />
 						<q-select standout="bg-green text-while" background-color="green" id="q-select" v-model="selectedOption" label="Filtro por" options-dense :options="options" emit-value style="width: 200px" />
 					</div>

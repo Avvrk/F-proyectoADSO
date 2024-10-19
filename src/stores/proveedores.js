@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { useStoreAdmins } from "./admin.js";
 import axios from "axios";
-import { notifyErrorRequest, notifySuccessRequest } from "../routes/routes.js";
+import { notifyErrorRequest } from "../routes/routes.js";
 
 export const useStoreProveedores = defineStore(
 	"Proveedores",
@@ -12,6 +12,20 @@ export const useStoreProveedores = defineStore(
 		let loading = ref(false);
 		const useAdmin = useStoreAdmins();
 
+		const getFincas = async () => {
+			try {
+				const r = await axios.get(`${url}/fincas`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
 		const getProveedores = async () => {
 			try {
 				loading.value = true;
@@ -20,13 +34,9 @@ export const useStoreProveedores = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Proveedores listadas exitosamente.");
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar proveedores:",
-					error.response.data
-				);
+				console.error("Error al listar proveedores:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -41,15 +51,9 @@ export const useStoreProveedores = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest(
-					"Proveedores activos listados exitosamente."
-				);
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar proveedores activas:",
-					error.response.data
-				);
+				console.error("Error al listar proveedores activas:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -64,15 +68,9 @@ export const useStoreProveedores = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest(
-					"Proveedores inactivas listados exitosamente."
-				);
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar proveedores inactivos:",
-					error.response.data
-				);
+				console.error("Error al listar proveedores inactivos:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -87,13 +85,9 @@ export const useStoreProveedores = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Proveedor encontrado exitosamente.");
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al buscar proveedor:",
-					error.response.data
-				);
+				console.error("Error al buscar proveedor:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -108,14 +102,10 @@ export const useStoreProveedores = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Proveedor agregado exitosamente.");
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error.response.data.errors[0].msg);
-				console.error(
-					"Error al agregar proveedor:",
-					error.response.data.errors[0].msg
-				);
+				console.error("Error al agregar proveedor:", error.response.data.errors[0].msg);
 				return error;
 			} finally {
 				loading.value = false;
@@ -130,14 +120,10 @@ export const useStoreProveedores = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Proveedor editado exitosamente.");
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error.response.data.errors[0].msg);
-				console.error(
-					"Error al editar proveedor:",
-					error.response.data.errors[0].msg
-				);
+				console.error("Error al editar proveedor:", error.response.data.errors[0].msg);
 				return error;
 			} finally {
 				loading.value = false;
@@ -147,16 +133,11 @@ export const useStoreProveedores = defineStore(
 		const putProveedoresActivar = async (id) => {
 			try {
 				loading.value = true;
-				const r = await axios.put(
-					`${url}/proveedores/activar/${id}`,
-					null,
-					{
-						headers: {
-							token: useAdmin.token,
-						},
-					}
-				);
-				notifySuccessRequest("Proveedor activado exitosamente.");
+				const r = await axios.put(`${url}/proveedores/activar/${id}`, null, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error);
@@ -170,16 +151,11 @@ export const useStoreProveedores = defineStore(
 		const putProveedoresInactivar = async (id) => {
 			try {
 				loading.value = true;
-				const r = await axios.put(
-					`${url}/proveedores/inactivar/${id}`,
-					null,
-					{
-						headers: {
-							token: useAdmin.token,
-						},
-					}
-				);
-				notifySuccessRequest("Proveedor inactivado exitosamente.");
+				const r = await axios.put(`${url}/proveedores/inactivar/${id}`, null, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error);
@@ -199,9 +175,7 @@ export const useStoreProveedores = defineStore(
 			putProveedores,
 			putProveedoresActivar,
 			putProveedoresInactivar,
+			getFincas
 		};
-	},
-	{
-		persist: true,
 	}
 );

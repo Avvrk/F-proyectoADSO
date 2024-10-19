@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { useStoreAdmins } from "./admin.js";
 import axios from "axios";
-import { notifyErrorRequest, notifySuccessRequest } from "../routes/routes.js";
+import { notifyErrorRequest } from "../routes/routes.js";
 
 export const useStoreSemillas = defineStore(
 	"Semillas",
@@ -20,7 +20,6 @@ export const useStoreSemillas = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Semillas listadas exitosamente.");
 				return r;
 			} catch (error) {
 				console.error("Error al listar semillas:", error.response.data);
@@ -38,7 +37,6 @@ export const useStoreSemillas = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Semilla encontrada exitosamente.");
 				return r;
 			} catch (error) {
 				console.error("Error al buscar semilla:", error.response.data);
@@ -56,13 +54,9 @@ export const useStoreSemillas = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Semillas activas listadas exitosamente.");
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar semillas activas:",
-					error.response.data
-				);
+				console.error("Error al listar semillas activas:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -77,15 +71,9 @@ export const useStoreSemillas = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest(
-					"Semillas inactivas listadas exitosamente."
-				);
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar semillas inactivas:",
-					error.response.data
-				);
+				console.error("Error al listar semillas inactivas:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -100,14 +88,10 @@ export const useStoreSemillas = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Semilla agregada exitosamente.");
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error.response.data.errors[0].msg);
-				console.error(
-					"Error al agregar semilla:",
-					error.response.data.errors[0].msg
-				);
+				console.error("Error al agregar semilla:", error.response.data.errors[0].msg);
 				return error;
 			} finally {
 				loading.value = false;
@@ -122,14 +106,10 @@ export const useStoreSemillas = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Semilla editada exitosamente.");
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error.response.data.errors[0].msg);
-				console.error(
-					"Error al editar semilla:",
-					error.response.data.errors[0].msg
-				);
+				console.error("Error al editar semilla:", error.response.data.errors[0].msg);
 				return error;
 			} finally {
 				loading.value = false;
@@ -139,16 +119,11 @@ export const useStoreSemillas = defineStore(
 		const putSemillasActivar = async (id) => {
 			try {
 				loading.value = true;
-				const r = await axios.put(
-					`${url}/semillas/activar/${id}`,
-					null,
-					{
-						headers: {
-							token: useAdmin.token,
-						},
-					}
-				);
-				notifySuccessRequest("Semilla activado exitosamente.");
+				const r = await axios.put(`${url}/semillas/activar/${id}`, null, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error);
@@ -162,16 +137,11 @@ export const useStoreSemillas = defineStore(
 		const putSemillasInactivar = async (id) => {
 			try {
 				loading.value = true;
-				const r = await axios.put(
-					`${url}/semillas/inactivar/${id}`,
-					null,
-					{
-						headers: {
-							token: useAdmin.token,
-						},
-					}
-				);
-				notifySuccessRequest("Semilla inactivado exitosamente.");
+				const r = await axios.put(`${url}/semillas/inactivar/${id}`, null, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error);
@@ -192,8 +162,5 @@ export const useStoreSemillas = defineStore(
 			putSemillasActivar,
 			putSemillasInactivar,
 		};
-	},
-	{
-		persist: true,
 	}
 );
