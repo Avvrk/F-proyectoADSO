@@ -63,7 +63,7 @@ async function listarCultivos() {
 
 async function listarEmpleados() {
 	const r = await useProceso.getEmpleados();
-	empleados.value = r.data.admins;
+	empleados.value = r.data.empleados;
 	// console.log("empleados", r.data.empleados);
 }
 

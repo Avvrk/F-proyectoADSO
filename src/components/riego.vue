@@ -133,7 +133,7 @@ async function listarCultivos() {
 
 async function listarEmpleados() {
 	const r = await useRiego.getEmpleados();
-	empleados.value = r.data.admins;
+	empleados.value = r.data.empleados;
 	console.log("empleados:", empleados.value);
 }
 

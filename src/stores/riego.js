@@ -29,7 +29,7 @@ export const useStoreRiego = defineStore(
 		const getEmpleados = async () => {
 			console.log(useAdmin.token);
 			try {
-				const r = await axios.get(`${url}/admin`, {
+				const r = await axios.get(`${url}/empleados`, {
 					headers: {
 						token: useAdmin.token,
 					},
