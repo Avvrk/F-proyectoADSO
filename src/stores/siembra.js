@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { useStoreAdmins } from "./admin.js";
 import axios from "axios";
-import { notifyErrorRequest, notifySuccessRequest } from "../routes/routes.js";
+import { notifyErrorRequest } from "../routes/routes.js";
 
 export const useStoreSiembra = defineStore(
 	"Siembra",
@@ -12,6 +12,36 @@ export const useStoreSiembra = defineStore(
 		let loading = ref(false);
 		const useAdmin = useStoreAdmins();
 
+		const getCultivos = async () => {
+			try {
+				const r = await axios.get(`${url}/Cultivos`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
+		const getEmpleados = async () => {
+			console.log(useAdmin.token);
+			try {
+				const r = await axios.get(`${url}/admin`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				console.log(r.data);
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
 		const getSiembra = async () => {
 			try {
 				loading.value = true;
@@ -20,7 +50,6 @@ export const useStoreSiembra = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Siembras listadas exitosamente.");
 				return r;
 			} catch (error) {
 				console.error("Error al listar siembras:", error.response.data);
@@ -38,7 +67,6 @@ export const useStoreSiembra = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Siembra encontrada exitosamente.");
 				return r;
 			} catch (error) {
 				console.error("Error al buscar siembra:", error.response.data);
@@ -48,23 +76,17 @@ export const useStoreSiembra = defineStore(
 			}
 		};
 
-		const getSiembraFechas = async () => {
+		const getSiembraFechas = async (fechaInicio, fechaFin) => {
 			try {
 				loading.value = true;
-				const r = await axios.get(`${url}/siembra/fechas`, {
+				const r = await axios.get(`${url}/siembra/fechas/${fechaInicio}/${fechaFin}`, {
 					headers: {
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest(
-					"Siembras listados por fechas exitosamente."
-				);
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar siembras por fechas:",
-					error.response.data
-				);
+				console.error("Error al listar siembras por fechas:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -79,15 +101,9 @@ export const useStoreSiembra = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest(
-					"Siembras listadas por el id del empleado exitosamente."
-				);
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al buscar siembras por el id del empleado:",
-					error.response.data
-				);
+				console.error("Error al buscar siembras por el id del empleado:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -97,23 +113,14 @@ export const useStoreSiembra = defineStore(
 		const getSiembraCultivoAnteriorID = async (id) => {
 			try {
 				loading.value = true;
-				const r = await axios.get(
-					`${url}/siembra/cultivoAnterior/${id}`,
-					{
-						headers: {
-							token: useAdmin.token,
-						},
-					}
-				);
-				notifySuccessRequest(
-					"Siembras listadas por el id del cultivo anterior exitosamente."
-				);
+				const r = await axios.get(`${url}/siembra/cultivoAnterior/${id}`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al buscar siembras por el id del cultivo anterior:",
-					error.response.data
-				);
+				console.error("Error al buscar siembras por el id del cultivo anterior:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -128,13 +135,9 @@ export const useStoreSiembra = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Siembras activas listadas exitosamente.");
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar siembras activas:",
-					error.response.data
-				);
+				console.error("Error al listar siembras activas:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -149,15 +152,9 @@ export const useStoreSiembra = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest(
-					"Siembras inactivas listadas exitosamente."
-				);
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar siembras inactivas:",
-					error.response.data
-				);
+				console.error("Error al listar siembras inactivas:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -172,14 +169,10 @@ export const useStoreSiembra = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Siembra agregado exitosamente.");
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error.response.data.errors[0].msg);
-				console.error(
-					"Error al agregar siembra:",
-					error.response.data.errors[0].msg
-				);
+				console.error("Error al agregar siembra:", error.response.data.errors[0].msg);
 				return error;
 			} finally {
 				loading.value = false;
@@ -194,14 +187,10 @@ export const useStoreSiembra = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Siembra editada exitosamente.");
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error.response.data.errors[0].msg);
-				console.error(
-					"Error al editar siembra:",
-					error.response.data.errors[0].msg
-				);
+				console.error("Error al editar siembra:", error.response.data.errors[0].msg);
 				return error;
 			} finally {
 				loading.value = false;
@@ -211,16 +200,11 @@ export const useStoreSiembra = defineStore(
 		const putSiembraActivar = async (id) => {
 			try {
 				loading.value = true;
-				const r = await axios.put(
-					`${url}/siembra/activar/${id}`,
-					null,
-					{
-						headers: {
-							token: useAdmin.token,
-						},
-					}
-				);
-				notifySuccessRequest("Siembra activado exitosamente.");
+				const r = await axios.put(`${url}/siembra/activar/${id}`, null, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error);
@@ -234,16 +218,11 @@ export const useStoreSiembra = defineStore(
 		const putSiembraInactivar = async (id) => {
 			try {
 				loading.value = true;
-				const r = await axios.put(
-					`${url}/siembra/inactivar/${id}`,
-					null,
-					{
-						headers: {
-							token: useAdmin.token,
-						},
-					}
-				);
-				notifySuccessRequest("Siembra inactivado exitosamente.");
+				const r = await axios.put(`${url}/siembra/inactivar/${id}`, null, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error);
@@ -266,9 +245,8 @@ export const useStoreSiembra = defineStore(
 			putSiembra,
 			putSiembraActivar,
 			putSiembraInactivar,
+			getCultivos,
+			getEmpleados
 		};
-	},
-	{
-		persist: true,
 	}
 );

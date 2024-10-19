@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { useStoreAdmins } from "./admin.js";
 import axios from "axios";
-import { notifyErrorRequest, notifySuccessRequest } from "../routes/routes.js";
+import { notifyErrorRequest } from "../routes/routes.js";
 
 export const useStoreRiego = defineStore(
 	"Riego",
@@ -12,6 +12,36 @@ export const useStoreRiego = defineStore(
 		let loading = ref(false);
 		const useAdmin = useStoreAdmins();
 
+		const getCultivos = async () => {
+			try {
+				const r = await axios.get(`${url}/Cultivos`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
+		const getEmpleados = async () => {
+			console.log(useAdmin.token);
+			try {
+				const r = await axios.get(`${url}/admin`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				console.log(r.data);
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
 		const getRiego = async () => {
 			try {
 				loading.value = true;
@@ -20,7 +50,6 @@ export const useStoreRiego = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Riegos listadas exitosamente.");
 				return r;
 			} catch (error) {
 				console.error("Error al listar riegos:", error.response.data);
@@ -38,7 +67,6 @@ export const useStoreRiego = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Riegos encontrada exitosamente.");
 				return r;
 			} catch (error) {
 				console.error("Error al buscar riego:", error.response.data);
@@ -56,15 +84,9 @@ export const useStoreRiego = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest(
-					"Riegos listados por fechas exitosamente."
-				);
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar riegos por fechas:",
-					error.response.data
-				);
+				console.error("Error al listar riegos por fechas:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -79,15 +101,9 @@ export const useStoreRiego = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest(
-					"Riegos listadas por el id del empleado exitosamente."
-				);
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al buscar riegos por el id del empleado:",
-					error.response.data
-				);
+				console.error("Error al buscar riegos por el id del empleado:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -102,15 +118,9 @@ export const useStoreRiego = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest(
-					"Riegos listadas por el id del cultivo exitosamente."
-				);
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al buscar riegos por el id del cultivo:",
-					error.response.data
-				);
+				console.error("Error al buscar riegos por el id del cultivo:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -125,15 +135,9 @@ export const useStoreRiego = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest(
-					"Riegos listadas por la cantidad de agua del cultivo exitosamente."
-				);
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al buscar riegos por la cantidad de agua del cultivo:",
-					error.response.data
-				);
+				console.error("Error al buscar riegos por la cantidad de agua del cultivo:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -148,13 +152,9 @@ export const useStoreRiego = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Riegos activas listadas exitosamente.");
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar riegos activas:",
-					error.response.data
-				);
+				console.error("Error al listar riegos activas:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -169,13 +169,9 @@ export const useStoreRiego = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Riegos inactivas listadas exitosamente.");
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar riegos inactivas:",
-					error.response.data
-				);
+				console.error("Error al listar riegos inactivas:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -190,14 +186,10 @@ export const useStoreRiego = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Riego agregado exitosamente.");
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error.response.data.errors[0].msg);
-				console.error(
-					"Error al agregar riego:",
-					error.response.data.errors[0].msg
-				);
+				console.error("Error al agregar riego:", error.response.data.errors[0].msg);
 				return error;
 			} finally {
 				loading.value = false;
@@ -212,14 +204,10 @@ export const useStoreRiego = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Riego editada exitosamente.");
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error.response.data.errors[0].msg);
-				console.error(
-					"Error al editar riego:",
-					error.response.data.errors[0].msg
-				);
+				console.error("Error al editar riego:", error.response.data.errors[0].msg);
 				return error;
 			} finally {
 				loading.value = false;
@@ -234,7 +222,6 @@ export const useStoreRiego = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Riego activado exitosamente.");
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error);
@@ -248,16 +235,11 @@ export const useStoreRiego = defineStore(
 		const putRiegoInactivar = async (id) => {
 			try {
 				loading.value = true;
-				const r = await axios.put(
-					`${url}/riego/inactivar/${id}`,
-					null,
-					{
-						headers: {
-							token: useAdmin.token,
-						},
-					}
-				);
-				notifySuccessRequest("Riego inactivado exitosamente.");
+				const r = await axios.put(`${url}/riego/inactivar/${id}`, null, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error);
@@ -281,9 +263,8 @@ export const useStoreRiego = defineStore(
 			putRiego,
 			putRiegoActivar,
 			putRiegoInactivar,
+			getCultivos,
+			getEmpleados
 		};
-	},
-	{
-		persist: true,
 	}
 );

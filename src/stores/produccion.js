@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { useStoreAdmins } from "./admin.js";
 import axios from "axios";
-import { notifyErrorRequest, notifySuccessRequest } from "../routes/routes.js";
+import { notifyErrorRequest,  } from "../routes/routes.js";
 
 export const useStoreProduccion = defineStore(
 	"Produccion",
@@ -12,6 +12,20 @@ export const useStoreProduccion = defineStore(
 		let loading = ref(false);
 		const useAdmin = useStoreAdmins();
 
+		const getCultivos = async () => {
+			try {
+				const r = await axios.get(`${url}/Cultivos`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
+				return r;
+			} catch (error) {
+				console.log(error);
+				return error;
+			}
+		};
+
 		const getProduccion = async () => {
 			try {
 				loading.value = true;
@@ -20,13 +34,9 @@ export const useStoreProduccion = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Producciones listadas exitosamente.");
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar producciones:",
-					error.response.data
-				);
+				console.error("Error al listar producciones:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -41,15 +51,9 @@ export const useStoreProduccion = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest(
-					"Producciones activas listadas exitosamente."
-				);
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar producciones activas:",
-					error.response.data
-				);
+				console.error("Error al listar producciones activas:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -64,41 +68,26 @@ export const useStoreProduccion = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest(
-					"Producciones inactivas listadas exitosamente."
-				);
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar producciones inactivas:",
-					error.response.data
-				);
+				console.error("Error al listar producciones inactivas:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
 			}
 		};
 
-		const getProduccionFechas = async () => {
+		const getProduccionFechas = async (fechaInicio, fechaFin) => {
 			try {
 				loading.value = true;
-				const r = await axios.get(
-					`${url}/produccion/fechas/${fechaInicio}/${fechaFin}`,
-					{
-						headers: {
-							token: useAdmin.token,
-						},
-					}
-				);
-				notifySuccessRequest(
-					"Producciones listadas por fechas exitosamente."
-				);
+				const r = await axios.get(`${url}/produccion/fechas/${fechaInicio}/${fechaFin}`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al listar producciones por fechas:",
-					error.response.data
-				);
+				console.error("Error al listar producciones por fechas:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -108,23 +97,14 @@ export const useStoreProduccion = defineStore(
 		const getProduccionCultivo = async (cultivo_id) => {
 			try {
 				loading.value = true;
-				const r = await axios.get(
-					`${url}/produccion/cultivo/${cultivo_id}`,
-					{
-						headers: {
-							token: useAdmin.token,
-						},
-					}
-				);
-				notifySuccessRequest(
-					"Producciones listadas por el id del cultivo exitosamente."
-				);
+				const r = await axios.get(`${url}/produccion/cultivo/${cultivo_id}`, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al buscar producciones por el id del cultivo:",
-					error.response.data
-				);
+				console.error("Error al buscar producciones por el id del cultivo:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -139,13 +119,9 @@ export const useStoreProduccion = defineStore(
 						token: useAdmin.token,
 					},
 				});
-				notifySuccessRequest("Total de producciones exitoso.");
 				return r;
 			} catch (error) {
-				console.error(
-					"Error al totalizar las producciones:",
-					error.response.data
-				);
+				console.error("Error al totalizar las producciones:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -162,7 +138,7 @@ export const useStoreProduccion = defineStore(
 				});
 				return r;
 			} catch (error) {
-				console.log(error);
+				console.error("Error al buscar producción:", error.response.data);
 				return error;
 			} finally {
 				loading.value = false;
@@ -179,7 +155,8 @@ export const useStoreProduccion = defineStore(
 				});
 				return r;
 			} catch (error) {
-				console.log(error);
+				notifyErrorRequest(error.response.data.errors[0].msg);
+				console.error("Error al agregar producción:", error.response.data.errors[0].msg);
 				return error;
 			} finally {
 				loading.value = false;
@@ -206,16 +183,11 @@ export const useStoreProduccion = defineStore(
 		const putProduccionActivar = async (id) => {
 			try {
 				loading.value = true;
-				const r = await axios.put(
-					`${url}/produccion/activar/${id}`,
-					null,
-					{
-						headers: {
-							token: useAdmin.token,
-						},
-					}
-				);
-				notifySuccessRequest("Produccion activado exitosamente.");
+				const r = await axios.put(`${url}/produccion/activar/${id}`, null, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error);
@@ -229,16 +201,11 @@ export const useStoreProduccion = defineStore(
 		const putProduccionInactivar = async (id) => {
 			try {
 				loading.value = true;
-				const r = await axios.put(
-					`${url}/produccion/inactivar/${id}`,
-					null,
-					{
-						headers: {
-							token: useAdmin.token,
-						},
-					}
-				);
-				notifySuccessRequest("Produccion inactivado exitosamente.");
+				const r = await axios.put(`${url}/produccion/inactivar/${id}`, null, {
+					headers: {
+						token: useAdmin.token,
+					},
+				});
 				return r;
 			} catch (error) {
 				notifyErrorRequest(error);
@@ -261,9 +228,7 @@ export const useStoreProduccion = defineStore(
 			putProduccion,
 			putProduccionActivar,
 			putProduccionInactivar,
+			getCultivos
 		};
-	},
-	{
-		persist: true,
 	}
 );
