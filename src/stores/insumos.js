@@ -1,19 +1,18 @@
 import { defineStore } from "pinia";
 import axios from "axios";
 import { useStoreAdmins } from "./admin.js";
-import { useQuasar } from "quasar";
+import notify from "../utils/notificaciones.js"
 
 export const useStoreInsumos = defineStore(
 	"Insumos",
 	() => {
-		const url = "http://localhost:4000";
-		// const url = "https://b-proyectoadso-production.up.railway.app";
+		// const url = "http://localhost:4000";
+		const url = "https://b-proyectoadso-production.up.railway.app";
 		const useAdmin = useStoreAdmins();
-		const $q = useQuasar();
 
-		const getProveedores = async () => {
+		const getFincas = async () => {
 			try {
-				const r = await axios.get(`${url}/Proveedores`, {
+				const r = await axios.get(`${url}/fincas`, {
 					headers: {
 						token: useAdmin.token,
 					},
@@ -24,7 +23,7 @@ export const useStoreInsumos = defineStore(
 				console.log(error);
 				return error;
 			}
-		}
+		};
 
 		const getInsumos = async () => {
 			try {
@@ -33,6 +32,7 @@ export const useStoreInsumos = defineStore(
 						token: useAdmin.token,
 					},
 				});
+				console.log(r.data)
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -61,6 +61,11 @@ export const useStoreInsumos = defineStore(
 						token: useAdmin.token,
 					},
 				});
+				if (r.status !== 200) {
+					notify("Parece que hubo un error en el registro")
+				} else {
+					notify("El registro se ha realizado correctamente", "positive")
+				}
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -75,6 +80,11 @@ export const useStoreInsumos = defineStore(
 						token: useAdmin.token,
 					},
 				});
+				if (r.status !== 200) {
+					notify("Parece que hubo un error al editar")
+				} else {
+					notify("El editar se ha realizado correctamente", "positive")
+				}
 				return r;
 			} catch (error) {
 				console.log(error);
@@ -83,7 +93,7 @@ export const useStoreInsumos = defineStore(
 		};
 
 		return {
-			getProveedores,
+			getFincas,
 			getInsumos,
 			getInsumosID,
 			postInsumos,

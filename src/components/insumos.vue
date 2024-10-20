@@ -1,4 +1,5 @@
-2<script setup>
+2
+<script setup>
 import { ref, onMounted, computed } from "vue";
 import { useStoreInsumos } from "../stores/insumos.js";
 import notify from "../utils/notificaciones.js";
@@ -7,33 +8,82 @@ const useInsumo = useStoreInsumos();
 
 const fincas = ref([]);
 
+const unidad = ["kg", "lts"]
 let rows = ref([]);
 let columns = ref([
-{ 
-    name: "id_finca", 
-    align: "center", 
-    label: "Finca", 
-    field: (row) => `${row.id_finca.nombre}`,
-    sortable: true, 
-},
-	{ name: "nombre", align: "center", label: "Nombre", field: "nombre", sortable: true, },
-	{ name: "registro_ica", align: "center", label: "Registro Ica", field: "registro_ica", sortable: true, },
-	{ name: "registro_invima", align: "center", label: "Registro Invima", field: "registro_invima", sortable: true, },
-	{ name: "relacionNPK", align: "center", label: "Relación NPK", field: "relacionNPK", sortable: true, },
-	{ name: "cantidad", align: "center", label: "Cantidad", field: "cantidad", sortable: true, },
-	{ name: "unidad", align: "center", label: "Unidad", field: "unidad", sortable: true, },
-	{ name: "observaciones", align: "center", label: "Observaciones", field: "observaciones", sortable: true, },
-	{ name: "opciones", align: "center", label: "Editar", field: "opciones", sortable: true, },
+	{
+		name: "id_finca",
+		align: "center",
+		label: "Finca",
+		field: (row) => `${row.id_finca.nombre}`,
+		sortable: true,
+	},
+	{
+		name: "nombre",
+		align: "center",
+		label: "Nombre",
+		field: "nombre",
+		sortable: true,
+	},
+	{
+		name: "registro_ica",
+		align: "center",
+		label: "Registro Ica",
+		field: "registro_ica",
+		sortable: true,
+	},
+	{
+		name: "registro_invima",
+		align: "center",
+		label: "Registro Invima",
+		field: "registro_invima",
+		sortable: true,
+	},
+	{
+		name: "relacionNPK",
+		align: "center",
+		label: "Relación NPK",
+		field: "relacionNPK",
+		sortable: true,
+	},
+	{
+		name: "cantidad",
+		align: "center",
+		label: "Cantidad",
+		field: "cantidad",
+		sortable: true,
+	},
+	{
+		name: "unidad",
+		align: "center",
+		label: "Unidad",
+		field: "unidad",
+		sortable: true,
+	},
+	{
+		name: "observaciones",
+		align: "center",
+		label: "Observaciones",
+		field: "observaciones",
+		sortable: true,
+	},
+	{
+		name: "opciones",
+		align: "center",
+		label: "Editar",
+		field: "opciones",
+		sortable: true,
+	},
 ]);
 
-const fincaInsumo = ref ("");
-const nombreInsumo = ref ("");
+const fincaInsumo = ref("");
+const nombreInsumo = ref("");
 const registroIcaInsumo = ref("");
 const registroInvimaInsumo = ref("");
-const relacionNPKInsumo = ref ("");
-const cantidadInsumo = ref ("");
-const unidadInsumo = ref ("");
-const observacionesInsumo = ref ("");
+const relacionNPKInsumo = ref("");
+const cantidadInsumo = ref("");
+const unidadInsumo = ref("");
+const observacionesInsumo = ref("");
 
 const datos = ref([]);
 
@@ -41,9 +91,9 @@ const mostrarFormularioInsumo = ref(false);
 const mostrarBotonEditar = ref(false);
 const loading = ref(false);
 
-const opcionesFinca = computed (()=> {
+const opcionesFinca = computed(() => {
 	return fincas.value.map((f) => {
-		return { label: `${f.nombre}`, id: f._id };
+		return { label: `${f.nombre} (rut: ${f.rut})`, id: f._id };
 	});
 });
 
@@ -68,7 +118,7 @@ async function listarInsumos() {
 }
 
 async function registrar() {
-	if (validarDatos()) {
+/* 	if (validarDatos()) { */
 		try {
 			loading.value = true;
 			const info = {
@@ -83,22 +133,22 @@ async function registrar() {
 			};
 
 			const r = await useInsumo.postInsumos(info);
-			if ( r.status === 200) {
+			if (r.status === 200) {
 				mostrarFormularioInsumo.value = false;
 				listarInsumos();
 			} else if (r.response && r.response.data.errors) {
 				r.response.data.errors.forEach((err) => {
 					notify(err.msg);
 				});
-			} 
+			}
 		} finally {
 			loading.value = false;
 		}
-	}
+/* 	} */
 }
 
 async function editar() {
-	if (validarDatos()){
+/* 	if (validarDatos()) { */
 		try {
 			loading.value = true;
 			const info = {
@@ -112,19 +162,19 @@ async function editar() {
 				observaciones: observacionesInsumo.value,
 			};
 
-			const r = await useInsumo.putInsumos(info);
-			if ( r.status === 200) {
+			const r = await useInsumo.putInsumos(datos.value._id, info);
+			if (r.status === 200) {
 				mostrarFormularioInsumo.value = false;
 				listarInsumos();
 			} else if (r.response && r.response.data.errors) {
 				r.response.data.errors.forEach((err) => {
 					notify(err.msg);
 				});
-			} 
+			}
 		} finally {
 			loading.value = false;
 		}
-	}
+/* 	} */
 }
 
 /* function validarDatos() {
@@ -237,10 +287,12 @@ function controlFormulario(obj, boolean) {
 	datos.value = obj;
 	mostrarBotonEditar.value = false;
 	if (obj != null && boolean) {
-		fincaInsumo.value = opcionesFinca.value.find((f) => f.id == datos.value.id_finca._id);
+		fincaInsumo.value = opcionesFinca.value.find(
+			(f) => f.id == datos.value.id_finca._id
+		);
 		nombreInsumo.value = datos.value.nombre;
 		registroIcaInsumo.value = datos.value.registro_ica;
-		registroInvimaInsumo.value = datos.value.registroInvimaInsumo;
+		registroInvimaInsumo.value = datos.value.registro_invima;
 		relacionNPKInsumo.value = datos.value.relacionNPK;
 		cantidadInsumo.value = datos.value.cantidad;
 		unidadInsumo.value = datos.value.unidad;
@@ -255,133 +307,125 @@ onMounted(() => {
 	listarFinca();
 	listarInsumos();
 });
-
-
 </script>
 
 <template>
-    <div>
-        <div class="q-pa-lg">
-            <q-table
-                :rows="rows"
-                :columns="columns"
-                row-key="id"
-                :loading="loading">
-                <template v-slot:top>
-                    <section class="column full-width q-pr-md">
-                        <div class="row items-center">
-                            <h1 class="text-h4 q-pl-xl text-green-7">
-                                Insumos
-                            </h1>
-                            <q-space />
-                            <q-btn
-                                size="md"
-                                @click="controlFormulario(null, true)"
-                                label="Agregar" />
-                        </div>
-                        
-                    </section>
-                </template>
-                <template v-slot:body-cell-opciones="props">
-                    <q-td :props="props">
-                        <q-btn @click="controlFormulario(props.row, true)">
-                            ✏️
-                        </q-btn>
-                    </q-td>
-                </template>
-            </q-table>
-        </div>
-        <q-dialog v-model="mostrarFormularioInsumo">
-            <q-card>
-                <q-form
-                    @submit="mostrarBotonEditar ? editar() : registrar()"
-                    class="q-gutter-sm">
-                    <p class="text-h5 text-center q-pb-md text-green">
-                        {{ datos ? "Editar" : "Agregar" }} Insumo
-                    </p>
-                    <q-select
-                        standout="bg-green text-white"
-                        :options="opcionesProveedores"
-                        label="Proveedor"
-                        v-model="fincaInsumo" />
-                    <q-input
-                        standout="bg-green text-white"
-                        type="text"
-                        label="Nombre"
-                        v-model="nombre" />
-                    <q-input
-                        standout="bg-green text-white"
-                        type="text"
-                        label="Relación NPK"
-                        v-model="relacionNPK" />
-                    <q-input
-                        standout="bg-green text-white"
-                        type="text"
-                        label="Cantidad"
-                        v-model="cantidad" />
-                    <q-input
-                        standout="bg-green text-white"
-                        type="text"
-                        label="Dosis"
-                        v-model="dosisControlPlagas" />
-                    <q-input
-                        standout="bg-green text-white"
-                        type="text"
-                        label="Unidad"
-                        v-model="unidad" />
-                    <q-input
-                        standout="bg-green text-white"
-                        type="text"
-                        label="Responsable"
-                        v-model="responsable" />
-						<q-input
-                        standout="bg-green text-white"
-                        type="text"
-                        label="Observaciones"
-                        v-model="observaciones" />
-						<q-input
-                        standout="bg-green text-white"
-                        type="text"
-                        label="Total"
-                        v-model="total" />
-                    <div class="row justify-end" style="gap: 10px">
-                        <q-btn
-                            unelevated
-                            v-if="mostrarBotonEditar"
-                            label="Editar"
-                            type="submit"
-                            color="positive" />
-                        <q-btn
-                            unelevated
-                            v-else
-                            label="Registrar"
-                            type="submit"
-                            color="positive" />
-                        <q-btn
-                            @click="controlFormulario(null, false)"
-                            flat
-                            class="bg-red text-white"
-                            label="Cerrar"
-                            type="button" />
-                    </div>
-                </q-form>
-            </q-card>
-        </q-dialog>
-    </div>
+	<div>
+		<div class="q-pa-lg">
+			<q-table
+				:rows="rows"
+				:columns="columns"
+				row-key="id"
+				:loading="loading">
+				<template v-slot:top>
+					<section class="column full-width q-pr-md">
+						<div class="row items-center">
+							<h1 class="text-h4 q-pl-xl text-green-7">
+								Insumos
+							</h1>
+							<q-space />
+							<q-btn
+								size="md"
+								@click="controlFormulario(null, true)"
+								label="Agregar" />
+						</div>
+					</section>
+				</template>
+				<template v-slot:body-cell-opciones="props">
+					<q-td :props="props">
+						<q-btn @click="controlFormulario(props.row, true)">
+							✏️
+						</q-btn>
+					</q-td>
+				</template>
+			</q-table>
+		</div>
+		<q-dialog v-model="mostrarFormularioInsumo">
+			<q-card>
+				<q-form
+					@submit="mostrarBotonEditar ? editar() : registrar()"
+					class="q-gutter-sm">
+					<p class="text-h5 text-center q-pb-md text-green">
+						{{ datos ? "Editar" : "Agregar" }} Insumo
+					</p>
+					<q-select
+						standout="bg-green text-white"
+						:options="opcionesFinca"
+						label="Finca"
+						v-model="fincaInsumo" />
+					<q-input
+						standout="bg-green text-white"
+						type="text"
+						label="Nombre"
+						v-model="nombreInsumo" />
+					<q-input
+						standout="bg-green text-white"
+						type="text"
+						label="Registro Ica"
+						v-model="registroIcaInsumo" />
+					<q-input
+						standout="bg-green text-white"
+						type="text"
+						label="Registro Invima"
+						v-model="registroInvimaInsumo" />
+					<q-input
+						standout="bg-green text-white"
+						type="text"
+						label="Relación NPK"
+						v-model="relacionNPKInsumo" />
+					<q-input
+						standout="bg-green text-white"
+						type="text"
+						label="Cantidad"
+						v-model="cantidadInsumo" />
+					<q-select
+						standout="bg-green text-white"
+						:options="unidad"
+						label="Unidad"
+						v-model="unidadInsumo" />
+					<q-input
+						standout="bg-green text-white"
+						type="text"
+						label="Observaciones"
+						v-model="observacionesInsumo" />
+					<div class="row justify-end" style="gap: 10px">
+						<q-btn
+							unelevated
+							v-if="mostrarBotonEditar"
+							label="Editar"
+							type="submit"
+							color="positive" />
+						<q-btn
+							unelevated
+							v-else
+							label="Registrar"
+							type="submit"
+							color="positive" />
+						<q-btn
+							@click="controlFormulario(null, false)"
+							flat
+							class="bg-red text-white"
+							label="Cerrar"
+							type="button" />
+					</div>
+				</q-form>
+			</q-card>
+		</q-dialog>
+	</div>
 </template>
 
 <style scoped>
 .q-card {
-    background-color: rgb(255, 255, 255);
-    padding: 40px 30px 40px 30px;
-    border-radius: 1pc;
-    width: 30rem;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border: 0;
+	background-color: rgb(255, 255, 255);
+	padding: 40px 30px 40px 30px;
+	border-radius: 1pc;
+	width: 30rem;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	border: 0;
 }
 
 .q-form .q-input,
 .q-form .q-select {
-    margin-bottom: 15px;
+	margin-bottom: 15px;
 }
 </style>
