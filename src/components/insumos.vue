@@ -1,41 +1,38 @@
-<script setup>
+2<script setup>
 import { ref, onMounted, computed } from "vue";
 import { useStoreInsumos } from "../stores/insumos.js";
-import { useQuasar } from "quasar";
-import { router } from "../routes/routes.js";
-
-const $q = useQuasar();
+import notify from "../utils/notificaciones.js";
 
 const useInsumo = useStoreInsumos();
 
-const proveedores = ref([]);
+const fincas = ref([]);
 
 let rows = ref([]);
 let columns = ref([
 { 
-    name: "proveedores_id", 
+    name: "id_finca", 
     align: "center", 
-    label: "Proveedor", 
-    field: (row) => `${row.proveedores_id.nombre} / Tlf: ${row.proveedores_id.telefono}`,
+    label: "Finca", 
+    field: (row) => `${row.id_finca.nombre}`,
     sortable: true, 
 },
 	{ name: "nombre", align: "center", label: "Nombre", field: "nombre", sortable: true, },
+	{ name: "registro_ica", align: "center", label: "Registro Ica", field: "registro_ica", sortable: true, },
+	{ name: "registro_invima", align: "center", label: "Registro Invima", field: "registro_invima", sortable: true, },
 	{ name: "relacionNPK", align: "center", label: "Relación NPK", field: "relacionNPK", sortable: true, },
 	{ name: "cantidad", align: "center", label: "Cantidad", field: "cantidad", sortable: true, },
 	{ name: "unidad", align: "center", label: "Unidad", field: "unidad", sortable: true, },
-	{ name: "total", align: "center", label: "Total", field: "total", sortable: true, },
-	{ name: "responsable", align: "center", label: "Responsable", field: "responsable", sortable: true, },
 	{ name: "observaciones", align: "center", label: "Observaciones", field: "observaciones", sortable: true, },
 	{ name: "opciones", align: "center", label: "Editar", field: "opciones", sortable: true, },
 ]);
 
-const proveedorInsumo = ref ("");
+const fincaInsumo = ref ("");
 const nombreInsumo = ref ("");
+const registroIcaInsumo = ref("");
+const registroInvimaInsumo = ref("");
 const relacionNPKInsumo = ref ("");
 const cantidadInsumo = ref ("");
 const unidadInsumo = ref ("");
-const totalInsumo = ref ("");
-const responsableInsumo = ref ("");
 const observacionesInsumo = ref ("");
 
 const datos = ref([]);
@@ -44,34 +41,17 @@ const mostrarFormularioInsumo = ref(false);
 const mostrarBotonEditar = ref(false);
 const loading = ref(false);
 
-const opcionesProveedores = computed (()=> {
-	return proveedores.value.map((p) => {
-		return { label: `${p.nombre} (Tlf: ${p.telefono}) (Email: ${p.email})`, id: p._id };
+const opcionesFinca = computed (()=> {
+	return fincas.value.map((f) => {
+		return { label: `${f.nombre}`, id: f._id };
 	});
 });
 
-async function listarProveedores() {
+async function listarFinca() {
 	try {
 		loading.value = true;
-		const r = await useInsumo.getProveedores();
-		if (r.code == "ERR_BAD_REQUEST") {
-			if (
-				r.response.data.msg == "No hay token en la peticion" ||
-                r.response.data.msg == "Token no válido! ." ||
-                r.response.data.msg == "Token no válido!!  " ||
-                r.response.data.msg == "Token no valido"
-			) {
-				$q.notify({
-					color: "red-4",
-					position: "top",
-					message: "No hay token en la petición",
-					icon: "report_problem",
-				});
-				return router.push("/");
-
-			}
-		}
-		proveedores.value = r.data.proveedores;
+		const r = await useInsumo.getFincas();
+		fincas.value = r.data.fincas;
 	} finally {
 		loading.value = false;
 	}
@@ -81,23 +61,6 @@ async function listarInsumos() {
 	try {
 		loading.value = true;
 		const r = await useInsumo.getInsumos();
-		if (r.code == "ERR_BAD_REQUEST") {
-			if (
-				r.response.data.msg == "No hay token en la peticion" ||
-				r.response.data.msg == "Token no válido! ." ||
-				r.response.data.msg == "Token no válido!!  " ||
-				r.response.data.msg == "Token no valido"
-			) {
-				$q.notify({
-					color: "red-4",
-					position: "top",
-					message: "No hay token en la petición",
-					icon: "report_problem",
-				});
-				return router.push("/");
-
-			}
-		}
 		rows.value = r.data.insumos;
 	} finally {
 		loading.value = false;
@@ -109,13 +72,13 @@ async function registrar() {
 		try {
 			loading.value = true;
 			const info = {
-				proveedores_id: proveedorInsumo.value.id,
+				id_finca: fincaInsumo.value.id,
 				nombre: nombreInsumo.value,
+				registro_ica: registroIcaInsumo.value,
+				registro_invima: registroInvimaInsumo.value,
 				relacionNPK: relacionNPKInsumo.value,
 				cantidad: cantidadInsumo.value,
 				unidad: unidadInsumo.value,
-				total: totalInsumo.value,
-				responsable: responsableInsumo.value,
 				observaciones: observacionesInsumo.value,
 			};
 
@@ -123,7 +86,11 @@ async function registrar() {
 			if ( r.status === 200) {
 				mostrarFormularioInsumo.value = false;
 				listarInsumos();
-			}
+			} else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
 		} finally {
 			loading.value = false;
 		}
@@ -135,13 +102,13 @@ async function editar() {
 		try {
 			loading.value = true;
 			const info = {
-				proveedores_id: proveedorInsumo.value.id,
+				id_finca: fincaInsumo.value.id,
 				nombre: nombreInsumo.value,
+				registro_ica: registroIcaInsumo.value,
+				registro_invima: registroInvimaInsumo.value,
 				relacionNPK: relacionNPKInsumo.value,
 				cantidad: cantidadInsumo.value,
 				unidad: unidadInsumo.value,
-				total: totalInsumo.value,
-				responsable: responsableInsumo.value,
 				observaciones: observacionesInsumo.value,
 			};
 
@@ -149,14 +116,18 @@ async function editar() {
 			if ( r.status === 200) {
 				mostrarFormularioInsumo.value = false;
 				listarInsumos();
-			}
+			} else if (r.response && r.response.data.errors) {
+				r.response.data.errors.forEach((err) => {
+					notify(err.msg);
+				});
+			} 
 		} finally {
 			loading.value = false;
 		}
 	}
 }
 
-function validarDatos() {
+/* function validarDatos() {
 	let validacion = true;
 	if (
 		!proveedorInsumo.value ||
@@ -251,28 +222,28 @@ function validarDatos() {
 
 	}
 	return validacion;
-}
+} */
 
 function controlFormulario(obj, boolean) {
-	proveedorInsumo.value = "";
+	fincaInsumo.value = "";
 	nombreInsumo.value = "";
+	registroIcaInsumo.value = "";
+	registroInvimaInsumo.value = "";
 	relacionNPKInsumo.value = "";
 	cantidadInsumo.value = "";
 	unidadInsumo.value = "";
-	totalInsumo.value = "";
-	responsableInsumo.value = "";
 	observacionesInsumo.value = "";
 
 	datos.value = obj;
 	mostrarBotonEditar.value = false;
 	if (obj != null && boolean) {
-		proveedorInsumo.value = opcionesProveedores.value.find((p) => p.id == datos.value.proveedores_id._id);
+		fincaInsumo.value = opcionesFinca.value.find((f) => f.id == datos.value.id_finca._id);
 		nombreInsumo.value = datos.value.nombre;
+		registroIcaInsumo.value = datos.value.registro_ica;
+		registroInvimaInsumo.value = datos.value.registroInvimaInsumo;
 		relacionNPKInsumo.value = datos.value.relacionNPK;
 		cantidadInsumo.value = datos.value.cantidad;
 		unidadInsumo.value = datos.value.unidad;
-		totalInsumo.value = datos.value.total;
-		responsableInsumo.value = datos.value.responsable;
 		observacionesInsumo.value = datos.value.observaciones;
 
 		mostrarBotonEditar.value = true;
@@ -281,7 +252,7 @@ function controlFormulario(obj, boolean) {
 }
 
 onMounted(() => {
-	listarProveedores();
+	listarFinca();
 	listarInsumos();
 });
 
@@ -332,7 +303,7 @@ onMounted(() => {
                         standout="bg-green text-white"
                         :options="opcionesProveedores"
                         label="Proveedor"
-                        v-model="proveedores_id" />
+                        v-model="fincaInsumo" />
                     <q-input
                         standout="bg-green text-white"
                         type="text"
