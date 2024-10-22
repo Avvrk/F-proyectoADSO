@@ -1,4 +1,3 @@
-2
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useStoreInsumos } from "../stores/insumos.js";

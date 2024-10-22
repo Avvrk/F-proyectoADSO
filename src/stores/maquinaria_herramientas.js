@@ -3,13 +3,43 @@ import axios from "axios";
 import { useStoreAdmins } from "./admin.js";
 
 export const useStoreMaquinaria = defineStore("Maquinaria", () => {
-	// const url = "http://localhost:3000";
-	const url = "https://b-proyectoadso-production.up.railway.app";
+	const url = "http://localhost:4000";
+	// const url = "https://b-proyectoadso-production.up.railway.app";
 	const useAdmin = useStoreAdmins();
 
 	const getProveedores = async () => {
 		try {
 			const r = await axios.get(`${url}/proveedores`, {
+				headers: {
+					token: useAdmin.token,
+				},
+			});
+			console.log(r.data);
+			return r;
+		} catch (error) {
+			console.log(error);
+			return error;
+		}
+	};
+
+	const getInsumos = async () => {
+		try {
+			const r = await axios.get(`${url}/insumos`, {
+				headers: {
+					token: useAdmin.token,
+				},
+			});
+			console.log(r.data);
+			return r;
+		} catch (error) {
+			console.log(error);
+			return error;
+		}
+	};
+
+	const getEmpleados = async () => {
+		try {
+			const r = await axios.get(`${url}/empleados`, {
 				headers: {
 					token: useAdmin.token,
 				},
@@ -195,6 +225,8 @@ export const useStoreMaquinaria = defineStore("Maquinaria", () => {
 
 	return {
 		getProveedores,
+		getInsumos,
+		getEmpleados,
 		getMaquinaria,
 		getMaquinariaId,
 		getMaquinariaActivos,
